@@ -295,6 +295,7 @@ function update() {
     pr.y = GROUND_Y - pr.r; pr.vy *= -0.4; pr.vx *= 0.7;
     if (Math.abs(pr.vy) < 1) { pr.vy = 0; pr.vx = 0; }
   }
+  if (pr.y - pr.r < 0)  { pr.y = pr.r;     pr.vy *= -0.5; }
   if (pr.x - pr.r < 0)  { pr.x = pr.r;     pr.vx *= -0.5; }
   if (pr.x + pr.r > VW) { pr.x = VW - pr.r; pr.vx *= -0.5; }
 
