@@ -121,7 +121,15 @@ const MAX_PULL = 90;
 let score, ammo, birdsHit, flyingBird, projectile, particles, phase, drag, launched;
 const BIRDS_TO_WIN = 5;
 
+let gameTimers = [];
+function gameTimeout(fn, delay) {
+  const id = setTimeout(fn, delay);
+  gameTimers.push(id);
+  return id;
+}
+
 function initGame() {
+  gameTimers.forEach(clearTimeout); gameTimers = [];
   score = 0; ammo = 8; birdsHit = 0;
   phase = 'aim'; drag = null; launched = false; particles = [];
   projectile = newProjectile();
@@ -295,8 +303,8 @@ function update() {
       document.getElementById('score-display').textContent = '* ' + score;
       spawnParticles(fb.x, fb.y);
       pr.vx *= 0.5; pr.vy *= -0.5;
-      if (birdsHit >= BIRDS_TO_WIN) { setTimeout(() => endGame(true), 400); return; }
-      setTimeout(() => { flyingBird = newFlyingBird(); }, 600);
+      if (birdsHit >= BIRDS_TO_WIN) { phase = 'ending'; gameTimeout(() => endGame(true), 400); return; }
+      gameTimeout(() => { flyingBird = newFlyingBird(); }, 600);
     }
   }
 
@@ -307,7 +315,7 @@ function update() {
     document.getElementById('ammo-display').textContent = 'o ' + Math.max(0, ammo);
     if (ammo <= 0) { endGame(false); }
     else {
-      setTimeout(() => {
+      gameTimeout(() => {
         projectile = newProjectile(); phase = 'aim'; launched = false;
         document.getElementById('msg').textContent = 'גרור את הקטפולטה ושחרר';
       }, 800);
@@ -343,10 +351,11 @@ function drawClouds() {
     ctx.fillRect(ox, oy + CP, w * CP, h * CP);
     ctx.fillRect(ox + CP, oy, (w - 2) * CP, CP + 4);
   }
-  cloud(8, 4, 11, 3);
-  cloud(34, 2, 14, 3);
-  cloud(62, 5, 10, 3);
-  cloud(82, 3, 12, 3);
+  cloud(Math.round(VW * 0.01), 4, 11, 3);
+  cloud(Math.round(VW * 0.18), 2, 14, 3);
+  cloud(Math.round(VW * 0.40), 5, 10, 3);
+  cloud(Math.round(VW * 0.58), 3, 12, 3);
+  cloud(Math.round(VW * 0.76), 6,  9, 3);
   ctx.restore();
 }
 
@@ -411,9 +420,14 @@ function drawProjectile() {
   ctx.save();
   ctx.scale(SCALE, SCALE);
   const pr = projectile;
-  // shadow
-  ctx.fillStyle = 'rgba(0,0,0,0.25)';
-  ctx.fillRect(Math.round((pr.x - 12) / PP) * PP, Math.round((GROUND_Y - 2) / PP) * PP, 24, PP);
+  // shadow fades with height
+  const shadowAlpha = Math.max(0, 0.3 * (1 - (GROUND_Y - pr.y) / 300));
+  if (shadowAlpha > 0) {
+    ctx.globalAlpha = shadowAlpha;
+    ctx.fillStyle = '#000';
+    ctx.fillRect(Math.round((pr.x - 12) / PP) * PP, Math.round((GROUND_Y - 2) / PP) * PP, 24, PP);
+    ctx.globalAlpha = 1;
+  }
   drawSprite(STONE_SPR, STONE_PAL, pr.x, pr.y);
   ctx.restore();
 }
@@ -437,10 +451,11 @@ function drawFlyingBird() {
   const label = `${birdsHit}/${BIRDS_TO_WIN}`;
   ctx.font = 'bold 10px monospace';
   ctx.textAlign = 'center';
+  const labelY = Math.max(18, fb.y - fb.r - 7);
   ctx.fillStyle = '#000';
-  ctx.fillText(label, px + 1, fb.y - fb.r - 5);
+  ctx.fillText(label, px + 1, labelY + 2);
   ctx.fillStyle = '#FFD700';
-  ctx.fillText(label, px, fb.y - fb.r - 7);
+  ctx.fillText(label, px, labelY);
 
   ctx.restore();
 }
