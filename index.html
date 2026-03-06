@@ -311,6 +311,7 @@ function update() {
   const outOfBounds = pr.x > VW + 60 || pr.y > H + 60;
   const stopped = !outOfBounds && Math.abs(pr.vx) < 0.3 && Math.abs(pr.vy) < 0.3 && pr.y + pr.r >= GROUND_Y - 2;
   if (outOfBounds || stopped) {
+    phase = 'waiting';
     ammo--;
     document.getElementById('ammo-display').textContent = 'o ' + Math.max(0, ammo);
     if (ammo <= 0) { endGame(false); }
