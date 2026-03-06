@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>ציפורים מעופפות 🐦</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #1a1a2e;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100dvh;
+      overflow: hidden;
+      font-family: -apple-system, sans-serif;
+      touch-action: none;
+    }
+    #ui {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      padding: 10px 20px;
+      color: #fff;
+      font-size: 20px;
+      font-weight: 700;
+    }
+    #score-display { color: #ffd700; }
+    #ammo-display  { color: #ff6b6b; }
+    #canvas {
+      border-radius: 16px;
+      cursor: crosshair;
+      touch-action: none;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+    }
+    #msg {
+      margin-top: 10px;
+      color: #fff;
+      font-size: 16px;
+      min-height: 22px;
+      text-align: center;
+    }
+    #restart-btn {
+      margin-top: 8px;
+      padding: 10px 28px;
+      background: #e94560;
+      color: #fff;
+      border: none;
+      border-radius: 24px;
+      font-size: 17px;
+      font-weight: 700;
+      cursor: pointer;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="ui">
+    <span id="score-display">⭐ 0</span>
+    <span>|</span>
+    <span id="ammo-display">🪨 5</span>
+  </div>
+  <canvas id="canvas"></canvas>
+  <div id="msg">גרור את הקטפולטה ושחרר 🎯</div>
+  <button id="restart-btn" onclick="initGame()">🔄 שחק שוב</button>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx    = canvas.getContext('2d');
+
+// ── Sizing ──────────────────────────────────────────────────────────────────
+function resize() {
+  const maxW = Math.min(window.innerWidth - 8, 800);
+  const maxH = Math.min(window.innerHeight - 110, 500);
+  const ratio = 8 / 5;
+  if (maxW / maxH > ratio) {
+    canvas.height = maxH;
+    canvas.width  = maxH * ratio;
+  } else {
+    canvas.width  = maxW;
+    canvas.height = maxW / ratio;
+  }
+  SCALE = canvas.width / 800;
+}
+let SCALE = 1;
+resize();
+window.addEventListener('resize', () => { resize(); initGame(); });
+
+// ── Constants (logical coords, scaled on draw) ───────────────────────────
+const W = 800, H = 500;
+const GRAVITY   = 0.4;
+const GROUND_Y  = H - 60;
+const SLING_X   = 120, SLING_Y = GROUND_Y - 80;
+const MAX_PULL  = 90;
+
+// ── State ────────────────────────────────────────────────────────────────
+let score, ammo, birds, projectile, particles, phase, drag, launched;
+
+function initGame() {
+  score      = 0;
+  ammo       = 5;
+  phase      = 'aim';   // aim | flying | result
+  drag       = null;
+  launched   = false;
+  particles  = [];
+  projectile = newProjectile();
+  birds      = spawnBirds();
+  document.getElementById('score-display').textContent = '⭐ 0';
+  document.getElementById('ammo-display').textContent  = '🪨 5';
+  document.getElementById('msg').textContent = 'גרור את הקטפולטה ושחרר 🎯';
+  document.getElementById('restart-btn').style.display = 'none';
+}
+
+function newProjectile() {
+  return { x: SLING_X, y: SLING_Y, vx: 0, vy: 0, r: 18, active: false };
+}
+
+// ── Bird positions ───────────────────────────────────────────────────────
+const BIRD_EMOJIS = ['🐦','🦜','🐧','🐤','🦢','🦅'];
+
+function spawnBirds() {
+  const list = [];
+  const positions = [
+    { x: 520, y: GROUND_Y - 30 },
+    { x: 600, y: GROUND_Y - 30 },
+    { x: 680, y: GROUND_Y - 30 },
+    { x: 560, y: GROUND_Y - 80 },
+    { x: 640, y: GROUND_Y - 80 },
+    { x: 600, y: GROUND_Y - 130 },
+  ];
+  positions.forEach(p => {
+    list.push({
+      x: p.x, y: p.y, r: 26,
+      emoji: BIRD_EMOJIS[Math.floor(Math.random() * BIRD_EMOJIS.length)],
+      alive: true,
+      wobble: 0,
+    });
+  });
+  return list;
+}
+
+// ── Input helpers ─────────────────────────────────────────────────────────
+function toLogical(clientX, clientY) {
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: (clientX - rect.left)  / SCALE,
+    y: (clientY - rect.top)   / SCALE,
+  };
+}
+
+function startDrag(lx, ly) {
+  if (phase !== 'aim') return;
+  const dx = lx - SLING_X, dy = ly - SLING_Y;
+  if (Math.hypot(dx, dy) < 50) drag = { x: lx, y: ly };
+}
+
+function moveDrag(lx, ly) {
+  if (!drag) return;
+  const dx = lx - SLING_X, dy = ly - SLING_Y;
+  const dist = Math.min(Math.hypot(dx, dy), MAX_PULL);
+  const angle = Math.atan2(dy, dx);
+  drag = { x: SLING_X + Math.cos(angle) * dist, y: SLING_Y + Math.sin(angle) * dist };
+  projectile.x = drag.x;
+  projectile.y = drag.y;
+}
+
+function endDrag() {
+  if (!drag || phase !== 'aim') return;
+  const power = 0.22;
+  projectile.vx = (SLING_X - drag.x) * power;
+  projectile.vy = (SLING_Y - drag.y) * power;
+  projectile.active = true;
+  phase  = 'flying';
+  drag   = null;
+  launched = true;
+}
+
+// Mouse
+canvas.addEventListener('mousedown',  e => { const p = toLogical(e.clientX, e.clientY); startDrag(p.x, p.y); });
+canvas.addEventListener('mousemove',  e => { if (drag) { const p = toLogical(e.clientX, e.clientY); moveDrag(p.x, p.y); } });
+canvas.addEventListener('mouseup',    () => endDrag());
+
+// Touch
+canvas.addEventListener('touchstart', e => { e.preventDefault(); const t = e.touches[0]; const p = toLogical(t.clientX, t.clientY); startDrag(p.x, p.y); }, { passive: false });
+canvas.addEventListener('touchmove',  e => { e.preventDefault(); const t = e.touches[0]; const p = toLogical(t.clientX, t.clientY); moveDrag(p.x, p.y); }, { passive: false });
+canvas.addEventListener('touchend',   e => { e.preventDefault(); endDrag(); }, { passive: false });
+
+// ── Particles ────────────────────────────────────────────────────────────
+function spawnParticles(x, y) {
+  for (let i = 0; i < 14; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 2 + Math.random() * 5;
+    particles.push({
+      x, y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      life: 1,
+      decay: 0.04 + Math.random() * 0.03,
+      r: 4 + Math.random() * 6,
+      color: `hsl(${30 + Math.random()*40},100%,60%)`,
+    });
+  }
+}
+
+// ── Physics update ────────────────────────────────────────────────────────
+function update() {
+  // particles
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.x += p.vx; p.y += p.vy;
+    p.vy += 0.15;
+    p.life -= p.decay;
+    if (p.life <= 0) particles.splice(i, 1);
+  }
+
+  if (phase !== 'flying') return;
+
+  // projectile physics
+  const pr = projectile;
+  pr.vy += GRAVITY;
+  pr.x  += pr.vx;
+  pr.y  += pr.vy;
+
+  // ground
+  if (pr.y + pr.r >= GROUND_Y) {
+    pr.y  = GROUND_Y - pr.r;
+    pr.vy *= -0.4;
+    pr.vx *= 0.7;
+    if (Math.abs(pr.vy) < 1) { pr.vy = 0; pr.vx = 0; }
+  }
+
+  // wall
+  if (pr.x - pr.r < 0)  { pr.x = pr.r;     pr.vx *= -0.5; }
+  if (pr.x + pr.r > W)  { pr.x = W - pr.r; pr.vx *= -0.5; }
+
+  // bird collision
+  birds.forEach(b => {
+    if (!b.alive) return;
+    const dx = pr.x - b.x, dy = pr.y - b.y;
+    if (Math.hypot(dx, dy) < pr.r + b.r) {
+      b.alive = false;
+      score += 100;
+      document.getElementById('score-display').textContent = '⭐ ' + score;
+      spawnParticles(b.x, b.y);
+      // slight bounce
+      pr.vx *= 0.6; pr.vy *= -0.5;
+    }
+  });
+
+  // bird wobble
+  birds.forEach(b => { if (b.alive) b.wobble = Math.sin(Date.now() / 400 + b.x) * 3; });
+
+  // check if out of screen or stopped
+  const outOfBounds = pr.x > W + 60 || pr.y > H + 60;
+  const stopped     = !outOfBounds && Math.abs(pr.vx) < 0.3 && Math.abs(pr.vy) < 0.3 && pr.y + pr.r >= GROUND_Y - 2;
+
+  if (outOfBounds || stopped) {
+    ammo--;
+    document.getElementById('ammo-display').textContent = '🪨 ' + Math.max(0, ammo);
+
+    const allDead = birds.every(b => !b.alive);
+    if (allDead) {
+      endGame(true);
+    } else if (ammo <= 0) {
+      endGame(false);
+    } else {
+      // next shot
+      setTimeout(() => {
+        projectile = newProjectile();
+        phase = 'aim';
+        launched = false;
+        document.getElementById('msg').textContent = 'גרור את הקטפולטה ושחרר 🎯';
+      }, 800);
+    }
+  }
+}
+
+function endGame(win) {
+  phase = 'result';
+  if (win) {
+    score += ammo * 50;
+    document.getElementById('score-display').textContent = '⭐ ' + score;
+    document.getElementById('msg').textContent = `🎉 כל הציפורים נפגעו! ניקוד: ${score}`;
+  } else {
+    document.getElementById('msg').textContent = `😢 נגמרו האבנים... ניקוד: ${score}`;
+  }
+  document.getElementById('restart-btn').style.display = 'inline-block';
+}
+
+// ── Drawing ───────────────────────────────────────────────────────────────
+function drawSky() {
+  const grad = ctx.createLinearGradient(0, 0, 0, H * SCALE);
+  grad.addColorStop(0,   '#0f2862');
+  grad.addColorStop(0.6, '#1a4f8a');
+  grad.addColorStop(1,   '#4a90d9');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+function drawClouds() {
+  ctx.save();
+  ctx.scale(SCALE, SCALE);
+  ctx.fillStyle = 'rgba(255,255,255,0.15)';
+  [[150,80,50],[350,50,70],[600,90,45],[720,60,55]].forEach(([x,y,r]) => {
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI*2);
+    ctx.arc(x+r*0.8, y-r*0.3, r*0.7, 0, Math.PI*2);
+    ctx.arc(x-r*0.8, y-r*0.2, r*0.6, 0, Math.PI*2);
+    ctx.fill();
+  });
+  ctx.restore();
+}
+
+function drawGround() {
+  ctx.save();
+  ctx.scale(SCALE, SCALE);
+  // grass
+  const g = ctx.createLinearGradient(0, GROUND_Y, 0, H);
+  g.addColorStop(0, '#2d8a2d');
+  g.addColorStop(1, '#1a5c1a');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, GROUND_Y, W, H - GROUND_Y);
+
+  // grass line
+  ctx.strokeStyle = '#3db33d';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(0, GROUND_Y); ctx.lineTo(W, GROUND_Y);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawSlingshot() {
+  ctx.save();
+  ctx.scale(SCALE, SCALE);
+
+  const bx = SLING_X, by = GROUND_Y;
+  const tx = SLING_X, ty = SLING_Y - 10;
+
+  // trunk
+  ctx.strokeStyle = '#8B5E3C';
+  ctx.lineWidth = 10;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(bx, by);
+  ctx.lineTo(tx, ty);
+  ctx.stroke();
+
+  // left arm
+  ctx.beginPath();
+  ctx.moveTo(tx, ty);
+  ctx.lineTo(tx - 20, ty - 30);
+  ctx.stroke();
+
+  // right arm
+  ctx.beginPath();
+  ctx.moveTo(tx, ty);
+  ctx.lineTo(tx + 20, ty - 30);
+  ctx.stroke();
+
+  // rubber bands
+  if (drag) {
+    ctx.strokeStyle = '#c8a046';
+    ctx.lineWidth = 3;
+    ctx.setLineDash([]);
+    ctx.beginPath();
+    ctx.moveTo(tx - 20, ty - 30);
+    ctx.lineTo(drag.x, drag.y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(tx + 20, ty - 30);
+    ctx.lineTo(drag.x, drag.y);
+    ctx.stroke();
+  } else if (!launched) {
+    ctx.strokeStyle = '#c8a046';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(tx - 20, ty - 30);
+    ctx.lineTo(SLING_X, SLING_Y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(tx + 20, ty - 30);
+    ctx.lineTo(SLING_X, SLING_Y);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+function drawProjectile() {
+  ctx.save();
+  ctx.scale(SCALE, SCALE);
+  const pr = projectile;
+
+  // shadow
+  ctx.beginPath();
+  ctx.ellipse(pr.x, GROUND_Y, pr.r * 0.8, 4, 0, 0, Math.PI*2);
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.fill();
+
+  ctx.font = `${pr.r * 2.2}px serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('🪨', pr.x, pr.y);
+  ctx.restore();
+}
+
+function drawBirds() {
+  ctx.save();
+  ctx.scale(SCALE, SCALE);
+  birds.forEach(b => {
+    if (!b.alive) return;
+    ctx.font = `${b.r * 2}px serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(b.emoji, b.x, b.y + b.wobble);
+  });
+  ctx.restore();
+}
+
+function drawParticles() {
+  ctx.save();
+  ctx.scale(SCALE, SCALE);
+  particles.forEach(p => {
+    ctx.globalAlpha = p.life;
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+    ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+  ctx.restore();
+}
+
+function drawTrajectoryHint() {
+  if (!drag || phase !== 'aim') return;
+  ctx.save();
+  ctx.scale(SCALE, SCALE);
+
+  const vx = (SLING_X - drag.x) * 0.22;
+  const vy = (SLING_Y - drag.y) * 0.22;
+  let px = SLING_X, py = SLING_Y;
+  let pvx = vx, pvy = vy;
+
+  ctx.setLineDash([6, 8]);
+  ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(px, py);
+  for (let i = 0; i < 30; i++) {
+    pvy += GRAVITY;
+    px += pvx; py += pvy;
+    if (py > GROUND_Y || px > W) break;
+    ctx.lineTo(px, py);
+  }
+  ctx.stroke();
+  ctx.restore();
+}
+
+// ── Game loop ─────────────────────────────────────────────────────────────
+function loop() {
+  update();
+  drawSky();
+  drawClouds();
+  drawGround();
+  drawTrajectoryHint();
+  drawSlingshot();
+  drawProjectile();
+  drawBirds();
+  drawParticles();
+  requestAnimationFrame(loop);
+}
+
+initGame();
+loop();
+</script>
+</body>
+</html>
