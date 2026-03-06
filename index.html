@@ -96,19 +96,21 @@ const SLING_X   = 120, SLING_Y = GROUND_Y - 80;
 const MAX_PULL  = 90;
 
 // ── State ────────────────────────────────────────────────────────────────
-let score, ammo, birds, projectile, particles, phase, drag, launched;
+let score, ammo, birdsHit, flyingBird, projectile, particles, phase, drag, launched;
+const BIRDS_TO_WIN = 5;
 
 function initGame() {
   score      = 0;
-  ammo       = 5;
-  phase      = 'aim';   // aim | flying | result
+  ammo       = 8;
+  birdsHit   = 0;
+  phase      = 'aim';
   drag       = null;
   launched   = false;
   particles  = [];
   projectile = newProjectile();
-  birds      = spawnBirds();
+  flyingBird = newFlyingBird();
   document.getElementById('score-display').textContent = '⭐ 0';
-  document.getElementById('ammo-display').textContent  = '🪨 5';
+  document.getElementById('ammo-display').textContent  = '🪨 8';
   document.getElementById('msg').textContent = 'גרור את הקטפולטה ושחרר 🎯';
   document.getElementById('restart-btn').style.display = 'none';
 }
@@ -117,28 +119,23 @@ function newProjectile() {
   return { x: SLING_X, y: SLING_Y, vx: 0, vy: 0, r: 18, active: false };
 }
 
-// ── Bird positions ───────────────────────────────────────────────────────
-const BIRD_EMOJIS = ['🐦','🦜','🐧','🐤','🦢','🦅'];
+// ── Flying bird ──────────────────────────────────────────────────────────
+const BIRD_EMOJIS = ['🐦','🦜','🐧','🦢','🦅','🦉'];
 
-function spawnBirds() {
-  const list = [];
-  const positions = [
-    { x: 520, y: GROUND_Y - 30 },
-    { x: 600, y: GROUND_Y - 30 },
-    { x: 680, y: GROUND_Y - 30 },
-    { x: 560, y: GROUND_Y - 80 },
-    { x: 640, y: GROUND_Y - 80 },
-    { x: 600, y: GROUND_Y - 130 },
-  ];
-  positions.forEach(p => {
-    list.push({
-      x: p.x, y: p.y, r: 26,
-      emoji: BIRD_EMOJIS[Math.floor(Math.random() * BIRD_EMOJIS.length)],
-      alive: true,
-      wobble: 0,
-    });
-  });
-  return list;
+function newFlyingBird() {
+  const fromLeft = Math.random() < 0.5;
+  const speed    = 3.5 + Math.random() * 2.5;
+  return {
+    x:     fromLeft ? 60 : W - 60,
+    y:     60 + Math.random() * (GROUND_Y - 160),
+    vx:    fromLeft ? speed : -speed,
+    vy:    (Math.random() - 0.5) * 3,
+    r:     28,
+    emoji: BIRD_EMOJIS[Math.floor(Math.random() * BIRD_EMOJIS.length)],
+    alive: true,
+    dirTimer: 0,
+    flap: 0,
+  };
 }
 
 // ── Input helpers ─────────────────────────────────────────────────────────
@@ -215,6 +212,28 @@ function update() {
     if (p.life <= 0) particles.splice(i, 1);
   }
 
+  // update flying bird movement always (even in 'aim' phase)
+  const fb = flyingBird;
+  if (fb && fb.alive) {
+    fb.x += fb.vx;
+    fb.y += fb.vy;
+    fb.flap++;
+    fb.dirTimer++;
+
+    // random vertical nudge every ~90 frames
+    if (fb.dirTimer > 60 + Math.random() * 60) {
+      fb.vy += (Math.random() - 0.5) * 3;
+      fb.vy  = Math.max(-4, Math.min(4, fb.vy));
+      fb.dirTimer = 0;
+    }
+
+    // bounce off edges
+    if (fb.x - fb.r < 0)          { fb.x = fb.r;            fb.vx =  Math.abs(fb.vx); }
+    if (fb.x + fb.r > W)          { fb.x = W - fb.r;        fb.vx = -Math.abs(fb.vx); }
+    if (fb.y - fb.r < 20)         { fb.y = 20 + fb.r;       fb.vy =  Math.abs(fb.vy); }
+    if (fb.y + fb.r > GROUND_Y - 20) { fb.y = GROUND_Y - 20 - fb.r; fb.vy = -Math.abs(fb.vy); }
+  }
+
   if (phase !== 'flying') return;
 
   // projectile physics
@@ -235,24 +254,27 @@ function update() {
   if (pr.x - pr.r < 0)  { pr.x = pr.r;     pr.vx *= -0.5; }
   if (pr.x + pr.r > W)  { pr.x = W - pr.r; pr.vx *= -0.5; }
 
-  // bird collision
-  birds.forEach(b => {
-    if (!b.alive) return;
-    const dx = pr.x - b.x, dy = pr.y - b.y;
-    if (Math.hypot(dx, dy) < pr.r + b.r) {
-      b.alive = false;
-      score += 100;
+  // flying bird collision
+  if (fb && fb.alive) {
+    const dx = pr.x - fb.x, dy = pr.y - fb.y;
+    if (Math.hypot(dx, dy) < pr.r + fb.r) {
+      fb.alive = false;
+      birdsHit++;
+      score += 200;
       document.getElementById('score-display').textContent = '⭐ ' + score;
-      spawnParticles(b.x, b.y);
-      // slight bounce
-      pr.vx *= 0.6; pr.vy *= -0.5;
+      spawnParticles(fb.x, fb.y);
+      pr.vx *= 0.5; pr.vy *= -0.5;
+
+      if (birdsHit >= BIRDS_TO_WIN) {
+        setTimeout(() => endGame(true), 400);
+        return;
+      }
+      // spawn next bird after short delay
+      setTimeout(() => { flyingBird = newFlyingBird(); }, 600);
     }
-  });
+  }
 
-  // bird wobble
-  birds.forEach(b => { if (b.alive) b.wobble = Math.sin(Date.now() / 400 + b.x) * 3; });
-
-  // check if out of screen or stopped
+  // check if projectile out of screen or stopped
   const outOfBounds = pr.x > W + 60 || pr.y > H + 60;
   const stopped     = !outOfBounds && Math.abs(pr.vx) < 0.3 && Math.abs(pr.vy) < 0.3 && pr.y + pr.r >= GROUND_Y - 2;
 
@@ -260,10 +282,7 @@ function update() {
     ammo--;
     document.getElementById('ammo-display').textContent = '🪨 ' + Math.max(0, ammo);
 
-    const allDead = birds.every(b => !b.alive);
-    if (allDead) {
-      endGame(true);
-    } else if (ammo <= 0) {
+    if (ammo <= 0) {
       endGame(false);
     } else {
       // next shot
@@ -282,9 +301,9 @@ function endGame(win) {
   if (win) {
     score += ammo * 50;
     document.getElementById('score-display').textContent = '⭐ ' + score;
-    document.getElementById('msg').textContent = `🎉 כל הציפורים נפגעו! ניקוד: ${score}`;
+    document.getElementById('msg').textContent = `🎉 פגעת ב-${BIRDS_TO_WIN} ציפורים! ניקוד: ${score}`;
   } else {
-    document.getElementById('msg').textContent = `😢 נגמרו האבנים... ניקוד: ${score}`;
+    document.getElementById('msg').textContent = `😢 נגמרו האבנים... פגעת ב-${birdsHit} ציפורים. ניקוד: ${score}`;
   }
   document.getElementById('restart-btn').style.display = 'inline-block';
 }
@@ -407,16 +426,32 @@ function drawProjectile() {
   ctx.restore();
 }
 
-function drawBirds() {
+function drawFlyingBird() {
+  const fb = flyingBird;
+  if (!fb || !fb.alive) return;
   ctx.save();
   ctx.scale(SCALE, SCALE);
-  birds.forEach(b => {
-    if (!b.alive) return;
-    ctx.font = `${b.r * 2}px serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(b.emoji, b.x, b.y + b.wobble);
-  });
+
+  // flip horizontally based on direction
+  ctx.translate(fb.x, fb.y);
+  if (fb.vx < 0) ctx.scale(-1, 1);
+
+  // subtle vertical bob
+  const bob = Math.sin(fb.flap * 0.18) * 4;
+
+  ctx.font = `${fb.r * 2.2}px serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(fb.emoji, 0, bob);
+
+  // counter showing birds hit / needed
+  ctx.restore();
+  ctx.save();
+  ctx.scale(SCALE, SCALE);
+  ctx.font = 'bold 13px -apple-system, sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.85)';
+  ctx.textAlign = 'center';
+  ctx.fillText(`${birdsHit}/${BIRDS_TO_WIN}`, fb.x, fb.y - fb.r - 8);
   ctx.restore();
 }
 
@@ -468,7 +503,7 @@ function loop() {
   drawTrajectoryHint();
   drawSlingshot();
   drawProjectile();
-  drawBirds();
+  drawFlyingBird();
   drawParticles();
   requestAnimationFrame(loop);
 }
