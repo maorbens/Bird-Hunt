@@ -351,11 +351,16 @@ function drawClouds() {
     ctx.fillRect(ox, oy + CP, w * CP, h * CP);
     ctx.fillRect(ox + CP, oy, (w - 2) * CP, CP + 4);
   }
-  cloud(Math.round(VW * 0.01), 4, 11, 3);
-  cloud(Math.round(VW * 0.18), 2, 14, 3);
-  cloud(Math.round(VW * 0.40), 5, 10, 3);
-  cloud(Math.round(VW * 0.58), 3, 12, 3);
-  cloud(Math.round(VW * 0.76), 6,  9, 3);
+  const clouds = [
+    { fx: 0.02, fy: 0.05, w: 11 },
+    { fx: 0.22, fy: 0.30, w: 14 },
+    { fx: 0.42, fy: 0.13, w: 10 },
+    { fx: 0.61, fy: 0.38, w: 12 },
+    { fx: 0.78, fy: 0.21, w:  9 },
+  ];
+  clouds.forEach(({ fx, fy, w }) =>
+    cloud(Math.round(VW * fx), Math.round(GROUND_Y * fy), w, 3)
+  );
   ctx.restore();
 }
 
