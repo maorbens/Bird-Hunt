@@ -4,114 +4,108 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <title>ציפורים מעופפות 🐦</title>
+  <title>Bird Hunt</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      background: #1a1a2e;
+      background: #2c1810;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       height: 100dvh;
       overflow: hidden;
-      font-family: -apple-system, sans-serif;
+      font-family: 'Press Start 2P', monospace;
       touch-action: none;
     }
     #ui {
       display: flex;
       align-items: center;
-      gap: 24px;
-      padding: 10px 20px;
+      gap: 20px;
+      padding: 6px 16px;
       color: #fff;
-      font-size: 20px;
-      font-weight: 700;
+      font-size: 12px;
     }
-    #score-display { color: #ffd700; }
-    #ammo-display  { color: #ff6b6b; }
+    #score-display { color: #FFD700; }
+    #ammo-display  { color: #FF6B6B; }
     #canvas {
-      border-radius: 16px;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
       cursor: crosshair;
       touch-action: none;
-      box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+      outline: 4px solid #000;
     }
     #msg {
-      margin-top: 10px;
+      margin-top: 8px;
       color: #fff;
-      font-size: 16px;
-      min-height: 22px;
+      font-size: 9px;
+      min-height: 18px;
       text-align: center;
     }
     #restart-btn {
       margin-top: 8px;
-      padding: 10px 28px;
+      padding: 10px 20px;
       background: #e94560;
       color: #fff;
-      border: none;
-      border-radius: 24px;
-      font-size: 17px;
-      font-weight: 700;
+      border: 4px solid #000;
+      box-shadow: 4px 4px 0 #000;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
       cursor: pointer;
       display: none;
     }
+    #restart-btn:active { transform: translate(2px,2px); box-shadow: 2px 2px 0 #000; }
   </style>
 </head>
 <body>
   <div id="ui">
-    <span id="score-display">⭐ 0</span>
-    <span>|</span>
-    <span id="ammo-display">🪨 5</span>
+    <span id="score-display">* 0</span>
+    <span style="color:#fff">|</span>
+    <span id="ammo-display">o 8</span>
   </div>
   <canvas id="canvas"></canvas>
-  <div id="msg">גרור את הקטפולטה ושחרר 🎯</div>
-  <button id="restart-btn" onclick="initGame()">🔄 שחק שוב</button>
+  <div id="msg">גרור את הקטפולטה ושחרר</div>
+  <button id="restart-btn" onclick="initGame()">שחק שוב</button>
 
 <script>
 const canvas = document.getElementById('canvas');
 const ctx    = canvas.getContext('2d');
+ctx.imageSmoothingEnabled = false;
 
-// ── Sizing ──────────────────────────────────────────────────────────────────
+// ── Sizing ────────────────────────────────────────────────────────────────
 function resize() {
   const maxW = Math.min(window.innerWidth - 8, 800);
   const maxH = Math.min(window.innerHeight - 110, 500);
   const ratio = 8 / 5;
-  if (maxW / maxH > ratio) {
-    canvas.height = maxH;
-    canvas.width  = maxH * ratio;
-  } else {
-    canvas.width  = maxW;
-    canvas.height = maxW / ratio;
-  }
+  if (maxW / maxH > ratio) { canvas.height = maxH; canvas.width = maxH * ratio; }
+  else                     { canvas.width = maxW;  canvas.height = maxW / ratio; }
   SCALE = canvas.width / 800;
+  ctx.imageSmoothingEnabled = false;
 }
 let SCALE = 1;
 resize();
 window.addEventListener('resize', () => { resize(); initGame(); });
 
-// ── Constants (logical coords, scaled on draw) ───────────────────────────
+// ── Constants ─────────────────────────────────────────────────────────────
 const W = 800, H = 500;
-const GRAVITY   = 0.4;
-const GROUND_Y  = H - 60;
-const SLING_X   = 120, SLING_Y = GROUND_Y - 80;
-const MAX_PULL  = 90;
+const GRAVITY  = 0.4;
+const GROUND_Y = H - 60;
+const SLING_X  = 120, SLING_Y = GROUND_Y - 80;
+const MAX_PULL = 90;
 
-// ── State ────────────────────────────────────────────────────────────────
+// ── State ─────────────────────────────────────────────────────────────────
 let score, ammo, birdsHit, flyingBird, projectile, particles, phase, drag, launched;
 const BIRDS_TO_WIN = 5;
 
 function initGame() {
-  score      = 0;
-  ammo       = 8;
-  birdsHit   = 0;
-  phase      = 'aim';
-  drag       = null;
-  launched   = false;
-  particles  = [];
+  score = 0; ammo = 8; birdsHit = 0;
+  phase = 'aim'; drag = null; launched = false; particles = [];
   projectile = newProjectile();
   flyingBird = newFlyingBird();
-  document.getElementById('score-display').textContent = '⭐ 0';
-  document.getElementById('ammo-display').textContent  = '🪨 8';
-  document.getElementById('msg').textContent = 'גרור את הקטפולטה ושחרר 🎯';
+  document.getElementById('score-display').textContent = '* 0';
+  document.getElementById('ammo-display').textContent  = 'o 8';
+  document.getElementById('msg').textContent = 'גרור את הקטפולטה ושחרר';
   document.getElementById('restart-btn').style.display = 'none';
 }
 
@@ -119,178 +113,180 @@ function newProjectile() {
   return { x: SLING_X, y: SLING_Y, vx: 0, vy: 0, r: 18, active: false };
 }
 
-// ── Flying bird ──────────────────────────────────────────────────────────
-const BIRD_EMOJIS = ['🐦','🦜','🐧','🦢','🦅','🦉'];
+// ── Pixel Art Engine ──────────────────────────────────────────────────────
+const PP = 4; // logical units per art pixel
 
+// sprite = 2D array (0=transparent, 1+ = index into pal)
+// pal = array of CSS colors [color_for_1, color_for_2, ...]
+function drawSprite(sprite, pal, cx, cy, flipX = false) {
+  const rows = sprite.length, cols = sprite[0].length;
+  const ox = Math.round(cx - cols * PP / 2);
+  const oy = Math.round(cy - rows * PP / 2);
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const code = sprite[r][c];
+      if (!code) continue;
+      ctx.fillStyle = pal[code - 1];
+      const x = flipX ? ox + (cols - 1 - c) * PP : ox + c * PP;
+      ctx.fillRect(x, oy + r * PP, PP, PP);
+    }
+  }
+}
+
+// ── Sprites ───────────────────────────────────────────────────────────────
+// Bird: 10 cols × 8 rows, facing RIGHT
+// 1=yellow 2=dark-yellow 3=white 4=black 5=orange-beak
+const BIRD_PAL = ['#F5D800','#886600','#FFFFFF','#111111','#FF8800'];
+
+const BIRD_A = [ // wing DOWN
+  [0,0,2,2,2,2,2,0,0,0],
+  [0,2,1,1,1,1,1,2,0,0],
+  [2,1,1,1,1,3,1,5,5,0],
+  [2,1,1,1,4,3,1,5,5,0],
+  [2,1,1,1,1,1,1,2,0,0],
+  [0,2,2,1,1,2,2,0,0,0],
+  [0,0,2,2,2,2,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0],
+];
+const BIRD_B = [ // wing UP
+  [0,0,0,2,2,2,0,0,0,0],
+  [0,2,2,1,1,2,2,0,0,0],
+  [2,1,1,1,1,3,1,5,5,0],
+  [2,1,1,1,4,3,1,5,5,0],
+  [2,1,1,1,1,1,1,2,0,0],
+  [0,2,1,1,1,1,2,0,0,0],
+  [0,0,2,2,2,2,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0],
+];
+
+// Stone: 8×7
+// 1=light-gray 2=mid-gray 3=dark-gray 4=highlight
+const STONE_PAL = ['#CCCCCC','#777777','#444444','#EEEEEE'];
+const STONE_SPR = [
+  [0,0,3,3,3,3,0,0],
+  [0,3,4,1,1,3,3,0],
+  [3,2,4,1,1,1,2,3],
+  [3,1,1,1,1,1,2,3],
+  [3,1,1,1,2,2,3,0],
+  [0,3,1,2,3,3,0,0],
+  [0,0,3,3,3,0,0,0],
+];
+
+// ── Flying bird ───────────────────────────────────────────────────────────
 function newFlyingBird() {
   const fromLeft = Math.random() < 0.5;
   const speed    = 3.5 + Math.random() * 2.5;
   return {
-    x:     fromLeft ? 60 : W - 60,
-    y:     60 + Math.random() * (GROUND_Y - 160),
-    vx:    fromLeft ? speed : -speed,
-    vy:    (Math.random() - 0.5) * 3,
-    r:     28,
-    emoji: BIRD_EMOJIS[Math.floor(Math.random() * BIRD_EMOJIS.length)],
-    alive: true,
-    dirTimer: 0,
-    flap: 0,
+    x: fromLeft ? 60 : W - 60,
+    y: 60 + Math.random() * (GROUND_Y - 160),
+    vx: fromLeft ? speed : -speed,
+    vy: (Math.random() - 0.5) * 3,
+    r: 28, alive: true, dirTimer: 0, flap: 0,
   };
 }
 
-// ── Input helpers ─────────────────────────────────────────────────────────
-function toLogical(clientX, clientY) {
+// ── Input ─────────────────────────────────────────────────────────────────
+function toLogical(cx, cy) {
   const rect = canvas.getBoundingClientRect();
-  return {
-    x: (clientX - rect.left)  / SCALE,
-    y: (clientY - rect.top)   / SCALE,
-  };
+  return { x: (cx - rect.left) / SCALE, y: (cy - rect.top) / SCALE };
 }
-
 function startDrag(lx, ly) {
   if (phase !== 'aim') return;
-  const dx = lx - SLING_X, dy = ly - SLING_Y;
-  if (Math.hypot(dx, dy) < 50) drag = { x: lx, y: ly };
+  if (Math.hypot(lx - SLING_X, ly - SLING_Y) < 50) drag = { x: lx, y: ly };
 }
-
 function moveDrag(lx, ly) {
   if (!drag) return;
   const dx = lx - SLING_X, dy = ly - SLING_Y;
   const dist = Math.min(Math.hypot(dx, dy), MAX_PULL);
   const angle = Math.atan2(dy, dx);
   drag = { x: SLING_X + Math.cos(angle) * dist, y: SLING_Y + Math.sin(angle) * dist };
-  projectile.x = drag.x;
-  projectile.y = drag.y;
+  projectile.x = drag.x; projectile.y = drag.y;
 }
-
 function endDrag() {
   if (!drag || phase !== 'aim') return;
   const power = 0.22;
   projectile.vx = (SLING_X - drag.x) * power;
   projectile.vy = (SLING_Y - drag.y) * power;
   projectile.active = true;
-  phase  = 'flying';
-  drag   = null;
-  launched = true;
+  phase = 'flying'; drag = null; launched = true;
 }
 
-// Mouse
 canvas.addEventListener('mousedown',  e => { const p = toLogical(e.clientX, e.clientY); startDrag(p.x, p.y); });
 canvas.addEventListener('mousemove',  e => { if (drag) { const p = toLogical(e.clientX, e.clientY); moveDrag(p.x, p.y); } });
 canvas.addEventListener('mouseup',    () => endDrag());
-
-// Touch
 canvas.addEventListener('touchstart', e => { e.preventDefault(); const t = e.touches[0]; const p = toLogical(t.clientX, t.clientY); startDrag(p.x, p.y); }, { passive: false });
 canvas.addEventListener('touchmove',  e => { e.preventDefault(); const t = e.touches[0]; const p = toLogical(t.clientX, t.clientY); moveDrag(p.x, p.y); }, { passive: false });
 canvas.addEventListener('touchend',   e => { e.preventDefault(); endDrag(); }, { passive: false });
 
-// ── Particles ────────────────────────────────────────────────────────────
+// ── Particles ─────────────────────────────────────────────────────────────
 function spawnParticles(x, y) {
-  for (let i = 0; i < 14; i++) {
+  for (let i = 0; i < 16; i++) {
     const angle = Math.random() * Math.PI * 2;
     const speed = 2 + Math.random() * 5;
     particles.push({
       x, y,
-      vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed,
-      life: 1,
-      decay: 0.04 + Math.random() * 0.03,
-      r: 4 + Math.random() * 6,
-      color: `hsl(${30 + Math.random()*40},100%,60%)`,
+      vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
+      life: 1, decay: 0.04 + Math.random() * 0.03,
+      r: PP * (1 + Math.floor(Math.random() * 3)),
+      color: ['#F5D800','#FF8800','#FFFFFF','#FF4444'][Math.floor(Math.random() * 4)],
     });
   }
 }
 
-// ── Physics update ────────────────────────────────────────────────────────
+// ── Update ────────────────────────────────────────────────────────────────
 function update() {
-  // particles
   for (let i = particles.length - 1; i >= 0; i--) {
     const p = particles[i];
-    p.x += p.vx; p.y += p.vy;
-    p.vy += 0.15;
-    p.life -= p.decay;
+    p.x += p.vx; p.y += p.vy; p.vy += 0.15; p.life -= p.decay;
     if (p.life <= 0) particles.splice(i, 1);
   }
 
-  // update flying bird movement always (even in 'aim' phase)
   const fb = flyingBird;
   if (fb && fb.alive) {
-    fb.x += fb.vx;
-    fb.y += fb.vy;
-    fb.flap++;
-    fb.dirTimer++;
-
-    // random vertical nudge every ~90 frames
+    fb.x += fb.vx; fb.y += fb.vy; fb.flap++; fb.dirTimer++;
     if (fb.dirTimer > 60 + Math.random() * 60) {
-      fb.vy += (Math.random() - 0.5) * 3;
-      fb.vy  = Math.max(-4, Math.min(4, fb.vy));
+      fb.vy = Math.max(-4, Math.min(4, fb.vy + (Math.random() - 0.5) * 3));
       fb.dirTimer = 0;
     }
-
-    // bounce off edges
-    if (fb.x - fb.r < 0)          { fb.x = fb.r;            fb.vx =  Math.abs(fb.vx); }
-    if (fb.x + fb.r > W)          { fb.x = W - fb.r;        fb.vx = -Math.abs(fb.vx); }
-    if (fb.y - fb.r < 20)         { fb.y = 20 + fb.r;       fb.vy =  Math.abs(fb.vy); }
+    if (fb.x - fb.r < 0)             { fb.x = fb.r;                 fb.vx =  Math.abs(fb.vx); }
+    if (fb.x + fb.r > W)             { fb.x = W - fb.r;             fb.vx = -Math.abs(fb.vx); }
+    if (fb.y - fb.r < 20)            { fb.y = 20 + fb.r;            fb.vy =  Math.abs(fb.vy); }
     if (fb.y + fb.r > GROUND_Y - 20) { fb.y = GROUND_Y - 20 - fb.r; fb.vy = -Math.abs(fb.vy); }
   }
 
   if (phase !== 'flying') return;
 
-  // projectile physics
   const pr = projectile;
-  pr.vy += GRAVITY;
-  pr.x  += pr.vx;
-  pr.y  += pr.vy;
+  pr.vy += GRAVITY; pr.x += pr.vx; pr.y += pr.vy;
 
-  // ground
   if (pr.y + pr.r >= GROUND_Y) {
-    pr.y  = GROUND_Y - pr.r;
-    pr.vy *= -0.4;
-    pr.vx *= 0.7;
+    pr.y = GROUND_Y - pr.r; pr.vy *= -0.4; pr.vx *= 0.7;
     if (Math.abs(pr.vy) < 1) { pr.vy = 0; pr.vx = 0; }
   }
-
-  // wall
   if (pr.x - pr.r < 0)  { pr.x = pr.r;     pr.vx *= -0.5; }
   if (pr.x + pr.r > W)  { pr.x = W - pr.r; pr.vx *= -0.5; }
 
-  // flying bird collision
   if (fb && fb.alive) {
-    const dx = pr.x - fb.x, dy = pr.y - fb.y;
-    if (Math.hypot(dx, dy) < pr.r + fb.r) {
-      fb.alive = false;
-      birdsHit++;
-      score += 200;
-      document.getElementById('score-display').textContent = '⭐ ' + score;
+    if (Math.hypot(pr.x - fb.x, pr.y - fb.y) < pr.r + fb.r) {
+      fb.alive = false; birdsHit++; score += 200;
+      document.getElementById('score-display').textContent = '* ' + score;
       spawnParticles(fb.x, fb.y);
       pr.vx *= 0.5; pr.vy *= -0.5;
-
-      if (birdsHit >= BIRDS_TO_WIN) {
-        setTimeout(() => endGame(true), 400);
-        return;
-      }
-      // spawn next bird after short delay
+      if (birdsHit >= BIRDS_TO_WIN) { setTimeout(() => endGame(true), 400); return; }
       setTimeout(() => { flyingBird = newFlyingBird(); }, 600);
     }
   }
 
-  // check if projectile out of screen or stopped
   const outOfBounds = pr.x > W + 60 || pr.y > H + 60;
-  const stopped     = !outOfBounds && Math.abs(pr.vx) < 0.3 && Math.abs(pr.vy) < 0.3 && pr.y + pr.r >= GROUND_Y - 2;
-
+  const stopped = !outOfBounds && Math.abs(pr.vx) < 0.3 && Math.abs(pr.vy) < 0.3 && pr.y + pr.r >= GROUND_Y - 2;
   if (outOfBounds || stopped) {
     ammo--;
-    document.getElementById('ammo-display').textContent = '🪨 ' + Math.max(0, ammo);
-
-    if (ammo <= 0) {
-      endGame(false);
-    } else {
-      // next shot
+    document.getElementById('ammo-display').textContent = 'o ' + Math.max(0, ammo);
+    if (ammo <= 0) { endGame(false); }
+    else {
       setTimeout(() => {
-        projectile = newProjectile();
-        phase = 'aim';
-        launched = false;
-        document.getElementById('msg').textContent = 'גרור את הקטפולטה ושחרר 🎯';
+        projectile = newProjectile(); phase = 'aim'; launched = false;
+        document.getElementById('msg').textContent = 'גרור את הקטפולטה ושחרר';
       }, 800);
     }
   }
@@ -300,197 +296,159 @@ function endGame(win) {
   phase = 'result';
   if (win) {
     score += ammo * 50;
-    document.getElementById('score-display').textContent = '⭐ ' + score;
-    document.getElementById('msg').textContent = `🎉 פגעת ב-${BIRDS_TO_WIN} ציפורים! ניקוד: ${score}`;
+    document.getElementById('score-display').textContent = '* ' + score;
+    document.getElementById('msg').textContent = `פגעת ב-${BIRDS_TO_WIN} ציפורים! ניקוד: ${score}`;
   } else {
-    document.getElementById('msg').textContent = `😢 נגמרו האבנים... פגעת ב-${birdsHit} ציפורים. ניקוד: ${score}`;
+    document.getElementById('msg').textContent = `נגמרו האבנים... פגעת ב-${birdsHit}. ניקוד: ${score}`;
   }
   document.getElementById('restart-btn').style.display = 'inline-block';
 }
 
-// ── Drawing ───────────────────────────────────────────────────────────────
+// ── Draw: Sky ─────────────────────────────────────────────────────────────
 function drawSky() {
-  const grad = ctx.createLinearGradient(0, 0, 0, H * SCALE);
-  grad.addColorStop(0,   '#0f2862');
-  grad.addColorStop(0.6, '#1a4f8a');
-  grad.addColorStop(1,   '#4a90d9');
-  ctx.fillStyle = grad;
+  ctx.fillStyle = '#4EC0CA';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
+// ── Draw: Clouds ──────────────────────────────────────────────────────────
 function drawClouds() {
   ctx.save();
   ctx.scale(SCALE, SCALE);
-  ctx.fillStyle = 'rgba(255,255,255,0.15)';
-  [[150,80,50],[350,50,70],[600,90,45],[720,60,55]].forEach(([x,y,r]) => {
-    ctx.beginPath();
-    ctx.arc(x, y, r, 0, Math.PI*2);
-    ctx.arc(x+r*0.8, y-r*0.3, r*0.7, 0, Math.PI*2);
-    ctx.arc(x-r*0.8, y-r*0.2, r*0.6, 0, Math.PI*2);
-    ctx.fill();
-  });
+  ctx.fillStyle = '#FFFFFF';
+  const CP = 8;
+  function cloud(ox, oy, w, h) {
+    // bottom wide rect + top narrower rect
+    ctx.fillRect(ox, oy + CP, w * CP, h * CP);
+    ctx.fillRect(ox + CP, oy, (w - 2) * CP, CP + 4);
+  }
+  cloud(8, 4, 11, 3);
+  cloud(34, 2, 14, 3);
+  cloud(62, 5, 10, 3);
+  cloud(82, 3, 12, 3);
   ctx.restore();
 }
 
+// ── Draw: Ground ──────────────────────────────────────────────────────────
 function drawGround() {
   ctx.save();
   ctx.scale(SCALE, SCALE);
-  // grass
-  const g = ctx.createLinearGradient(0, GROUND_Y, 0, H);
-  g.addColorStop(0, '#2d8a2d');
-  g.addColorStop(1, '#1a5c1a');
-  ctx.fillStyle = g;
+  ctx.fillStyle = '#DED895';
   ctx.fillRect(0, GROUND_Y, W, H - GROUND_Y);
-
-  // grass line
-  ctx.strokeStyle = '#3db33d';
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.moveTo(0, GROUND_Y); ctx.lineTo(W, GROUND_Y);
-  ctx.stroke();
+  ctx.fillStyle = '#78B800';
+  ctx.fillRect(0, GROUND_Y, W, PP * 3);
+  ctx.fillStyle = '#5A9000';
+  ctx.fillRect(0, GROUND_Y, W, PP);
+  // dirt texture dots
+  ctx.fillStyle = '#C8B870';
+  for (let x = PP * 3; x < W; x += PP * 10) {
+    ctx.fillRect(x,        GROUND_Y + PP * 5, PP * 2, PP);
+    ctx.fillRect(x + PP*5, GROUND_Y + PP * 8, PP * 2, PP);
+  }
   ctx.restore();
 }
 
+// ── Draw: Slingshot ───────────────────────────────────────────────────────
 function drawSlingshot() {
   ctx.save();
   ctx.scale(SCALE, SCALE);
-
   const bx = SLING_X, by = GROUND_Y;
   const tx = SLING_X, ty = SLING_Y - 10;
+  const lx = tx - 20, ly = ty - 30;
+  const rx = tx + 20, ry = ty - 30;
 
-  // trunk
-  ctx.strokeStyle = '#8B5E3C';
-  ctx.lineWidth = 10;
-  ctx.lineCap = 'round';
-  ctx.beginPath();
-  ctx.moveTo(bx, by);
-  ctx.lineTo(tx, ty);
-  ctx.stroke();
-
-  // left arm
-  ctx.beginPath();
-  ctx.moveTo(tx, ty);
-  ctx.lineTo(tx - 20, ty - 30);
-  ctx.stroke();
-
-  // right arm
-  ctx.beginPath();
-  ctx.moveTo(tx, ty);
-  ctx.lineTo(tx + 20, ty - 30);
-  ctx.stroke();
+  ctx.lineCap = 'square'; ctx.lineJoin = 'miter';
+  // shadow
+  ctx.strokeStyle = '#3D1A00'; ctx.lineWidth = PP * 3;
+  ctx.beginPath(); ctx.moveTo(bx+PP, by+PP); ctx.lineTo(tx+PP, ty+PP); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(tx+PP, ty+PP); ctx.lineTo(lx+PP, ly+PP); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(tx+PP, ty+PP); ctx.lineTo(rx+PP, ry+PP); ctx.stroke();
+  // body
+  ctx.strokeStyle = '#8B4513'; ctx.lineWidth = PP * 2.5;
+  ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(tx, ty); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(lx, ly); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(rx, ry); ctx.stroke();
+  // highlight
+  ctx.strokeStyle = '#C8804A'; ctx.lineWidth = PP;
+  ctx.beginPath(); ctx.moveTo(bx-PP, by); ctx.lineTo(tx-PP, ty); ctx.stroke();
 
   // rubber bands
-  if (drag) {
-    ctx.strokeStyle = '#c8a046';
-    ctx.lineWidth = 3;
+  const ex = drag ? drag.x : SLING_X;
+  const ey = drag ? drag.y : SLING_Y;
+  if (drag || !launched) {
+    ctx.strokeStyle = '#C8A046'; ctx.lineWidth = PP;
+    ctx.setLineDash([PP * 2, PP]);
+    ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(ex, ey); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(rx, ry); ctx.lineTo(ex, ey); ctx.stroke();
     ctx.setLineDash([]);
-    ctx.beginPath();
-    ctx.moveTo(tx - 20, ty - 30);
-    ctx.lineTo(drag.x, drag.y);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(tx + 20, ty - 30);
-    ctx.lineTo(drag.x, drag.y);
-    ctx.stroke();
-  } else if (!launched) {
-    ctx.strokeStyle = '#c8a046';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(tx - 20, ty - 30);
-    ctx.lineTo(SLING_X, SLING_Y);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(tx + 20, ty - 30);
-    ctx.lineTo(SLING_X, SLING_Y);
-    ctx.stroke();
   }
-
   ctx.restore();
 }
 
+// ── Draw: Projectile ──────────────────────────────────────────────────────
 function drawProjectile() {
   ctx.save();
   ctx.scale(SCALE, SCALE);
   const pr = projectile;
-
   // shadow
-  ctx.beginPath();
-  ctx.ellipse(pr.x, GROUND_Y, pr.r * 0.8, 4, 0, 0, Math.PI*2);
-  ctx.fillStyle = 'rgba(0,0,0,0.3)';
-  ctx.fill();
-
-  ctx.font = `${pr.r * 2.2}px serif`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('🪨', pr.x, pr.y);
+  ctx.fillStyle = 'rgba(0,0,0,0.25)';
+  ctx.fillRect(Math.round((pr.x - 12) / PP) * PP, Math.round((GROUND_Y - 2) / PP) * PP, 24, PP);
+  drawSprite(STONE_SPR, STONE_PAL, pr.x, pr.y);
   ctx.restore();
 }
 
+// ── Draw: Flying Bird ─────────────────────────────────────────────────────
 function drawFlyingBird() {
   const fb = flyingBird;
   if (!fb || !fb.alive) return;
   ctx.save();
   ctx.scale(SCALE, SCALE);
 
-  // flip horizontally based on direction
-  ctx.translate(fb.x, fb.y);
-  if (fb.vx < 0) ctx.scale(-1, 1);
+  const flipX  = fb.vx < 0;
+  const wingUp = Math.floor(fb.flap / 8) % 2 === 0;
+  const sprite = wingUp ? BIRD_B : BIRD_A;
+  const px = Math.round(fb.x / PP) * PP;
+  const py = Math.round(fb.y / PP) * PP;
 
-  // subtle vertical bob
-  const bob = Math.sin(fb.flap * 0.18) * 4;
+  drawSprite(sprite, BIRD_PAL, px, py, flipX);
 
-  ctx.font = `${fb.r * 2.2}px serif`;
+  // counter label above bird (pixelated style - double draw for shadow)
+  const label = `${birdsHit}/${BIRDS_TO_WIN}`;
+  ctx.font = 'bold 10px monospace';
   ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(fb.emoji, 0, bob);
+  ctx.fillStyle = '#000';
+  ctx.fillText(label, px + 1, fb.y - fb.r - 5);
+  ctx.fillStyle = '#FFD700';
+  ctx.fillText(label, px, fb.y - fb.r - 7);
 
-  // counter showing birds hit / needed
-  ctx.restore();
-  ctx.save();
-  ctx.scale(SCALE, SCALE);
-  ctx.font = 'bold 13px -apple-system, sans-serif';
-  ctx.fillStyle = 'rgba(255,255,255,0.85)';
-  ctx.textAlign = 'center';
-  ctx.fillText(`${birdsHit}/${BIRDS_TO_WIN}`, fb.x, fb.y - fb.r - 8);
   ctx.restore();
 }
 
+// ── Draw: Particles ───────────────────────────────────────────────────────
 function drawParticles() {
   ctx.save();
   ctx.scale(SCALE, SCALE);
   particles.forEach(p => {
     ctx.globalAlpha = p.life;
     ctx.fillStyle = p.color;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
-    ctx.fill();
+    ctx.fillRect(Math.round(p.x / PP) * PP, Math.round(p.y / PP) * PP, p.r, p.r);
   });
   ctx.globalAlpha = 1;
   ctx.restore();
 }
 
+// ── Draw: Trajectory hint ─────────────────────────────────────────────────
 function drawTrajectoryHint() {
   if (!drag || phase !== 'aim') return;
   ctx.save();
   ctx.scale(SCALE, SCALE);
-
-  const vx = (SLING_X - drag.x) * 0.22;
-  const vy = (SLING_Y - drag.y) * 0.22;
   let px = SLING_X, py = SLING_Y;
-  let pvx = vx, pvy = vy;
-
-  ctx.setLineDash([6, 8]);
-  ctx.strokeStyle = 'rgba(255,255,255,0.35)';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(px, py);
+  let pvx = (SLING_X - drag.x) * 0.22, pvy = (SLING_Y - drag.y) * 0.22;
+  ctx.fillStyle = 'rgba(255,255,255,0.55)';
   for (let i = 0; i < 30; i++) {
-    pvy += GRAVITY;
-    px += pvx; py += pvy;
+    pvy += GRAVITY; px += pvx; py += pvy;
     if (py > GROUND_Y || px > W) break;
-    ctx.lineTo(px, py);
+    if (i % 3 === 0) ctx.fillRect(Math.round(px / PP) * PP, Math.round(py / PP) * PP, PP, PP);
   }
-  ctx.stroke();
   ctx.restore();
 }
 
