@@ -89,12 +89,13 @@ ctx.imageSmoothingEnabled = false;
 
 // ── Sizing ────────────────────────────────────────────────────────────────
 const W = 800;          // logical width (fixed)
-let H, GROUND_Y, SLING_Y, SCALE;
+let VW, H, GROUND_Y, SLING_Y, SCALE;
 
 function resize() {
   canvas.width  = window.innerWidth;
   canvas.height = window.innerHeight;
   SCALE    = Math.max(canvas.width, canvas.height) / W;
+  VW       = Math.round(canvas.width  / SCALE);
   H        = Math.round(canvas.height / SCALE);
   GROUND_Y = H - 60;
   SLING_Y  = GROUND_Y - 80;
@@ -199,7 +200,7 @@ function newFlyingBird() {
   const fromLeft = Math.random() < 0.5;
   const speed    = 3.5 + Math.random() * 2.5;
   return {
-    x: fromLeft ? 60 : W - 60,
+    x: fromLeft ? 60 : VW - 60,
     y: 60 + Math.random() * (GROUND_Y - 160),
     vx: fromLeft ? speed : -speed,
     vy: (Math.random() - 0.5) * 3,
@@ -271,7 +272,7 @@ function update() {
       fb.dirTimer = 0;
     }
     if (fb.x - fb.r < 0)             { fb.x = fb.r;                 fb.vx =  Math.abs(fb.vx); }
-    if (fb.x + fb.r > W)             { fb.x = W - fb.r;             fb.vx = -Math.abs(fb.vx); }
+    if (fb.x + fb.r > VW)            { fb.x = VW - fb.r;            fb.vx = -Math.abs(fb.vx); }
     if (fb.y - fb.r < 20)            { fb.y = 20 + fb.r;            fb.vy =  Math.abs(fb.vy); }
     if (fb.y + fb.r > GROUND_Y - 20) { fb.y = GROUND_Y - 20 - fb.r; fb.vy = -Math.abs(fb.vy); }
   }
@@ -286,7 +287,7 @@ function update() {
     if (Math.abs(pr.vy) < 1) { pr.vy = 0; pr.vx = 0; }
   }
   if (pr.x - pr.r < 0)  { pr.x = pr.r;     pr.vx *= -0.5; }
-  if (pr.x + pr.r > W)  { pr.x = W - pr.r; pr.vx *= -0.5; }
+  if (pr.x + pr.r > VW) { pr.x = VW - pr.r; pr.vx *= -0.5; }
 
   if (fb && fb.alive) {
     if (Math.hypot(pr.x - fb.x, pr.y - fb.y) < pr.r + fb.r) {
@@ -299,7 +300,7 @@ function update() {
     }
   }
 
-  const outOfBounds = pr.x > W + 60 || pr.y > H + 60;
+  const outOfBounds = pr.x > VW + 60 || pr.y > H + 60;
   const stopped = !outOfBounds && Math.abs(pr.vx) < 0.3 && Math.abs(pr.vy) < 0.3 && pr.y + pr.r >= GROUND_Y - 2;
   if (outOfBounds || stopped) {
     ammo--;
@@ -354,14 +355,14 @@ function drawGround() {
   ctx.save();
   ctx.scale(SCALE, SCALE);
   ctx.fillStyle = '#DED895';
-  ctx.fillRect(0, GROUND_Y, W, H - GROUND_Y);
+  ctx.fillRect(0, GROUND_Y, VW, H - GROUND_Y);
   ctx.fillStyle = '#78B800';
-  ctx.fillRect(0, GROUND_Y, W, PP * 3);
+  ctx.fillRect(0, GROUND_Y, VW, PP * 3);
   ctx.fillStyle = '#5A9000';
-  ctx.fillRect(0, GROUND_Y, W, PP);
+  ctx.fillRect(0, GROUND_Y, VW, PP);
   // dirt texture dots
   ctx.fillStyle = '#C8B870';
-  for (let x = PP * 3; x < W; x += PP * 10) {
+  for (let x = PP * 3; x < VW; x += PP * 10) {
     ctx.fillRect(x,        GROUND_Y + PP * 5, PP * 2, PP);
     ctx.fillRect(x + PP*5, GROUND_Y + PP * 8, PP * 2, PP);
   }
@@ -467,7 +468,7 @@ function drawTrajectoryHint() {
   ctx.fillStyle = 'rgba(255,255,255,0.55)';
   for (let i = 0; i < 30; i++) {
     pvy += GRAVITY; px += pvx; py += pvy;
-    if (py > GROUND_Y || px > W) break;
+    if (py > GROUND_Y || px > VW) break;
     if (i % 3 === 0) ctx.fillRect(Math.round(px / PP) * PP, Math.round(py / PP) * PP, PP, PP);
   }
   ctx.restore();
