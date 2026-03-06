@@ -238,6 +238,7 @@ function endDrag() {
   const power = 0.22;
   projectile.vx = (SLING_X - drag.x) * power;
   projectile.vy = (SLING_Y - drag.y) * power;
+  projectile.x = SLING_X; projectile.y = SLING_Y;
   projectile.active = true;
   phase = 'flying'; drag = null; launched = true;
 }
