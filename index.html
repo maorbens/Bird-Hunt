@@ -22,10 +22,11 @@
     #ui {
       display: flex;
       align-items: center;
-      gap: 20px;
-      padding: 6px 16px;
+      justify-content: space-between;
+      /* width synced to canvas by JS */
+      padding: clamp(3px, 1.2vh, 10px) clamp(6px, 2vw, 20px);
       color: #fff;
-      font-size: 12px;
+      font-size: clamp(9px, 2.5vmin, 14px);
     }
     #score-display { color: #FFD700; }
     #ammo-display  { color: #FF6B6B; }
@@ -34,28 +35,31 @@
       image-rendering: crisp-edges;
       cursor: crosshair;
       touch-action: none;
-      outline: 4px solid #000;
+      outline: clamp(2px, 0.5vmin, 4px) solid #000;
+      flex-shrink: 0;
     }
     #msg {
-      margin-top: 8px;
+      margin-top: clamp(3px, 0.8vh, 8px);
       color: #fff;
-      font-size: 9px;
-      min-height: 18px;
+      font-size: clamp(9px, 2vmin, 13px);
+      min-height: clamp(14px, 2.5vmin, 20px);
       text-align: center;
+      font-family: -apple-system, Arial, sans-serif;
+      font-weight: 600;
     }
     #restart-btn {
-      margin-top: 8px;
-      padding: 10px 20px;
+      margin-top: clamp(4px, 0.8vh, 8px);
+      padding: clamp(7px, 1.5vh, 13px) clamp(14px, 4vw, 26px);
       background: #e94560;
       color: #fff;
-      border: 4px solid #000;
-      box-shadow: 4px 4px 0 #000;
+      border: 3px solid #000;
+      box-shadow: 3px 3px 0 #000;
       font-family: 'Press Start 2P', monospace;
-      font-size: 10px;
+      font-size: clamp(8px, 1.8vmin, 11px);
       cursor: pointer;
       display: none;
     }
-    #restart-btn:active { transform: translate(2px,2px); box-shadow: 2px 2px 0 #000; }
+    #restart-btn:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 #000; }
   </style>
 </head>
 <body>
@@ -75,13 +79,30 @@ ctx.imageSmoothingEnabled = false;
 
 // ── Sizing ────────────────────────────────────────────────────────────────
 function resize() {
-  const maxW = Math.min(window.innerWidth - 8, 800);
-  const maxH = Math.min(window.innerHeight - 110, 500);
-  const ratio = 8 / 5;
-  if (maxW / maxH > ratio) { canvas.height = maxH; canvas.width = maxH * ratio; }
-  else                     { canvas.width = maxW;  canvas.height = maxW / ratio; }
+  const ratio   = 8 / 5;
+  const uiEl    = document.getElementById('ui');
+  const msgEl   = document.getElementById('msg');
+  const btnEl   = document.getElementById('restart-btn');
+  const overhead = (uiEl.offsetHeight  || 28)
+                 + (msgEl.offsetHeight || 18)
+                 + (btnEl.style.display !== 'none' ? (btnEl.offsetHeight || 0) + 8 : 0)
+                 + 20; // breathing room
+
+  const availW = window.innerWidth;
+  const availH = Math.max(window.innerHeight - overhead, 160);
+
+  if (availW / availH > ratio) {
+    canvas.height = availH;
+    canvas.width  = Math.round(availH * ratio);
+  } else {
+    canvas.width  = availW;
+    canvas.height = Math.round(availW / ratio);
+  }
   SCALE = canvas.width / 800;
   ctx.imageSmoothingEnabled = false;
+
+  // Align UI bar width to canvas so score/ammo hug the canvas edges
+  uiEl.style.width = canvas.width + 'px';
 }
 let SCALE = 1;
 resize();
