@@ -94,7 +94,7 @@ let H, GROUND_Y, SLING_Y, SCALE;
 function resize() {
   canvas.width  = window.innerWidth;
   canvas.height = window.innerHeight;
-  SCALE    = canvas.width / W;
+  SCALE    = Math.max(canvas.width, canvas.height) / W;
   H        = Math.round(canvas.height / SCALE);
   GROUND_Y = H - 60;
   SLING_Y  = GROUND_Y - 80;
