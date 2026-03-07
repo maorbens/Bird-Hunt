@@ -510,8 +510,9 @@ function drawClouds() {
     { fx: 0.61, fy: 0.46, w: 12 },
     { fx: 0.78, fy: 0.29, w:  9 },
   ];
+  const minCloudY = 75; // always below top UI bar regardless of orientation
   clouds.forEach(({ fx, fy, w }) =>
-    cloud(Math.round(VW * fx), Math.round(GROUND_Y * fy), w, 3)
+    cloud(Math.round(VW * fx), Math.max(minCloudY, Math.round(GROUND_Y * fy)), w, 3)
   );
   ctx.restore();
 }
