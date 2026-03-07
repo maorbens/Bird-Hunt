@@ -354,6 +354,14 @@ function onHit(bx, by) {
   }
 
   updateUI();
+
+  if (timerExpired) {
+    phase = 'ending';
+    drag = null;
+    gameTimeout(() => endGame(), 400);
+    return;
+  }
+
   flyingBird = newFlyingBird();
   projectile = newProjectile();
   phase = 'aim'; launched = false;
