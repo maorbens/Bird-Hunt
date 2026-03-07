@@ -356,7 +356,7 @@ function toLogical(cx, cy) {
 }
 function startDrag(lx, ly) {
   if (phase !== 'aim') return;
-  if (Math.hypot(lx - SLING_X, ly - SLING_Y) < 50) drag = { x: lx, y: ly };
+  if (Math.hypot(lx - SLING_X, ly - SLING_Y) < 50) { drag = { x: lx, y: ly }; hideToast(); }
 }
 function moveDrag(lx, ly) {
   if (!drag) return;
@@ -374,7 +374,6 @@ function endDrag() {
   projectile.x = SLING_X; projectile.y = SLING_Y;
   projectile.active = true;
   phase = 'flying'; drag = null; launched = true;
-  hideToast();
 }
 
 canvas.addEventListener('mousedown',  e => { const p = toLogical(e.clientX, e.clientY); startDrag(p.x, p.y); });
