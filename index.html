@@ -40,7 +40,18 @@
     }
     #score-display { color: #FFD700; }
     #timer-display { color: #FF6B6B; transition: color 0.1s; }
-    #miss-display  { color: #FF6B6B; letter-spacing: 4px; }
+    #miss-display  { color: #FF6B6B; letter-spacing: 4px; font-size: clamp(22px, 5.5vmin, 40px); }
+    @keyframes heartDisappear {
+      0%   { opacity: 1; }
+      30%  { opacity: 0; }
+      55%  { opacity: 1; }
+      80%  { opacity: 0; }
+      100% { opacity: 0; }
+    }
+    .heart-out {
+      display: inline-block;
+      animation: heartDisappear 0.5s ease-out forwards;
+    }
     #msg {
       position: fixed;
       bottom: clamp(52px, 9vh, 100px);
@@ -127,7 +138,7 @@ const TIME_BONUS       = 10;  // seconds added
 // ── State ─────────────────────────────────────────────────────────────────
 let score, consecutiveHits, missCount;
 let isFireStone, stoneScale;
-let timeLeft, timerRunning, lastTimestamp;
+let timeLeft, timerRunning, lastTimestamp, timerExpired;
 let flyingBird, projectile, particles, floatingTexts, phase, drag, launched;
 
 let highScore = 0;
@@ -150,6 +161,7 @@ function initGame() {
   timeLeft        = TIMER_START;
   timerRunning    = true;
   lastTimestamp   = null;
+  timerExpired    = false;
   phase           = 'aim';
   drag            = null;
   launched        = false;
@@ -167,12 +179,19 @@ function newProjectile() {
   return { x: SLING_X, y: SLING_Y, vx: 0, vy: 0, r, active: false };
 }
 
-function updateUI() {
+function updateUI(animateMiss = false) {
   document.getElementById('score-display').textContent = '* ' + score;
-  const redHeart  = '<span style="color:#FF2222">♥</span>';
-  const grayHeart = '<span style="color:#444">♥</span>';
-  document.getElementById('miss-display').innerHTML =
-    redHeart.repeat(MISS_LIMIT - missCount) + grayHeart.repeat(missCount);
+  const missEl  = document.getElementById('miss-display');
+  const redHeart = '<span style="color:#FF2222">♥</span>';
+  const remaining = Math.max(0, MISS_LIMIT - missCount);
+
+  if (animateMiss) {
+    const blinkHeart = '<span class="heart-out" style="color:#FF2222;display:inline-block">♥</span>';
+    missEl.innerHTML = blinkHeart + redHeart.repeat(remaining);
+    setTimeout(() => { missEl.innerHTML = redHeart.repeat(remaining); }, 540);
+  } else {
+    missEl.innerHTML = redHeart.repeat(remaining);
+  }
 }
 
 function updateStatusMsg() {
@@ -356,7 +375,7 @@ function onMiss() {
     addFloatingText(label, SLING_X + 70, SLING_Y - 50, '#FF8844');
   }
 
-  updateUI();
+  updateUI(true);
 
   if (missCount >= MISS_LIMIT) {
     phase = 'ending';
@@ -450,7 +469,13 @@ function update() {
   const outOfBounds = pr.x > VW + 60 || pr.x < -60 || pr.y < -60 || pr.y > H + 60;
   const stopped = !outOfBounds && Math.abs(pr.vx) < 0.3 && Math.abs(pr.vy) < 0.3 && pr.y + pr.r >= GROUND_Y - 2;
   if (outOfBounds || stopped) {
-    onMiss();
+    if (timerExpired) {
+      phase = 'ending';
+      drag = null;
+      gameTimeout(() => endGame(), 100);
+    } else {
+      onMiss();
+    }
   }
 }
 
@@ -657,11 +682,16 @@ function loop(timestamp) {
     if (lastTimestamp !== null) {
       const delta = Math.min((timestamp - lastTimestamp) / 1000, 0.1);
       timeLeft = Math.max(0, timeLeft - delta);
-      if (timeLeft <= 0 && phase !== 'result' && phase !== 'ending') {
+      if (timeLeft <= 0 && phase !== 'result' && phase !== 'ending' && !timerExpired) {
         timerRunning = false;
-        phase = 'ending';
-        drag = null;
-        gameTimeout(() => endGame(), 100);
+        timerExpired = true;
+        if (phase === 'flying') {
+          // Let the stone finish its flight
+        } else {
+          phase = 'ending';
+          drag = null;
+          gameTimeout(() => endGame(), 100);
+        }
       }
     }
     lastTimestamp = timestamp;
