@@ -81,6 +81,7 @@
       box-shadow: 6px 6px 0 #000, inset 0 0 0 2px #000;
       padding: clamp(24px, 5vmin, 48px) clamp(32px, 7vmin, 64px);
       text-align: center;
+      direction: rtl;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -90,19 +91,22 @@
     }
     #game-over-reason {
       color: #FF6B6B;
-      font-size: clamp(14px, 3.2vmin, 26px);
-      line-height: 1.6;
+      font-size: clamp(14px, 3vmin, 24px);
       text-shadow: 2px 2px 0 #000;
     }
-    #game-over-score {
-      color: #FFD700;
-      font-size: clamp(18px, 4.5vmin, 38px);
-      text-shadow: 3px 3px 0 #000;
-    }
-    #game-over-hs {
-      color: #aaffaa;
-      font-size: clamp(11px, 2.4vmin, 20px);
+    #game-over-score, #game-over-hs {
+      display: flex;
+      align-items: baseline;
+      gap: clamp(8px, 1.5vmin, 14px);
       text-shadow: 2px 2px 0 #000;
+    }
+    #game-over-score { color: #FFD700; }
+    #game-over-hs    { color: #aaffaa; }
+    .pop-label {
+      font-size: clamp(14px, 3vmin, 24px);
+    }
+    .pop-num {
+      font-size: clamp(20px, 4.5vmin, 36px);
     }
     #restart-btn {
       padding: clamp(12px, 2.5vmin, 22px) clamp(24px, 6vmin, 52px);
@@ -130,8 +134,8 @@
   <div id="game-over-overlay">
     <div id="game-over-popup">
       <div id="game-over-reason"></div>
-      <div id="game-over-score"></div>
-      <div id="game-over-hs"></div>
+      <div id="game-over-score"><span class="pop-label">ניקוד:</span><span class="pop-num" id="score-val"></span></div>
+      <div id="game-over-hs"><span class="pop-label" id="hs-label"></span><span class="pop-num" id="hs-val"></span></div>
       <button id="restart-btn" onclick="initGame()">שחק שוב</button>
     </div>
   </div>
@@ -456,8 +460,14 @@ function endGame() {
   }
   const reasonText = timeLeft <= 0 ? 'הזמן נגמר!' : MISS_LIMIT + ' פספוסים!';
   document.getElementById('game-over-reason').textContent = reasonText;
-  document.getElementById('game-over-score').textContent = 'ניקוד: ' + score;
-  document.getElementById('game-over-hs').textContent = isNew ? '★ שיא חדש! ★' : 'שיא: ' + highScore;
+  document.getElementById('score-val').textContent = score;
+  if (isNew) {
+    document.getElementById('hs-label').textContent = '★ שיא חדש! ★';
+    document.getElementById('hs-val').textContent = '';
+  } else {
+    document.getElementById('hs-label').textContent = 'שיא:';
+    document.getElementById('hs-val').textContent = highScore;
+  }
   document.getElementById('game-over-overlay').classList.add('visible');
 }
 
