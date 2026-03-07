@@ -377,9 +377,9 @@ function onMiss() {
     isFireStone = false;
     addFloatingText('MISS', projectile.x, projectile.y - 20, '#FF4444');
   } else {
-    // Normal miss: shrink stone by 50% (once only)
-    stoneScale = Math.max(0.5, stoneScale * 0.5);
-    const label = 'STONE -50%';
+    // Normal miss: shrink stone by 42% (once only)
+    stoneScale = Math.max(0.575, stoneScale * 0.575);
+    const label = 'STONE -42%';
     addFloatingText(label, SLING_X + 70, SLING_Y - 50, '#FF8844');
   }
 
@@ -504,11 +504,11 @@ function drawClouds() {
     ctx.fillRect(ox + CP, oy, (w - 2) * CP, CP + 4);
   }
   const clouds = [
-    { fx: 0.02, fy: 0.05, w: 11 },
-    { fx: 0.22, fy: 0.30, w: 14 },
-    { fx: 0.42, fy: 0.13, w: 10 },
-    { fx: 0.61, fy: 0.38, w: 12 },
-    { fx: 0.78, fy: 0.21, w:  9 },
+    { fx: 0.02, fy: 0.13, w: 11 },
+    { fx: 0.22, fy: 0.38, w: 14 },
+    { fx: 0.42, fy: 0.21, w: 10 },
+    { fx: 0.61, fy: 0.46, w: 12 },
+    { fx: 0.78, fy: 0.29, w:  9 },
   ];
   clouds.forEach(({ fx, fy, w }) =>
     cloud(Math.round(VW * fx), Math.round(GROUND_Y * fy), w, 3)
