@@ -158,14 +158,11 @@ const W = 800;
 let VW, H, GROUND_Y, SLING_Y, SCALE;
 
 function resize() {
-  const r = canvas.getBoundingClientRect();
-  const w = Math.round(r.width)  || window.innerWidth;
-  const h = Math.round(r.height) || window.innerHeight;
-  canvas.width  = w;
-  canvas.height = h;
-  SCALE    = Math.max(w, h) / W;
-  VW       = Math.round(w / SCALE);
-  H        = Math.round(h / SCALE);
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  SCALE    = Math.max(canvas.width, canvas.height) / W;
+  VW       = Math.round(canvas.width  / SCALE);
+  H        = Math.round(canvas.height / SCALE);
   GROUND_Y = H - 60;
   SLING_Y  = GROUND_Y - 80;
   ctx.imageSmoothingEnabled = false;
