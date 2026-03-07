@@ -39,7 +39,8 @@
       background: linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, transparent 100%);
     }
     #score-display { color: #FFD700; }
-    #ammo-display  { color: #FF6B6B; }
+    #timer-display { color: #FF6B6B; transition: color 0.1s; }
+    #miss-display  { color: #FF6B6B; }
     #msg {
       position: fixed;
       bottom: clamp(52px, 9vh, 100px);
@@ -76,8 +77,8 @@
   <canvas id="canvas"></canvas>
   <div id="ui">
     <span id="score-display">* 0</span>
-    <span style="color:#fff">|</span>
-    <span id="ammo-display">o 8</span>
+    <span id="timer-display">60s</span>
+    <span id="miss-display">X 0/5</span>
   </div>
   <div id="msg">גרור את הקטפולטה ושחרר</div>
   <button id="restart-btn" onclick="initGame()">שחק שוב</button>
@@ -88,7 +89,7 @@ const ctx    = canvas.getContext('2d');
 ctx.imageSmoothingEnabled = false;
 
 // ── Sizing ────────────────────────────────────────────────────────────────
-const W = 800;          // logical width (fixed)
+const W = 800;
 let VW, H, GROUND_Y, SLING_Y, SCALE;
 
 function resize() {
@@ -113,13 +114,24 @@ window.addEventListener('resize', handleResize);
 window.addEventListener('orientationchange', () => setTimeout(handleResize, 200));
 
 // ── Constants ─────────────────────────────────────────────────────────────
-const GRAVITY  = 0.4;
-const SLING_X  = 120;
-const MAX_PULL = 130;
+const GRAVITY          = 0.4;
+const SLING_X          = 120;
+const MAX_PULL         = 130;
+const BASE_RADIUS      = 18;
+const MISS_LIMIT       = 5;
+const TIMER_START      = 60;
+const FIRE_COMBO       = 3;   // consecutive hits to activate fire stone
+const TIME_BONUS_COMBO = 5;   // consecutive hits to add time
+const TIME_BONUS       = 10;  // seconds added
 
 // ── State ─────────────────────────────────────────────────────────────────
-let score, ammo, birdsHit, flyingBird, projectile, particles, phase, drag, launched;
-const BIRDS_TO_WIN = 5;
+let score, consecutiveHits, missCount;
+let isFireStone, stoneScale;
+let timeLeft, timerRunning, lastTimestamp;
+let flyingBird, projectile, particles, floatingTexts, phase, drag, launched;
+
+let highScore = 0;
+try { highScore = parseInt(localStorage.getItem('birdHuntHS') || '0') || 0; } catch(e) {}
 
 let gameTimers = [];
 function gameTimeout(fn, delay) {
@@ -130,36 +142,64 @@ function gameTimeout(fn, delay) {
 
 function initGame() {
   gameTimers.forEach(clearTimeout); gameTimers = [];
-  score = 0; ammo = 8; birdsHit = 0;
-  phase = 'aim'; drag = null; launched = false; particles = [];
-  projectile = newProjectile();
-  flyingBird = newFlyingBird();
-  document.getElementById('score-display').textContent = '* 0';
-  document.getElementById('ammo-display').textContent  = 'o 8';
-  document.getElementById('msg').textContent = 'גרור את הקטפולטה ושחרר';
+  score           = 0;
+  consecutiveHits = 0;
+  missCount       = 0;
+  isFireStone     = false;
+  stoneScale      = 1;
+  timeLeft        = TIMER_START;
+  timerRunning    = true;
+  lastTimestamp   = null;
+  phase           = 'aim';
+  drag            = null;
+  launched        = false;
+  particles       = [];
+  floatingTexts   = [];
+  projectile      = newProjectile();
+  flyingBird      = newFlyingBird();
+  updateUI();
+  updateStatusMsg();
   document.getElementById('restart-btn').style.display = 'none';
 }
 
 function newProjectile() {
-  return { x: SLING_X, y: SLING_Y, vx: 0, vy: 0, r: 18, active: false };
+  const r = Math.max(5, Math.round(BASE_RADIUS * stoneScale));
+  return { x: SLING_X, y: SLING_Y, vx: 0, vy: 0, r, active: false };
+}
+
+function updateUI() {
+  document.getElementById('score-display').textContent = '* ' + score;
+  document.getElementById('miss-display').textContent  = 'X ' + missCount + '/' + MISS_LIMIT;
+}
+
+function updateStatusMsg() {
+  if (phase === 'result' || phase === 'ending') return;
+  let msg = 'גרור את הקטפולטה ושחרר';
+  if (isFireStone)       msg = '*** אבן אש - 300 נק\' לפגיעה! ***';
+  else if (stoneScale < 1) msg = '(אבן קטנה - פגע להחזיר לגודל)';
+  document.getElementById('msg').textContent = msg;
+}
+
+function addFloatingText(text, x, y, color) {
+  floatingTexts.push({ text, x, y, color, life: 1, vy: -1 });
 }
 
 // ── Pixel Art Engine ──────────────────────────────────────────────────────
-const PP = 4; // logical units per art pixel
+const PP = 4;
 
-// sprite = 2D array (0=transparent, 1+ = index into pal)
-// pal = array of CSS colors [color_for_1, color_for_2, ...]
-function drawSprite(sprite, pal, cx, cy, flipX = false) {
+function drawSprite(sprite, pal, cx, cy, flipX = false, scale = 1) {
+  const pp   = PP * scale;
   const rows = sprite.length, cols = sprite[0].length;
-  const ox = Math.round(cx - cols * PP / 2);
-  const oy = Math.round(cy - rows * PP / 2);
+  const ox   = cx - cols * pp / 2;
+  const oy   = cy - rows * pp / 2;
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
       const code = sprite[r][c];
       if (!code) continue;
       ctx.fillStyle = pal[code - 1];
-      const x = flipX ? ox + (cols - 1 - c) * PP : ox + c * PP;
-      ctx.fillRect(x, oy + r * PP, PP, PP);
+      const x = flipX ? ox + (cols - 1 - c) * pp : ox + c * pp;
+      ctx.fillRect(Math.round(x), Math.round(oy + r * pp),
+                   Math.max(1, Math.ceil(pp)), Math.max(1, Math.ceil(pp)));
     }
   }
 }
@@ -192,7 +232,8 @@ const BIRD_B = [ // wing UP
 
 // Stone: 8×7
 // 1=light-gray 2=mid-gray 3=dark-gray 4=highlight
-const STONE_PAL = ['#CCCCCC','#777777','#444444','#EEEEEE'];
+const STONE_PAL      = ['#CCCCCC','#777777','#444444','#EEEEEE'];
+const FIRE_STONE_PAL = ['#FF9944','#FF5500','#CC2200','#FFEE44'];
 const STONE_SPR = [
   [0,0,3,3,3,3,0,0],
   [0,3,4,1,1,3,3,0],
@@ -251,7 +292,10 @@ canvas.addEventListener('touchmove',  e => { e.preventDefault(); const t = e.tou
 canvas.addEventListener('touchend',   e => { e.preventDefault(); endDrag(); }, { passive: false });
 
 // ── Particles ─────────────────────────────────────────────────────────────
-function spawnParticles(x, y) {
+function spawnParticles(x, y, isFire = false) {
+  const colors = isFire
+    ? ['#FF6600','#FF4400','#FFCC00','#FF8800']
+    : ['#F5D800','#FF8800','#FFFFFF','#FF4444'];
   for (let i = 0; i < 16; i++) {
     const angle = Math.random() * Math.PI * 2;
     const speed = 2 + Math.random() * 5;
@@ -260,17 +304,111 @@ function spawnParticles(x, y) {
       vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
       life: 1, decay: 0.04 + Math.random() * 0.03,
       r: PP * (1 + Math.floor(Math.random() * 3)),
-      color: ['#F5D800','#FF8800','#FFFFFF','#FF4444'][Math.floor(Math.random() * 4)],
+      color: colors[Math.floor(Math.random() * colors.length)],
     });
   }
 }
 
+// ── Hit / Miss logic ──────────────────────────────────────────────────────
+function onHit(bx, by) {
+  consecutiveHits++;
+  stoneScale = 1; // restore stone size on any hit
+
+  const pts = isFireStone ? 300 : 100;
+  score += pts;
+  addFloatingText('+' + pts, bx, by - 30, isFireStone ? '#FF8800' : '#FFD700');
+  spawnParticles(bx, by, isFireStone);
+
+  // Activate fire stone at 3 consecutive hits
+  if (!isFireStone && consecutiveHits >= FIRE_COMBO) {
+    isFireStone = true;
+    addFloatingText('* FIRE! *', bx, by - 58, '#FF4400');
+  }
+
+  // +10s bonus every 5 consecutive hits
+  if (consecutiveHits % TIME_BONUS_COMBO === 0) {
+    timeLeft = Math.min(timeLeft + TIME_BONUS, 99);
+    addFloatingText('+' + TIME_BONUS + 's!', bx, by - 82, '#44FF88');
+  }
+
+  updateUI();
+  flyingBird = newFlyingBird();
+  projectile = newProjectile();
+  phase = 'aim'; launched = false;
+  updateStatusMsg();
+}
+
+function onMiss() {
+  consecutiveHits = 0;
+  missCount++;
+
+  if (isFireStone) {
+    // Fire miss: cancel fire, no shrink
+    isFireStone = false;
+    addFloatingText('MISS', projectile.x, projectile.y - 20, '#FF4444');
+  } else {
+    // Normal miss: shrink stone by 50% (min 25%)
+    stoneScale = Math.max(0.25, stoneScale * 0.5);
+    const label = stoneScale <= 0.25 ? 'TINY STONE' : 'STONE -50%';
+    addFloatingText(label, SLING_X + 70, SLING_Y - 50, '#FF8844');
+  }
+
+  if (missCount >= MISS_LIMIT) {
+    phase = 'ending';
+    timerRunning = false;
+    drag = null;
+    gameTimeout(() => endGame(), 400);
+    return;
+  }
+
+  updateUI();
+  projectile = newProjectile();
+  phase = 'aim'; launched = false;
+  updateStatusMsg();
+}
+
+function endGame() {
+  timerRunning = false;
+  phase = 'result';
+  const isNew = score > highScore;
+  if (isNew) {
+    highScore = score;
+    try { localStorage.setItem('birdHuntHS', highScore); } catch(e) {}
+  }
+  const reasonText = timeLeft <= 0 ? 'הזמן נגמר!' : MISS_LIMIT + ' פספוסים!';
+  const hsText = isNew ? ' | שיא חדש!' : ' | שיא: ' + highScore;
+  document.getElementById('msg').textContent = reasonText + ' ניקוד: ' + score + hsText;
+  document.getElementById('restart-btn').style.display = 'inline-block';
+}
+
 // ── Update ────────────────────────────────────────────────────────────────
 function update() {
+  // Floating texts
+  for (let i = floatingTexts.length - 1; i >= 0; i--) {
+    const ft = floatingTexts[i];
+    ft.y += ft.vy; ft.life -= 0.02;
+    if (ft.life <= 0) floatingTexts.splice(i, 1);
+  }
+
+  // Particles
   for (let i = particles.length - 1; i >= 0; i--) {
     const p = particles[i];
     p.x += p.vx; p.y += p.vy; p.vy += 0.15; p.life -= p.decay;
     if (p.life <= 0) particles.splice(i, 1);
+  }
+
+  // Fire stone ambient trail (slingshot or in-flight)
+  if (isFireStone && (phase === 'aim' || phase === 'flying') && Math.random() < 0.5) {
+    const pr = projectile;
+    particles.push({
+      x: pr.x + (Math.random() - 0.5) * pr.r,
+      y: pr.y + (Math.random() - 0.5) * pr.r,
+      vx: (Math.random() - 0.5) * 1.5,
+      vy: -1 - Math.random() * 2,
+      life: 0.8, decay: 0.06 + Math.random() * 0.04,
+      r: PP,
+      color: ['#FF6600','#FF4400','#FFAA00','#FF8800'][Math.floor(Math.random() * 4)],
+    });
   }
 
   const fb = flyingBird;
@@ -295,44 +433,22 @@ function update() {
     pr.y = GROUND_Y - pr.r; pr.vy *= -0.4; pr.vx *= 0.7;
     if (Math.abs(pr.vy) < 1) { pr.vy = 0; pr.vx = 0; }
   }
+
+  // Hit detection
   if (fb && fb.alive) {
     if (Math.hypot(pr.x - fb.x, pr.y - fb.y) < pr.r + fb.r) {
-      fb.alive = false; birdsHit++; score += 200;
-      document.getElementById('score-display').textContent = '* ' + score;
-      spawnParticles(fb.x, fb.y);
-      if (birdsHit >= BIRDS_TO_WIN) { phase = 'ending'; gameTimeout(() => endGame(true), 400); return; }
-      phase = 'waiting'; ammo--;
-      document.getElementById('ammo-display').textContent = 'o ' + Math.max(0, ammo);
-      if (ammo <= 0) { endGame(false); return; }
-      flyingBird = newFlyingBird();
-      projectile = newProjectile(); phase = 'aim'; launched = false;
-      document.getElementById('msg').textContent = 'גרור את הקטפולטה ושחרר';
+      fb.alive = false;
+      onHit(fb.x, fb.y);
       return;
     }
   }
 
+  // Miss detection
   const outOfBounds = pr.x > VW + 60 || pr.x < -60 || pr.y < -60 || pr.y > H + 60;
   const stopped = !outOfBounds && Math.abs(pr.vx) < 0.3 && Math.abs(pr.vy) < 0.3 && pr.y + pr.r >= GROUND_Y - 2;
   if (outOfBounds || stopped) {
-    phase = 'waiting';
-    ammo--;
-    document.getElementById('ammo-display').textContent = 'o ' + Math.max(0, ammo);
-    if (ammo <= 0) { endGame(false); return; }
-    projectile = newProjectile(); phase = 'aim'; launched = false;
-    document.getElementById('msg').textContent = 'גרור את הקטפולטה ושחרר';
+    onMiss();
   }
-}
-
-function endGame(win) {
-  phase = 'result';
-  if (win) {
-    score += ammo * 50;
-    document.getElementById('score-display').textContent = '* ' + score;
-    document.getElementById('msg').textContent = `פגעת ב-${BIRDS_TO_WIN} ציפורים! ניקוד: ${score}`;
-  } else {
-    document.getElementById('msg').textContent = `נגמרו האבנים... פגעת ב-${birdsHit}. ניקוד: ${score}`;
-  }
-  document.getElementById('restart-btn').style.display = 'inline-block';
 }
 
 // ── Draw: Sky ─────────────────────────────────────────────────────────────
@@ -374,7 +490,6 @@ function drawGround() {
   ctx.fillRect(0, GROUND_Y, VW, PP * 3);
   ctx.fillStyle = '#5A9000';
   ctx.fillRect(0, GROUND_Y, VW, PP);
-  // dirt texture dots
   ctx.fillStyle = '#C8B870';
   for (let x = PP * 3; x < VW; x += PP * 10) {
     ctx.fillRect(x,        GROUND_Y + PP * 5, PP * 2, PP);
@@ -425,15 +540,33 @@ function drawProjectile() {
   ctx.save();
   ctx.scale(SCALE, SCALE);
   const pr = projectile;
-  // shadow fades with height
+
+  // Shadow fades with height
   const shadowAlpha = Math.max(0, 0.3 * (1 - (GROUND_Y - pr.y) / 300));
   if (shadowAlpha > 0) {
     ctx.globalAlpha = shadowAlpha;
     ctx.fillStyle = '#000';
-    ctx.fillRect(Math.round((pr.x - 12) / PP) * PP, Math.round((GROUND_Y - 2) / PP) * PP, 24, PP);
+    const sw = Math.round(24 * stoneScale);
+    ctx.fillRect(Math.round((pr.x - sw/2) / PP) * PP, Math.round((GROUND_Y - 2) / PP) * PP, sw, PP);
     ctx.globalAlpha = 1;
   }
-  drawSprite(STONE_SPR, STONE_PAL, pr.x, pr.y);
+
+  // Fire glow
+  if (isFireStone) {
+    ctx.globalAlpha = 0.35;
+    const grad = ctx.createRadialGradient(pr.x, pr.y, 0, pr.x, pr.y, pr.r * 2.2);
+    grad.addColorStop(0, '#FFAA00');
+    grad.addColorStop(1, 'rgba(255,80,0,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(pr.x, pr.y, pr.r * 2.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+
+  const pal = isFireStone ? FIRE_STONE_PAL : STONE_PAL;
+  drawSprite(STONE_SPR, pal, pr.x, pr.y, false, stoneScale);
+
   ctx.restore();
 }
 
@@ -452,15 +585,17 @@ function drawFlyingBird() {
 
   drawSprite(sprite, BIRD_PAL, px, py, flipX);
 
-  // counter label above bird (pixelated style - double draw for shadow)
-  const label = `${birdsHit}/${BIRDS_TO_WIN}`;
-  ctx.font = 'bold 10px monospace';
-  ctx.textAlign = 'center';
-  const labelY = Math.max(18, fb.y - fb.r - 7);
-  ctx.fillStyle = '#000';
-  ctx.fillText(label, px + 1, labelY + 2);
-  ctx.fillStyle = '#FFD700';
-  ctx.fillText(label, px, labelY);
+  // Show combo counter above bird (from 2+ consecutive hits)
+  if (consecutiveHits >= 2) {
+    const label = 'x' + consecutiveHits;
+    ctx.font = 'bold 10px monospace';
+    ctx.textAlign = 'center';
+    const labelY = Math.max(18, fb.y - fb.r - 7);
+    ctx.fillStyle = '#000';
+    ctx.fillText(label, px + 1, labelY + 1);
+    ctx.fillStyle = consecutiveHits >= FIRE_COMBO ? '#FF4400' : '#FFD700';
+    ctx.fillText(label, px, labelY);
+  }
 
   ctx.restore();
 }
@@ -478,6 +613,24 @@ function drawParticles() {
   ctx.restore();
 }
 
+// ── Draw: Floating texts ──────────────────────────────────────────────────
+function drawFloatingTexts() {
+  if (!floatingTexts.length) return;
+  ctx.save();
+  ctx.scale(SCALE, SCALE);
+  ctx.font = 'bold 11px "Press Start 2P", monospace';
+  ctx.textAlign = 'center';
+  floatingTexts.forEach(ft => {
+    ctx.globalAlpha = Math.min(1, ft.life * 1.5);
+    ctx.fillStyle = '#000';
+    ctx.fillText(ft.text, ft.x + 1, ft.y + 1);
+    ctx.fillStyle = ft.color;
+    ctx.fillText(ft.text, ft.x, ft.y);
+  });
+  ctx.globalAlpha = 1;
+  ctx.restore();
+}
+
 // ── Draw: Trajectory hint ─────────────────────────────────────────────────
 function drawTrajectoryHint() {
   if (!drag || phase !== 'aim') return;
@@ -485,7 +638,7 @@ function drawTrajectoryHint() {
   ctx.scale(SCALE, SCALE);
   let px = SLING_X, py = SLING_Y;
   let pvx = (SLING_X - drag.x) * 0.22, pvy = (SLING_Y - drag.y) * 0.22;
-  ctx.fillStyle = 'rgba(255,255,255,0.55)';
+  ctx.fillStyle = isFireStone ? 'rgba(255,160,0,0.6)' : 'rgba(255,255,255,0.55)';
   for (let i = 0; i < 30; i++) {
     pvy += GRAVITY; px += pvx; py += pvy;
     if (py > GROUND_Y || px > VW) break;
@@ -495,7 +648,32 @@ function drawTrajectoryHint() {
 }
 
 // ── Game loop ─────────────────────────────────────────────────────────────
-function loop() {
+function loop(timestamp) {
+  // Timer
+  if (timerRunning) {
+    if (lastTimestamp !== null) {
+      const delta = Math.min((timestamp - lastTimestamp) / 1000, 0.1);
+      timeLeft = Math.max(0, timeLeft - delta);
+      if (timeLeft <= 0 && phase !== 'result' && phase !== 'ending') {
+        timerRunning = false;
+        phase = 'ending';
+        drag = null;
+        gameTimeout(() => endGame(), 100);
+      }
+    }
+    lastTimestamp = timestamp;
+
+    // Update timer DOM
+    const t = Math.ceil(timeLeft);
+    const timerEl = document.getElementById('timer-display');
+    timerEl.textContent = t + 's';
+    if (t <= 10) {
+      timerEl.style.color = Math.floor(timestamp / 400) % 2 === 0 ? '#FF0000' : '#FF9999';
+    } else {
+      timerEl.style.color = '#FF6B6B';
+    }
+  }
+
   update();
   drawSky();
   drawClouds();
@@ -505,11 +683,12 @@ function loop() {
   drawProjectile();
   drawFlyingBird();
   drawParticles();
+  drawFloatingTexts();
   requestAnimationFrame(loop);
 }
 
 initGame();
-loop();
+requestAnimationFrame(loop);
 </script>
 </body>
 </html>
