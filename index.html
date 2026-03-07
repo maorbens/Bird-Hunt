@@ -158,11 +158,14 @@ const W = 800;
 let VW, H, GROUND_Y, SLING_Y, SCALE;
 
 function resize() {
-  canvas.width  = window.innerWidth;
-  canvas.height = window.innerHeight;
-  SCALE    = Math.max(canvas.width, canvas.height) / W;
-  VW       = Math.round(canvas.width  / SCALE);
-  H        = Math.round(canvas.height / SCALE);
+  const r = canvas.getBoundingClientRect();
+  const w = Math.round(r.width)  || window.innerWidth;
+  const h = Math.round(r.height) || window.innerHeight;
+  canvas.width  = w;
+  canvas.height = h;
+  SCALE    = Math.max(w, h) / W;
+  VW       = Math.round(w / SCALE);
+  H        = Math.round(h / SCALE);
   GROUND_Y = H - 60;
   SLING_Y  = GROUND_Y - 80;
   ctx.imageSmoothingEnabled = false;
@@ -348,7 +351,10 @@ function newFlyingBird() {
 // ── Input ─────────────────────────────────────────────────────────────────
 function toLogical(cx, cy) {
   const rect = canvas.getBoundingClientRect();
-  return { x: (cx - rect.left) / SCALE, y: (cy - rect.top) / SCALE };
+  return {
+    x: (cx - rect.left) * VW / rect.width,
+    y: (cy - rect.top)  * H  / rect.height,
+  };
 }
 function startDrag(lx, ly) {
   if (phase !== 'aim') return;
