@@ -91,7 +91,7 @@
     }
     #game-over-reason {
       color: #FF6B6B;
-      font-size: clamp(14px, 3vmin, 24px);
+      font-size: clamp(16px, 3.5vmin, 28px);
       text-shadow: 2px 2px 0 #000;
     }
     #game-over-score, #game-over-hs {
@@ -99,15 +99,10 @@
       align-items: baseline;
       gap: clamp(8px, 1.5vmin, 14px);
       text-shadow: 2px 2px 0 #000;
+      font-size: clamp(16px, 3.5vmin, 28px);
     }
     #game-over-score { color: #FFD700; }
     #game-over-hs    { color: #aaffaa; }
-    .pop-label {
-      font-size: clamp(14px, 3vmin, 24px);
-    }
-    .pop-num {
-      font-size: clamp(20px, 4.5vmin, 36px);
-    }
     #restart-btn {
       padding: clamp(12px, 2.5vmin, 22px) clamp(24px, 6vmin, 52px);
       background: #e94560;
@@ -134,8 +129,8 @@
   <div id="game-over-overlay">
     <div id="game-over-popup">
       <div id="game-over-reason"></div>
-      <div id="game-over-score"><span class="pop-label">ניקוד:</span><span class="pop-num" id="score-val"></span></div>
-      <div id="game-over-hs"><span class="pop-label" id="hs-label"></span><span class="pop-num" id="hs-val"></span></div>
+      <div id="game-over-score"><span>ניקוד:</span><span id="score-val"></span></div>
+      <div id="game-over-hs"><span id="hs-label"></span><span id="hs-val"></span></div>
       <button id="restart-btn" onclick="initGame()">שחק שוב</button>
     </div>
   </div>
