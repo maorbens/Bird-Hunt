@@ -169,7 +169,10 @@ function newProjectile() {
 
 function updateUI() {
   document.getElementById('score-display').textContent = '* ' + score;
-  document.getElementById('miss-display').textContent  = 'X ' + missCount + '/' + MISS_LIMIT;
+  const redHeart  = '<span style="color:#FF2222">♥</span>';
+  const grayHeart = '<span style="color:#444">♥</span>';
+  document.getElementById('miss-display').innerHTML =
+    redHeart.repeat(MISS_LIMIT - missCount) + grayHeart.repeat(missCount);
 }
 
 function updateStatusMsg() {
@@ -638,7 +641,7 @@ function drawTrajectoryHint() {
   ctx.scale(SCALE, SCALE);
   let px = SLING_X, py = SLING_Y;
   let pvx = (SLING_X - drag.x) * 0.22, pvy = (SLING_Y - drag.y) * 0.22;
-  ctx.fillStyle = isFireStone ? 'rgba(255,160,0,0.6)' : 'rgba(255,255,255,0.55)';
+  ctx.fillStyle = isFireStone ? 'rgba(255,255,80,0.95)' : 'rgba(255,255,255,0.55)';
   for (let i = 0; i < 30; i++) {
     pvy += GRAVITY; px += pvx; py += pvy;
     if (py > GROUND_Y || px > VW) break;
