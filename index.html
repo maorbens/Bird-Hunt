@@ -202,8 +202,8 @@ function updateStatusMsg() {
   document.getElementById('msg').textContent = msg;
 }
 
-function addFloatingText(text, x, y, color) {
-  floatingTexts.push({ text, x, y, color, life: 1, vy: -1 });
+function addFloatingText(text, x, y, color, size) {
+  floatingTexts.push({ text, x, y, color, life: 1, vy: -1, size: size || 11 });
 }
 
 // ── Pixel Art Engine ──────────────────────────────────────────────────────
@@ -379,8 +379,7 @@ function onMiss() {
   } else {
     // Normal miss: shrink stone by 42% (once only)
     stoneScale = Math.max(0.575, stoneScale * 0.575);
-    const label = 'STONE -42%';
-    addFloatingText(label, SLING_X + 70, SLING_Y - 50, '#FF8844');
+    addFloatingText('SMALLER STONE', SLING_X + 70, SLING_Y - 50, '#FF8844', 16);
   }
 
   updateUI(true);
@@ -655,9 +654,9 @@ function drawFloatingTexts() {
   if (!floatingTexts.length) return;
   ctx.save();
   ctx.scale(SCALE, SCALE);
-  ctx.font = 'bold 11px "Press Start 2P", monospace';
   ctx.textAlign = 'center';
   floatingTexts.forEach(ft => {
+    ctx.font = `bold ${ft.size}px "Press Start 2P", monospace`;
     ctx.globalAlpha = Math.min(1, ft.life * 1.5);
     ctx.fillStyle = '#000';
     ctx.fillText(ft.text, ft.x + 1, ft.y + 1);
