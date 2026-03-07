@@ -206,6 +206,7 @@ let highScore = 0;
 try { highScore = parseInt(localStorage.getItem('birdHuntHS') || '0') || 0; } catch(e) {}
 
 let toastTimer = null;
+let firstGame = true;
 function showToast() {
   const el = document.getElementById('toast');
   el.classList.add('visible');
@@ -244,7 +245,7 @@ function initGame() {
   flyingBird      = newFlyingBird();
   updateUI();
   document.getElementById('game-over-overlay').classList.remove('visible');
-  showToast();
+  if (firstGame) { showToast(); firstGame = false; }
 }
 
 function newProjectile() {
