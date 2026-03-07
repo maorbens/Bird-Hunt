@@ -356,6 +356,8 @@ function onMiss() {
     addFloatingText(label, SLING_X + 70, SLING_Y - 50, '#FF8844');
   }
 
+  updateUI();
+
   if (missCount >= MISS_LIMIT) {
     phase = 'ending';
     timerRunning = false;
@@ -363,8 +365,6 @@ function onMiss() {
     gameTimeout(() => endGame(), 400);
     return;
   }
-
-  updateUI();
   projectile = newProjectile();
   phase = 'aim'; launched = false;
   updateStatusMsg();
