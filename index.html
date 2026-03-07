@@ -347,9 +347,9 @@ function onMiss() {
     isFireStone = false;
     addFloatingText('MISS', projectile.x, projectile.y - 20, '#FF4444');
   } else {
-    // Normal miss: shrink stone by 50% (min 25%)
-    stoneScale = Math.max(0.25, stoneScale * 0.5);
-    const label = stoneScale <= 0.25 ? 'TINY STONE' : 'STONE -50%';
+    // Normal miss: shrink stone by 50% (once only)
+    stoneScale = Math.max(0.5, stoneScale * 0.5);
+    const label = 'STONE -50%';
     addFloatingText(label, SLING_X + 70, SLING_Y - 50, '#FF8844');
   }
 
