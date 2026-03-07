@@ -117,7 +117,14 @@ function resize() {
 let resizeTimer;
 function handleResize() {
   clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(() => { resize(); initGame(); }, 100);
+  resizeTimer = setTimeout(() => {
+    resize();
+    // Reposition projectile to updated sling coords if still aiming
+    if (projectile && phase === 'aim') {
+      projectile.x = SLING_X;
+      projectile.y = SLING_Y;
+    }
+  }, 100);
 }
 
 resize();
