@@ -52,18 +52,27 @@
       display: inline-block;
       animation: heartDisappear 0.5s ease-out forwards;
     }
-    #msg {
+    #toast {
       position: fixed;
-      bottom: clamp(52px, 9vh, 100px);
-      left: 0; right: 0;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%) translateY(110%);
+      background: #1a1a2e;
+      border: 4px solid #fff;
+      box-shadow: 6px 6px 0 #000, inset 0 0 0 2px #000;
+      padding: clamp(14px, 2.5vmin, 24px) clamp(22px, 5vmin, 48px);
       color: #fff;
-      font-size: clamp(9px, 2vmin, 13px);
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(13px, 2.8vmin, 20px);
       text-align: center;
-      font-family: -apple-system, Arial, sans-serif;
-      font-weight: 600;
-      z-index: 10;
+      direction: rtl;
+      z-index: 15;
       pointer-events: none;
-      text-shadow: 1px 1px 3px rgba(0,0,0,0.9), -1px -1px 3px rgba(0,0,0,0.9);
+      white-space: nowrap;
+      transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    #toast.visible {
+      transform: translateX(-50%) translateY(-24px);
     }
     #game-over-overlay {
       display: none;
@@ -125,7 +134,7 @@
     <span id="timer-display">60s</span>
     <span id="miss-display">X 0/5</span>
   </div>
-  <div id="msg">גרור את הקטפולטה ושחרר</div>
+  <div id="toast">גרור את הקטפולטה ושחרר</div>
   <div id="game-over-overlay">
     <div id="game-over-popup">
       <div id="game-over-reason"></div>
@@ -192,6 +201,18 @@ let flyingBird, projectile, particles, floatingTexts, phase, drag, launched;
 let highScore = 0;
 try { highScore = parseInt(localStorage.getItem('birdHuntHS') || '0') || 0; } catch(e) {}
 
+let toastTimer = null;
+function showToast() {
+  const el = document.getElementById('toast');
+  el.classList.add('visible');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => hideToast(), 3000);
+}
+function hideToast() {
+  document.getElementById('toast').classList.remove('visible');
+  if (toastTimer) { clearTimeout(toastTimer); toastTimer = null; }
+}
+
 let gameTimers = [];
 function gameTimeout(fn, delay) {
   const id = setTimeout(fn, delay);
@@ -218,8 +239,8 @@ function initGame() {
   projectile      = newProjectile();
   flyingBird      = newFlyingBird();
   updateUI();
-  updateStatusMsg();
   document.getElementById('game-over-overlay').classList.remove('visible');
+  showToast();
 }
 
 function newProjectile() {
@@ -242,12 +263,6 @@ function updateUI(animateMiss = false) {
   }
 }
 
-function updateStatusMsg() {
-  if (phase === 'result' || phase === 'ending') return;
-  let msg = 'גרור את הקטפולטה ושחרר';
-  if (isFireStone) msg = '*** אבן אש - 300 נק\' לפגיעה! ***';
-  document.getElementById('msg').textContent = msg;
-}
 
 function addFloatingText(text, x, y, color, size) {
   floatingTexts.push({ text, x, y, color, life: 1, vy: -1, size: size || 11 });
@@ -351,6 +366,7 @@ function endDrag() {
   projectile.x = SLING_X; projectile.y = SLING_Y;
   projectile.active = true;
   phase = 'flying'; drag = null; launched = true;
+  hideToast();
 }
 
 canvas.addEventListener('mousedown',  e => { const p = toLogical(e.clientX, e.clientY); startDrag(p.x, p.y); });
@@ -412,7 +428,6 @@ function onHit(bx, by) {
   flyingBird = newFlyingBird();
   projectile = newProjectile();
   phase = 'aim'; launched = false;
-  updateStatusMsg();
 }
 
 function onMiss() {
@@ -442,7 +457,6 @@ function onMiss() {
   }
   projectile = newProjectile();
   phase = 'aim'; launched = false;
-  updateStatusMsg();
 }
 
 function endGame() {
