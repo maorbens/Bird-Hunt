@@ -204,8 +204,7 @@ function updateUI(animateMiss = false) {
 function updateStatusMsg() {
   if (phase === 'result' || phase === 'ending') return;
   let msg = 'גרור את הקטפולטה ושחרר';
-  if (isFireStone)       msg = '*** אבן אש - 300 נק\' לפגיעה! ***';
-  else if (stoneScale < 1) msg = '(אבן קטנה - פגע להחזיר לגודל)';
+  if (isFireStone) msg = '*** אבן אש - 300 נק\' לפגיעה! ***';
   document.getElementById('msg').textContent = msg;
 }
 
