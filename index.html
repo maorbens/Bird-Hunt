@@ -26,6 +26,7 @@
       cursor: crosshair;
       touch-action: none;
     }
+    /* ── In-game UI bar ──────────────────────────────────────────────────── */
     #ui {
       position: fixed;
       top: 0; left: 0; right: 0;
@@ -39,7 +40,13 @@
       pointer-events: none;
       text-shadow: 0 1px 3px rgba(0,0,0,0.5);
     }
-    #score-display { color: #FFD700; flex: 1; text-align: left; }
+    #ui-left {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: clamp(8px, 1.5vw, 16px);
+    }
+    #score-display { color: #FFD700; }
     #timer-display { color: #FF6B6B; transition: color 0.1s; flex: 1; text-align: center; }
     #miss-display  { color: #FF6B6B; font-size: clamp(22px, 5.5vmin, 40px); flex: 1; text-align: right; }
     @keyframes heartDisappear {
@@ -62,6 +69,24 @@
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 7' shape-rendering='crispEdges'%3E%3Crect x='1' y='0' width='2' height='1' fill='%23FF2222'/%3E%3Crect x='4' y='0' width='2' height='1' fill='%23FF2222'/%3E%3Crect x='0' y='1' width='7' height='3' fill='%23FF2222'/%3E%3Crect x='1' y='4' width='5' height='1' fill='%23FF2222'/%3E%3Crect x='2' y='5' width='3' height='1' fill='%23FF2222'/%3E%3Crect x='3' y='6' width='1' height='1' fill='%23FF2222'/%3E%3C/svg%3E");
       background-size: 100% 100%;
     }
+    /* ── In-game home button ─────────────────────────────────────────────── */
+    #home-btn {
+      pointer-events: auto;
+      background: rgba(0,0,0,0.52);
+      border: 2px solid rgba(255,255,255,0.48);
+      box-shadow: 2px 2px 0 rgba(0,0,0,0.8);
+      color: #fff;
+      font-size: clamp(14px, 3vmin, 22px);
+      padding: clamp(3px, 0.8vmin, 7px) clamp(6px, 1.2vmin, 12px);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      line-height: 1;
+      transition: transform 0.07s, box-shadow 0.07s;
+      flex-shrink: 0;
+    }
+    #home-btn:active { transform: translate(2px,2px); box-shadow: 0 0 0 rgba(0,0,0,0.8); }
+    /* ── Game Over overlay ───────────────────────────────────────────────── */
     #game-over-overlay {
       display: none;
       position: fixed;
@@ -105,9 +130,9 @@
       text-shadow: 2px 2px 0 #000;
       font-size: clamp(16px, 3.5vmin, 28px);
     }
-
     #game-over-score { color: #FFD700; }
     #game-over-hs    { color: #aaffaa; }
+    /* ── Shared pixel buttons ────────────────────────────────────────────── */
     #restart-btn, #start-btn {
       padding: clamp(12px, 2.5vmin, 22px) clamp(24px, 6vmin, 52px);
       background: #e94560;
@@ -124,38 +149,122 @@
       transition: transform 0.07s, box-shadow 0.07s;
     }
     #restart-btn:active, #start-btn:active { transform: translate(3px,3px); box-shadow: 1px 1px 0 #000; }
-    #intro-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.72);
-      z-index: 20;
-      align-items: center;
-      justify-content: center;
+    @keyframes startBlink {
+      0%, 100% { opacity: 1; box-shadow: 4px 4px 0 #000, 0 0 18px rgba(233,69,96,0.75); }
+      50%       { opacity: 0.55; box-shadow: 4px 4px 0 #000; }
     }
-    #intro-overlay.visible { display: flex; }
-    #intro-popup {
-      background: #1a1a2e;
-      border: 4px solid #fff;
-      box-shadow: 6px 6px 0 #000, inset 0 0 0 2px #000;
-      padding: clamp(24px, 5vmin, 48px) clamp(32px, 7vmin, 64px);
+    #start-btn { animation: startBlink 1.4s ease-in-out infinite; }
+    #start-btn:active { animation: none; transform: translate(3px,3px); box-shadow: 1px 1px 0 #000; }
+    /* Secondary home button (in game-over) */
+    #home-btn-go {
+      padding: clamp(10px, 2vmin, 18px) clamp(20px, 5vmin, 44px);
+      background: transparent;
+      color: #99aacc;
+      border: 3px solid #445;
+      box-shadow: 3px 3px 0 #000;
+      font-family: system-ui, -apple-system, sans-serif;
+      font-weight: 600;
+      font-size: clamp(13px, 2.6vmin, 20px);
       text-align: center;
       direction: rtl;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: transform 0.07s, box-shadow 0.07s, color 0.12s, border-color 0.12s;
+    }
+    #home-btn-go:hover  { color: #dde; border-color: #778; }
+    #home-btn-go:active { transform: translate(3px,3px); box-shadow: 0 0 0 #000; }
+    /* ── Full-screen Intro ───────────────────────────────────────────────── */
+    #intro-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: clamp(18px, 3.5vmin, 32px);
-      word-spacing: 0.1em;
-      width: min(480px, 90vw);
+      justify-content: center;
+      background: linear-gradient(155deg, #06061e 0%, #10103e 42%, #1c0828 100%);
+      overflow: hidden;
     }
-    #intro-text {
-      color: #fff;
+    #intro-screen.hidden { display: none; }
+    #intro-stars {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    @keyframes starTwinkle {
+      0%   { opacity: 0.1; }
+      100% { opacity: 1;   }
+    }
+    #intro-panel {
+      position: relative;
+      z-index: 1;
+      background: rgba(4, 4, 22, 0.92);
+      border: 4px solid #FFD700;
+      box-shadow: 8px 8px 0 #000, inset 0 0 0 2px #000;
+      padding: clamp(22px, 4.5vmin, 52px) clamp(26px, 6.5vmin, 64px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: clamp(12px, 2.5vmin, 26px);
+      width: min(520px, 88vw);
+      max-height: 94dvh;
+      overflow: hidden;
+    }
+    /* pixel-art corner ornaments via pseudo-elements */
+    #intro-panel::before, #intro-panel::after {
+      content: '';
+      position: absolute;
+      width: 12px; height: 12px;
+      background: #FFD700;
+      box-shadow: inset 0 0 0 3px #000;
+    }
+    #intro-panel::before { top: -4px; left: -4px; }
+    #intro-panel::after  { bottom: -4px; right: -4px; }
+    @keyframes birdFloat {
+      0%   { transform: translateY(0px); }
+      50%  { transform: translateY(-10px); }
+      100% { transform: translateY(0px); }
+    }
+    #intro-bird-wrap { animation: birdFloat 2.8s ease-in-out infinite; }
+    #intro-bird-svg {
+      width: clamp(70px, 15vmin, 128px);
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      display: block;
+    }
+    #intro-title {
+      color: #FFD700;
+      font-size: clamp(26px, 8vmin, 64px);
+      text-shadow: 4px 4px 0 #c85000, 7px 7px 0 #000;
+      letter-spacing: 0.08em;
+      line-height: 1.3;
+      text-align: center;
+    }
+    #intro-divider {
+      width: 100%;
+      height: 4px;
+      background: repeating-linear-gradient(90deg, #FFD700 0 8px, transparent 8px 16px);
+      flex-shrink: 0;
+    }
+    #intro-desc {
+      color: #b8c8ee;
       font-family: system-ui, -apple-system, sans-serif;
       font-weight: 600;
-      font-size: clamp(15px, 3.2vmin, 22px);
-      text-shadow: 2px 2px 0 #000;
-      line-height: 1.8;
+      font-size: clamp(12px, 2.6vmin, 19px);
+      text-shadow: 1px 1px 0 #000;
+      line-height: 1.75;
+      text-align: center;
+      direction: rtl;
       word-break: keep-all;
+    }
+    #intro-hs-wrap {
+      color: #aaffaa;
+      font-family: system-ui, -apple-system, sans-serif;
+      font-weight: 700;
+      font-size: clamp(13px, 2.6vmin, 19px);
+      text-shadow: 2px 2px 0 #000;
+      direction: rtl;
     }
     .ex { font-family: system-ui, -apple-system, Arial, sans-serif; }
     #score-val, #hs-val {
@@ -168,23 +277,79 @@
 </head>
 <body>
   <canvas id="canvas"></canvas>
+
+  <!-- In-game UI bar -->
   <div id="ui">
-    <span id="score-display">0</span>
+    <div id="ui-left">
+      <button id="home-btn" onclick="showIntro()">
+        <svg width="1em" height="1em" viewBox="0 0 5 5" shape-rendering="crispEdges" fill="currentColor">
+          <rect x="2" y="0" width="1" height="1"/>
+          <rect x="1" y="1" width="3" height="1"/>
+          <rect x="0" y="2" width="5" height="1"/>
+          <rect x="0" y="3" width="1" height="2"/>
+          <rect x="2" y="3" width="1" height="2"/>
+          <rect x="4" y="3" width="1" height="2"/>
+        </svg>
+      </button>
+      <span id="score-display">0</span>
+    </div>
     <span id="timer-display">60s</span>
     <span id="miss-display">X 0/5</span>
   </div>
-  <div id="intro-overlay">
-    <div id="intro-popup">
-      <div id="intro-text">משכו את הרוגטקה כדי לפגוע בציפור ולצבור נקודות לפני שהזמן נגמר<span class="ex">!</span></div>
-      <button id="start-btn" onclick="startGame()">התחל משחק</button>
-    </div>
-  </div>
+
+  <!-- Game Over overlay -->
   <div id="game-over-overlay">
     <div id="game-over-popup">
       <div id="game-over-reason"></div>
       <div id="game-over-score"><span>ניקוד<span class="ex">:</span></span><span id="score-val"></span></div>
       <div id="game-over-hs"><span id="hs-label"></span><span id="hs-val"></span></div>
       <button id="restart-btn" onclick="initGame()">שחק שוב</button>
+      <button id="home-btn-go" onclick="showIntro()">בית</button>
+    </div>
+  </div>
+
+  <!-- Full-screen Intro -->
+  <div id="intro-screen">
+    <div id="intro-stars"></div>
+    <div id="intro-panel">
+      <div id="intro-bird-wrap">
+        <svg id="intro-bird-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 7" shape-rendering="crispEdges">
+          <!-- Row 0: cols 2-6 = dark yellow -->
+          <rect x="2" y="0" width="5" height="1" fill="#886600"/>
+          <!-- Row 1 -->
+          <rect x="1" y="1" width="1" height="1" fill="#886600"/>
+          <rect x="2" y="1" width="5" height="1" fill="#F5D800"/>
+          <rect x="7" y="1" width="1" height="1" fill="#886600"/>
+          <!-- Row 2 -->
+          <rect x="0" y="2" width="1" height="1" fill="#886600"/>
+          <rect x="1" y="2" width="4" height="1" fill="#F5D800"/>
+          <rect x="5" y="2" width="1" height="1" fill="#FFFFFF"/>
+          <rect x="6" y="2" width="1" height="1" fill="#F5D800"/>
+          <rect x="7" y="2" width="2" height="1" fill="#FF8800"/>
+          <!-- Row 3 -->
+          <rect x="0" y="3" width="1" height="1" fill="#886600"/>
+          <rect x="1" y="3" width="3" height="1" fill="#F5D800"/>
+          <rect x="4" y="3" width="1" height="1" fill="#111111"/>
+          <rect x="5" y="3" width="1" height="1" fill="#FFFFFF"/>
+          <rect x="6" y="3" width="1" height="1" fill="#F5D800"/>
+          <rect x="7" y="3" width="2" height="1" fill="#FF8800"/>
+          <!-- Row 4 -->
+          <rect x="0" y="4" width="1" height="1" fill="#886600"/>
+          <rect x="1" y="4" width="6" height="1" fill="#F5D800"/>
+          <rect x="7" y="4" width="1" height="1" fill="#886600"/>
+          <!-- Row 5 -->
+          <rect x="1" y="5" width="2" height="1" fill="#886600"/>
+          <rect x="3" y="5" width="2" height="1" fill="#F5D800"/>
+          <rect x="5" y="5" width="2" height="1" fill="#886600"/>
+          <!-- Row 6 -->
+          <rect x="2" y="6" width="4" height="1" fill="#886600"/>
+        </svg>
+      </div>
+      <div id="intro-title">BIRD<br>HUNT</div>
+      <div id="intro-divider"></div>
+      <div id="intro-desc">משכו את הרוגטקה כדי לפגוע בציפור ולצבור נקודות לפני שהזמן נגמר<span class="ex">!</span></div>
+      <div id="intro-hs-wrap">שיא<span class="ex">:</span> <span id="intro-hs">---</span></div>
+      <button id="start-btn" onclick="startGame()">התחל משחק</button>
     </div>
   </div>
 
@@ -213,7 +378,6 @@ function handleResize() {
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => {
     resize();
-    // Reposition projectile to updated sling coords if still aiming
     if (projectile && phase === 'aim') {
       projectile.x = SLING_X;
       projectile.y = SLING_Y;
@@ -245,13 +409,43 @@ let flyingBird, projectile, particles, floatingTexts, phase, drag, launched;
 let highScore = 0;
 try { highScore = parseInt(localStorage.getItem('birdHuntHS') || '0') || 0; } catch(e) {}
 
-let firstGame = true;
+// ── Intro Screen ──────────────────────────────────────────────────────────
+function initIntroStars() {
+  const container = document.getElementById('intro-stars');
+  if (!container) return;
+  container.innerHTML = '';
+  for (let i = 0; i < 70; i++) {
+    const el   = document.createElement('div');
+    const size = Math.random() < 0.75 ? 1 : 2;
+    const dur  = (1.5 + Math.random() * 2.5).toFixed(2);
+    const del  = (Math.random() * 4).toFixed(2);
+    el.style.cssText = [
+      'position:absolute',
+      `left:${(Math.random() * 100).toFixed(1)}%`,
+      `top:${(Math.random() * 100).toFixed(1)}%`,
+      `width:${size}px`,
+      `height:${size}px`,
+      'background:white',
+      `animation:starTwinkle ${dur}s ease-in-out ${del}s infinite alternate`,
+    ].join(';');
+    container.appendChild(el);
+  }
+}
+
+function showIntro() {
+  gameTimers.forEach(clearTimeout); gameTimers = [];
+  timerRunning = false;
+  phase        = 'result'; // disable input
+  drag         = null;
+  document.getElementById('game-over-overlay').classList.remove('visible');
+  const hsEl = document.getElementById('intro-hs');
+  if (hsEl) hsEl.textContent = highScore > 0 ? highScore : '---';
+  document.getElementById('intro-screen').classList.remove('hidden');
+}
 
 function startGame() {
-  document.getElementById('intro-overlay').classList.remove('visible');
-  timerRunning  = true;
-  lastTimestamp = null;
-  firstGame     = false;
+  document.getElementById('intro-screen').classList.add('hidden');
+  initGame();
 }
 
 let gameTimers = [];
@@ -269,7 +463,7 @@ function initGame() {
   isFireStone     = false;
   stoneScale      = 1;
   timeLeft        = TIMER_START;
-  timerRunning    = !firstGame;
+  timerRunning    = true;
   lastTimestamp   = null;
   timerExpired    = false;
   phase           = 'aim';
@@ -281,9 +475,27 @@ function initGame() {
   flyingBird      = newFlyingBird();
   updateUI();
   document.getElementById('game-over-overlay').classList.remove('visible');
-  if (firstGame) {
-    document.getElementById('intro-overlay').classList.add('visible');
-  }
+}
+
+function setupIdleState() {
+  score           = 0;
+  consecutiveHits = 0;
+  missCount       = 0;
+  isFireStone     = false;
+  stoneScale      = 1;
+  timeLeft        = TIMER_START;
+  timerRunning    = false;
+  lastTimestamp   = null;
+  timerExpired    = false;
+  phase           = 'aim';
+  drag            = null;
+  launched        = false;
+  particles       = [];
+  floatingTexts   = [];
+  gameTimers      = [];
+  projectile      = newProjectile();
+  flyingBird      = newFlyingBird();
+  updateUI();
 }
 
 function newProjectile() {
@@ -850,7 +1062,9 @@ function loop(timestamp) {
   requestAnimationFrame(loop);
 }
 
-initGame();
+setupIdleState();
+initIntroStars();
+showIntro();
 requestAnimationFrame(loop);
 </script>
 </body>
