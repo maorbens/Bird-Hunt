@@ -134,9 +134,11 @@
     #restart-btn:active, #start-btn:active { transform: translate(3px,3px); box-shadow: 1px 1px 0 #000; }
     @keyframes startPulse {
       0%, 100% { transform: scale(1);    box-shadow: 4px 4px 0 #000, 0 0 8px rgba(233,69,96,0.3); }
-      50%       { transform: scale(1.13); box-shadow: 6px 6px 0 #000, 0 0 36px rgba(233,69,96,0.95), 0 0 60px rgba(233,69,96,0.4); }
+      50%       { transform: scale(1.18); box-shadow: 6px 6px 0 #000, 0 0 36px rgba(233,69,96,0.95), 0 0 60px rgba(233,69,96,0.4); }
     }
     #start-btn {
+      transition: none;
+      transform-origin: center center;
       animation: startPulse 1.5s ease-in-out infinite;
       padding: clamp(14px, 3vmin, 28px) clamp(36px, 10vmin, 88px);
       font-size: clamp(16px, 3.6vmin, 28px);
