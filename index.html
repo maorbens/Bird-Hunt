@@ -134,6 +134,11 @@
       word-spacing: normal;
       word-break: keep-all;
     }
+    .ex {
+      font-family: 'Press Start 2P', monospace;
+      direction: ltr;
+      unicode-bidi: embed;
+    }
   </style>
 </head>
 <body>
@@ -145,7 +150,7 @@
   </div>
   <div id="intro-overlay">
     <div id="intro-popup">
-      <div id="intro-text">משכו את הרוגטקה כדי לפגוע בציפור ולצבור נקודות לפני שהזמן נגמר!&lrm;</div>
+      <div id="intro-text">משכו את הרוגטקה כדי לפגוע בציפור ולצבור נקודות לפני שהזמן נגמר<span class="ex">!</span></div>
       <button id="start-btn" onclick="startGame()">התחל משחק</button>
     </div>
   </div>
@@ -482,11 +487,12 @@ function endGame() {
     highScore = score;
     try { localStorage.setItem('birdHuntHS', highScore); } catch(e) {}
   }
-  const reasonText = timeLeft <= 0 ? 'הזמן נגמר!\u200E' : MISS_LIMIT + ' פספוסים!\u200E';
-  document.getElementById('game-over-reason').textContent = reasonText;
+  const EX = '<span class="ex">!</span>';
+  const reasonText = timeLeft <= 0 ? `הזמן נגמר${EX}` : `${MISS_LIMIT} פספוסים${EX}`;
+  document.getElementById('game-over-reason').innerHTML = reasonText;
   document.getElementById('score-val').textContent = score;
   if (isNew) {
-    document.getElementById('hs-label').textContent = '★ שיא חדש!\u200E ★';
+    document.getElementById('hs-label').innerHTML = `★ שיא חדש${EX} ★`;
     document.getElementById('hs-val').textContent = '';
   } else {
     document.getElementById('hs-label').textContent = 'שיא:';
