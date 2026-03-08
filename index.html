@@ -80,20 +80,23 @@
     }
     #game-over-reason {
       color: #FF6B6B;
+      font-family: system-ui, -apple-system, sans-serif;
+      font-weight: 700;
       font-size: clamp(16px, 3.5vmin, 28px);
       text-shadow: 2px 2px 0 #000;
       text-align: center;
       width: 100%;
-      word-spacing: -0.32em;
     }
     #game-over-score, #game-over-hs {
       display: flex;
       align-items: baseline;
       gap: clamp(8px, 1.5vmin, 14px);
+      font-family: system-ui, -apple-system, sans-serif;
+      font-weight: 700;
       text-shadow: 2px 2px 0 #000;
       font-size: clamp(16px, 3.5vmin, 28px);
-      word-spacing: -0.32em;
     }
+    #score-val, #hs-val { font-family: 'Press Start 2P', monospace; font-weight: 400; }
     #game-over-score { color: #FFD700; }
     #game-over-hs    { color: #aaffaa; }
     #restart-btn, #start-btn {
@@ -102,9 +105,9 @@
       color: #fff;
       border: 4px solid #000;
       box-shadow: 4px 4px 0 #000;
-      font-family: 'Press Start 2P', monospace;
-      font-size: clamp(13px, 2.8vmin, 22px);
-      word-spacing: -0.32em;
+      font-family: system-ui, -apple-system, sans-serif;
+      font-weight: 700;
+      font-size: clamp(15px, 3.2vmin, 24px);
       text-align: center;
       direction: rtl;
       cursor: pointer;
