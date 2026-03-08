@@ -225,13 +225,11 @@
     }
     #intro-logo::before { left: clamp(8px, 1.8vmin, 14px); }
     #intro-logo::after  { right: clamp(8px, 1.8vmin, 14px); }
+    #intro-logo { text-align: center; }
     #intro-title {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.1em;
+      display: inline-block;
       direction: ltr;
-      padding-left: 0.06em;
+      text-align: center;
       font-size: clamp(32px, 12vmin, 92px);
       color: #FFE800;
       text-shadow:
@@ -384,7 +382,7 @@
       </div>
     </div>
     <div id="intro-logo">
-      <div id="intro-title"><span>BIRD</span><span>HUNT</span></div>
+      <div id="intro-title">BIRD<br>HUNT</div>
     </div>
     <div id="intro-hero">
       <div id="intro-bird-wrap">
