@@ -500,7 +500,7 @@ function endGame() {
   }
   const EX  = '<span class="ex">!</span>';
   const COL = '<span class="ex">:</span>';
-  const reasonText = timeLeft <= 0 ? `נגמר הזמן${EX}` : `<span class="ex">${MISS_LIMIT}</span>&#8201;פספוסים${EX}`;
+  const reasonText = timeLeft <= 0 ? `נגמר&#8201;הזמן${EX}` : `<span class="ex">${MISS_LIMIT}</span>&#8201;פספוסים${EX}`;
   document.getElementById('game-over-reason').innerHTML = reasonText;
   document.getElementById('score-val').textContent = score;
   if (isNew) {
