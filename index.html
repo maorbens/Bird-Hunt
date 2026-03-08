@@ -160,7 +160,7 @@
   <div id="game-over-overlay">
     <div id="game-over-popup">
       <div id="game-over-reason"></div>
-      <div id="game-over-score"><span>ניקוד:</span><span id="score-val"></span></div>
+      <div id="game-over-score"><span>ניקוד<span class="ex">:</span></span><span id="score-val"></span></div>
       <div id="game-over-hs"><span id="hs-label"></span><span id="hs-val"></span></div>
       <button id="restart-btn" onclick="initGame()">שחק שוב</button>
     </div>
@@ -490,15 +490,16 @@ function endGame() {
     highScore = score;
     try { localStorage.setItem('birdHuntHS', highScore); } catch(e) {}
   }
-  const EX = '<span class="ex">!</span>';
-  const reasonText = timeLeft <= 0 ? `הזמן נגמר${EX}` : `${MISS_LIMIT} פספוסים${EX}`;
+  const EX  = '<span class="ex">!</span>';
+  const COL = '<span class="ex">:</span>';
+  const reasonText = timeLeft <= 0 ? `הזמן נגמר${EX}` : `<span class="ex">${MISS_LIMIT}</span> פספוסים${EX}`;
   document.getElementById('game-over-reason').innerHTML = reasonText;
   document.getElementById('score-val').textContent = score;
   if (isNew) {
     document.getElementById('hs-label').innerHTML = `★ שיא חדש${EX} ★`;
     document.getElementById('hs-val').textContent = '';
   } else {
-    document.getElementById('hs-label').textContent = 'שיא:';
+    document.getElementById('hs-label').innerHTML = `שיא${COL}`;
     document.getElementById('hs-val').textContent = highScore;
   }
   document.getElementById('game-over-overlay').classList.add('visible');
