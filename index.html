@@ -488,18 +488,18 @@ function endGame() {
 }
 
 // ── Update ────────────────────────────────────────────────────────────────
-function update() {
+function update(dt) {
   // Floating texts
   for (let i = floatingTexts.length - 1; i >= 0; i--) {
     const ft = floatingTexts[i];
-    ft.y += ft.vy; ft.life -= 0.02;
+    ft.y += ft.vy * dt; ft.life -= 0.02 * dt;
     if (ft.life <= 0) floatingTexts.splice(i, 1);
   }
 
   // Particles
   for (let i = particles.length - 1; i >= 0; i--) {
     const p = particles[i];
-    p.x += p.vx; p.y += p.vy; p.vy += 0.15; p.life -= p.decay;
+    p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 0.15 * dt; p.life -= p.decay * dt;
     if (p.life <= 0) particles.splice(i, 1);
   }
 
@@ -519,7 +519,7 @@ function update() {
 
   const fb = flyingBird;
   if (fb && fb.alive) {
-    fb.x += fb.vx; fb.y += fb.vy; fb.flap++; fb.dirTimer++;
+    fb.x += fb.vx * dt; fb.y += fb.vy * dt; fb.flap += dt; fb.dirTimer += dt;
     if (fb.dirTimer > 60 + Math.random() * 60) {
       fb.vy = Math.max(-4, Math.min(4, fb.vy + (Math.random() - 0.5) * 3));
       fb.dirTimer = 0;
@@ -533,7 +533,7 @@ function update() {
   if (phase !== 'flying') return;
 
   const pr = projectile;
-  pr.vy += GRAVITY; pr.x += pr.vx; pr.y += pr.vy;
+  pr.vy += GRAVITY * dt; pr.x += pr.vx * dt; pr.y += pr.vy * dt;
 
   if (pr.y + pr.r >= GROUND_Y) {
     pr.y = GROUND_Y - pr.r; pr.vy *= -0.4; pr.vx *= 0.7;
@@ -763,9 +763,12 @@ function drawTrajectoryHint() {
 // ── Game loop ─────────────────────────────────────────────────────────────
 function loop(timestamp) {
   // Timer
+  const rawDelta = lastTimestamp !== null ? (timestamp - lastTimestamp) / 1000 : 1/60;
+  const delta = Math.min(rawDelta, 0.1);
+  const dt = delta * 60; // normalised to 60 fps
+
   if (timerRunning) {
     if (lastTimestamp !== null) {
-      const delta = Math.min((timestamp - lastTimestamp) / 1000, 0.1);
       timeLeft = Math.max(0, timeLeft - delta);
       if (timeLeft <= 0 && phase !== 'result' && phase !== 'ending' && !timerExpired) {
         timerRunning = false;
@@ -779,8 +782,10 @@ function loop(timestamp) {
         }
       }
     }
-    lastTimestamp = timestamp;
+  }
+  lastTimestamp = timestamp;
 
+  if (timerRunning) {
     // Update timer DOM
     const t = Math.ceil(timeLeft);
     const timerEl = document.getElementById('timer-display');
@@ -792,7 +797,7 @@ function loop(timestamp) {
     }
   }
 
-  update();
+  update(dt);
   drawSky();
   drawClouds();
   drawGround();
