@@ -201,6 +201,8 @@
     #intro-logo {
       position: relative;
       z-index: 3;
+      width: max-content;
+      text-align: center;
       margin-top: clamp(18px, 4.5vh, 55px);
       background: linear-gradient(180deg, #9B5500 0%, #6B3200 60%, #4a2000 100%);
       border: 5px solid #FFD700;
@@ -225,9 +227,8 @@
     }
     #intro-logo::before { left: clamp(8px, 1.8vmin, 14px); }
     #intro-logo::after  { right: clamp(8px, 1.8vmin, 14px); }
-    #intro-logo { text-align: center; }
     #intro-title {
-      display: inline-block;
+      display: block;
       direction: ltr;
       text-align: center;
       font-size: clamp(32px, 12vmin, 92px);
