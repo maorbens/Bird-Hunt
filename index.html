@@ -124,14 +124,15 @@
       flex-direction: column;
       align-items: center;
       gap: clamp(18px, 3.5vmin, 32px);
-      min-width: clamp(260px, 50vmin, 480px);
-      max-width: 90vw;
+      width: min(480px, 90vw);
     }
     #intro-text {
       color: #fff;
       font-size: clamp(13px, 2.8vmin, 20px);
       text-shadow: 2px 2px 0 #000;
-      line-height: 2;
+      line-height: 1.8;
+      word-spacing: normal;
+      word-break: keep-all;
     }
   </style>
 </head>
