@@ -2,9 +2,12 @@
 <html lang="he">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#4EC0CA" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
   <title>Bird Hunt</title>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   <link href="https://fonts.bunny.net/css?family=press-start-2p:400" rel="stylesheet">
@@ -33,7 +36,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: clamp(10px, 3vh, 22px) clamp(14px, 3.5vw, 32px);
+      padding: calc(env(safe-area-inset-top, 0px) + clamp(10px, 3vh, 22px)) calc(env(safe-area-inset-right, 0px) + clamp(14px, 3.5vw, 32px)) clamp(10px, 3vh, 22px) calc(env(safe-area-inset-left, 0px) + clamp(14px, 3.5vw, 32px));
       color: #fff;
       font-size: clamp(16px, 4vmin, 28px);
       z-index: 10;
