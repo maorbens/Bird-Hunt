@@ -168,7 +168,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      background: linear-gradient(180deg, #1078a0 0%, #2aa0c4 30%, #4EC0CA 58%, #68ccd8 100%);
+      background: #4EC0CA;
       overflow: hidden;
     }
     #intro-screen.hidden { display: none; }
@@ -184,27 +184,18 @@
       0%   { transform: translateX(0px); }
       100% { transform: translateX(22px); }
     }
-    /* Ground */
+    /* Ground — exact match to drawGround() */
     #intro-ground {
       position: absolute;
       bottom: 0; left: 0; right: 0;
       height: clamp(80px, 17vh, 155px);
       z-index: 1;
-      background: #78B800;
-    }
-    #intro-ground::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: clamp(10px, 2.5vh, 24px);
-      background: linear-gradient(180deg, #5A9000 0%, #78B800 100%);
-    }
-    #intro-ground::after {
-      content: '';
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      height: 55%;
-      background: linear-gradient(180deg, #78B800 0%, #C8B870 60%, #DED895 100%);
+      background: linear-gradient(
+        180deg,
+        #5A9000 0,    #5A9000 5px,
+        #78B800 5px,  #78B800 17px,
+        #DED895 17px
+      );
     }
     /* Logo badge */
     #intro-logo {
@@ -263,38 +254,12 @@
     }
     .intro-tree-l { left: clamp(-14px, -1.5vw, 0px); }
     .intro-tree-r { right: clamp(-14px, -1.5vw, 0px); }
-    .tree-canopy {
-      position: relative;
-      width: clamp(68px, 16vmin, 130px);
-      height: clamp(68px, 16vmin, 130px);
-      background: radial-gradient(circle at 38% 32%, #94D400, #4E9000 70%);
-      border-radius: 50%;
-      box-shadow: 0 5px 0 #2a5800, inset 0 -6px 10px rgba(0,0,0,0.22);
-    }
-    .tree-canopy::before {
-      content: '';
-      position: absolute;
-      top: -28%; left: 8%;
-      width: 68%; height: 68%;
-      background: radial-gradient(circle at 38% 30%, #aaE000, #60a000 65%);
-      border-radius: 50%;
-      box-shadow: 0 3px 0 #2a5800;
-    }
-    .tree-canopy::after {
-      content: '';
-      position: absolute;
-      top: 8%; right: -12%;
-      width: 58%; height: 58%;
-      background: radial-gradient(circle at 38% 30%, #80c000, #3a8000 65%);
-      border-radius: 50%;
-      box-shadow: 0 2px 0 #1a4200;
-    }
-    .tree-trunk {
-      width: clamp(12px, 2.8vmin, 24px);
-      height: clamp(22px, 5vmin, 44px);
-      background: linear-gradient(90deg, #6B3800, #A05818, #6B3800);
-      border-radius: 3px;
-      box-shadow: 2px 0 0 #3a1800;
+    /* Pixel-art tree SVG — colors match game palette */
+    .tree-svg {
+      width: clamp(56px, 14vmin, 112px);
+      height: auto;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
     }
     /* Hero bird */
     #intro-hero {
@@ -391,12 +356,26 @@
     <div id="intro-clouds"></div>
     <div id="intro-trees">
       <div class="intro-tree intro-tree-l">
-        <div class="tree-canopy"></div>
-        <div class="tree-trunk"></div>
+        <svg class="tree-svg" viewBox="0 0 7 9" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="0" width="3" height="1" fill="#5A9000"/>
+          <rect x="1" y="1" width="5" height="1" fill="#78B800"/>
+          <rect x="0" y="2" width="7" height="1" fill="#78B800"/>
+          <rect x="0" y="3" width="7" height="1" fill="#5A9000"/>
+          <rect x="0" y="4" width="7" height="1" fill="#78B800"/>
+          <rect x="1" y="5" width="5" height="1" fill="#5A9000"/>
+          <rect x="3" y="6" width="1" height="3" fill="#8B4513"/>
+        </svg>
       </div>
       <div class="intro-tree intro-tree-r">
-        <div class="tree-canopy"></div>
-        <div class="tree-trunk"></div>
+        <svg class="tree-svg" viewBox="0 0 7 9" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="0" width="3" height="1" fill="#5A9000"/>
+          <rect x="1" y="1" width="5" height="1" fill="#78B800"/>
+          <rect x="0" y="2" width="7" height="1" fill="#78B800"/>
+          <rect x="0" y="3" width="7" height="1" fill="#5A9000"/>
+          <rect x="0" y="4" width="7" height="1" fill="#78B800"/>
+          <rect x="1" y="5" width="5" height="1" fill="#5A9000"/>
+          <rect x="3" y="6" width="1" height="3" fill="#8B4513"/>
+        </svg>
       </div>
     </div>
     <div id="intro-logo">
@@ -498,40 +477,41 @@ function initIntroStars() {
   const container = document.getElementById('intro-clouds');
   if (!container) return;
   container.innerHTML = '';
+  // Cloud data: left/top in %, w in CP units (matches drawClouds CP=8)
+  const CP = 8;
   const cloudData = [
-    { left: 3,  top: 12, w: 90,  h: 28 },
-    { left: 22, top: 28, w: 120, h: 22 },
-    { left: 50, top: 8,  w: 80,  h: 20 },
-    { left: 65, top: 38, w: 110, h: 26 },
-    { left: 78, top: 18, w: 75,  h: 18 },
-    { left: 38, top: 52, w: 95,  h: 20 },
+    { left: 2,  top: 10, w: 11 },
+    { left: 22, top: 30, w: 14 },
+    { left: 42, top: 8,  w: 10 },
+    { left: 62, top: 38, w: 12 },
+    { left: 79, top: 20, w:  9 },
   ];
-  cloudData.forEach(({ left, top, w, h }, i) => {
-    const el  = document.createElement('div');
-    const dur = (10 + i * 2.3).toFixed(1);
-    const del = (i * 1.4).toFixed(1);
-    el.style.cssText = [
+  cloudData.forEach(({ left, top, w }, i) => {
+    const dur  = (10 + i * 2.3).toFixed(1);
+    const del  = (i * 1.4).toFixed(1);
+    const anim = `cloudDrift ${dur}s ease-in-out ${del}s infinite alternate`;
+    // Body rect (matches ctx.fillRect(ox, oy+CP, w*CP, 3*CP))
+    const body = document.createElement('div');
+    body.style.cssText = [
       'position:absolute',
       `left:${left}%`,
-      `top:${top}%`,
-      `width:${w}px`,
-      `height:${h}px`,
-      'background:rgba(255,255,255,0.82)',
-      'border-radius:50px',
-      `animation:cloudDrift ${dur}s ease-in-out ${del}s infinite alternate`,
+      `top:calc(${top}% + ${CP}px)`,
+      `width:${w * CP}px`,
+      `height:${3 * CP}px`,
+      'background:#fff',
+      `animation:${anim}`,
     ].join(';');
-    container.appendChild(el);
-    // Add a smaller puff on top of each cloud
+    container.appendChild(body);
+    // Top puff (matches ctx.fillRect(ox+CP, oy, (w-2)*CP, CP+4))
     const puff = document.createElement('div');
     puff.style.cssText = [
       'position:absolute',
-      `left:${left + w * 0.0045}%`,
-      `top:${top - 1.2}%`,
-      `width:${Math.round(w * 0.55)}px`,
-      `height:${Math.round(h * 0.75)}px`,
-      'background:rgba(255,255,255,0.72)',
-      'border-radius:50px',
-      `animation:cloudDrift ${dur}s ease-in-out ${del}s infinite alternate`,
+      `left:calc(${left}% + ${CP}px)`,
+      `top:${top}%`,
+      `width:${(w - 2) * CP}px`,
+      `height:${CP + 4}px`,
+      'background:#fff',
+      `animation:${anim}`,
     ].join(';');
     container.appendChild(puff);
   });
