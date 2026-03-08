@@ -52,32 +52,6 @@
       display: inline-block;
       animation: heartDisappear 0.5s ease-out forwards;
     }
-    #toast {
-      position: fixed;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%) translateY(calc(100% + 20px));
-      background: #1a1a2e;
-      border: 4px solid #fff;
-      box-shadow: 6px 6px 0 #000, inset 0 0 0 2px #000;
-      padding: clamp(14px, 2.5vmin, 24px) clamp(22px, 5vmin, 48px);
-      color: #fff;
-      font-family: 'Press Start 2P', monospace;
-      font-size: clamp(13px, 2.8vmin, 20px);
-      text-align: center;
-      direction: rtl;
-      z-index: 15;
-      pointer-events: none;
-      touch-action: none;
-      white-space: nowrap;
-      visibility: hidden;
-      transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), visibility 0s 0.45s;
-    }
-    #toast.visible {
-      transform: translateX(-50%) translateY(-24px);
-      visibility: visible;
-      transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), visibility 0s 0s;
-    }
     #game-over-overlay {
       display: none;
       position: fixed;
@@ -116,7 +90,7 @@
     }
     #game-over-score { color: #FFD700; }
     #game-over-hs    { color: #aaffaa; }
-    #restart-btn {
+    #restart-btn, #start-btn {
       padding: clamp(12px, 2.5vmin, 22px) clamp(24px, 6vmin, 52px);
       background: #e94560;
       color: #fff;
@@ -128,7 +102,37 @@
       white-space: nowrap;
       transition: transform 0.07s, box-shadow 0.07s;
     }
-    #restart-btn:active { transform: translate(3px,3px); box-shadow: 1px 1px 0 #000; }
+    #restart-btn:active, #start-btn:active { transform: translate(3px,3px); box-shadow: 1px 1px 0 #000; }
+    #intro-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.72);
+      z-index: 20;
+      align-items: center;
+      justify-content: center;
+    }
+    #intro-overlay.visible { display: flex; }
+    #intro-popup {
+      background: #1a1a2e;
+      border: 4px solid #fff;
+      box-shadow: 6px 6px 0 #000, inset 0 0 0 2px #000;
+      padding: clamp(24px, 5vmin, 48px) clamp(32px, 7vmin, 64px);
+      text-align: center;
+      direction: rtl;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: clamp(18px, 3.5vmin, 32px);
+      min-width: clamp(260px, 50vmin, 480px);
+      max-width: 90vw;
+    }
+    #intro-text {
+      color: #fff;
+      font-size: clamp(13px, 2.8vmin, 20px);
+      text-shadow: 2px 2px 0 #000;
+      line-height: 2;
+    }
   </style>
 </head>
 <body>
@@ -138,7 +142,12 @@
     <span id="timer-display">60s</span>
     <span id="miss-display">X 0/5</span>
   </div>
-  <div id="toast">משכו את הרוגטקה כדי לפגוע בציפור</div>
+  <div id="intro-overlay">
+    <div id="intro-popup">
+      <div id="intro-text">משכו את הרוגטקה כדי לפגוע בציפור ולצבור נקודות לפני שהזמן נגמר!</div>
+      <button id="start-btn" onclick="startGame()">התחל משחק</button>
+    </div>
+  </div>
   <div id="game-over-overlay">
     <div id="game-over-popup">
       <div id="game-over-reason"></div>
@@ -205,17 +214,13 @@ let flyingBird, projectile, particles, floatingTexts, phase, drag, launched;
 let highScore = 0;
 try { highScore = parseInt(localStorage.getItem('birdHuntHS') || '0') || 0; } catch(e) {}
 
-let toastTimer = null;
 let firstGame = true;
-function showToast() {
-  const el = document.getElementById('toast');
-  el.classList.add('visible');
-  if (toastTimer) clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => hideToast(), 3000);
-}
-function hideToast() {
-  document.getElementById('toast').classList.remove('visible');
-  if (toastTimer) { clearTimeout(toastTimer); toastTimer = null; }
+
+function startGame() {
+  document.getElementById('intro-overlay').classList.remove('visible');
+  timerRunning  = true;
+  lastTimestamp = null;
+  firstGame     = false;
 }
 
 let gameTimers = [];
@@ -233,7 +238,7 @@ function initGame() {
   isFireStone     = false;
   stoneScale      = 1;
   timeLeft        = TIMER_START;
-  timerRunning    = true;
+  timerRunning    = !firstGame;
   lastTimestamp   = null;
   timerExpired    = false;
   phase           = 'aim';
@@ -245,7 +250,9 @@ function initGame() {
   flyingBird      = newFlyingBird();
   updateUI();
   document.getElementById('game-over-overlay').classList.remove('visible');
-  if (firstGame) { showToast(); firstGame = false; }
+  if (firstGame) {
+    document.getElementById('intro-overlay').classList.add('visible');
+  }
 }
 
 function newProjectile() {
@@ -356,7 +363,7 @@ function toLogical(cx, cy) {
 }
 function startDrag(lx, ly) {
   if (phase !== 'aim') return;
-  if (Math.hypot(lx - SLING_X, ly - SLING_Y) < 50) { drag = { x: lx, y: ly }; hideToast(); }
+  if (Math.hypot(lx - SLING_X, ly - SLING_Y) < 50) { drag = { x: lx, y: ly }; }
 }
 function moveDrag(lx, ly) {
   if (!drag) return;
