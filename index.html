@@ -227,10 +227,13 @@
     }
     #intro-logo::before { left: clamp(8px, 1.8vmin, 14px); }
     #intro-logo::after  { right: clamp(8px, 1.8vmin, 14px); }
+    #intro-title > div {
+      width: -webkit-fit-content;
+      width: fit-content;
+      margin: 0 auto;
+    }
     #intro-title {
-      display: block;
       direction: ltr;
-      text-align: center;
       font-size: clamp(32px, 12vmin, 92px);
       color: #FFE800;
       text-shadow:
@@ -383,7 +386,7 @@
       </div>
     </div>
     <div id="intro-logo">
-      <div id="intro-title">BIRD<br>HUNT</div>
+      <div id="intro-title"><div>BIRD</div><div>HUNT</div></div>
     </div>
     <div id="intro-hero">
       <div id="intro-bird-wrap">
