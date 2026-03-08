@@ -81,6 +81,8 @@
       color: #FF6B6B;
       font-size: clamp(16px, 3.5vmin, 28px);
       text-shadow: 2px 2px 0 #000;
+      text-align: center;
+      width: 100%;
     }
     #game-over-score, #game-over-hs {
       display: flex;
@@ -492,7 +494,7 @@ function endGame() {
   }
   const EX  = '<span class="ex">!</span>';
   const COL = '<span class="ex">:</span>';
-  const reasonText = timeLeft <= 0 ? `הזמן נגמר${EX}` : `<span class="ex">${MISS_LIMIT}</span> פספוסים${EX}`;
+  const reasonText = timeLeft <= 0 ? `הזמן נגמר${EX}` : `<span class="ex">${MISS_LIMIT}</span>פספוסים${EX}`;
   document.getElementById('game-over-reason').innerHTML = reasonText;
   document.getElementById('score-val').textContent = score;
   if (isNew) {
