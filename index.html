@@ -69,24 +69,7 @@
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 7' shape-rendering='crispEdges'%3E%3Crect x='1' y='0' width='2' height='1' fill='%23FF2222'/%3E%3Crect x='4' y='0' width='2' height='1' fill='%23FF2222'/%3E%3Crect x='0' y='1' width='7' height='3' fill='%23FF2222'/%3E%3Crect x='1' y='4' width='5' height='1' fill='%23FF2222'/%3E%3Crect x='2' y='5' width='3' height='1' fill='%23FF2222'/%3E%3Crect x='3' y='6' width='1' height='1' fill='%23FF2222'/%3E%3C/svg%3E");
       background-size: 100% 100%;
     }
-    /* ── In-game home button ─────────────────────────────────────────────── */
-    #home-btn {
-      pointer-events: auto;
-      background: rgba(0,0,0,0.52);
-      border: 2px solid rgba(255,255,255,0.48);
-      box-shadow: 2px 2px 0 rgba(0,0,0,0.8);
-      color: #fff;
-      font-size: clamp(14px, 3vmin, 22px);
-      padding: clamp(3px, 0.8vmin, 7px) clamp(6px, 1.2vmin, 12px);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      line-height: 1;
-      transition: transform 0.07s, box-shadow 0.07s;
-      flex-shrink: 0;
-    }
-    #home-btn:active { transform: translate(2px,2px); box-shadow: 0 0 0 rgba(0,0,0,0.8); }
-    /* ── Game Over overlay ───────────────────────────────────────────────── */
+/* ── Game Over overlay ───────────────────────────────────────────────── */
     #game-over-overlay {
       display: none;
       position: fixed;
@@ -386,17 +369,7 @@
   <!-- In-game UI bar -->
   <div id="ui">
     <div id="ui-left">
-      <button id="home-btn" onclick="showIntro()">
-        <svg width="1em" height="1em" viewBox="0 0 5 5" shape-rendering="crispEdges" fill="currentColor">
-          <rect x="2" y="0" width="1" height="1"/>
-          <rect x="1" y="1" width="3" height="1"/>
-          <rect x="0" y="2" width="5" height="1"/>
-          <rect x="0" y="3" width="5" height="1"/>
-          <rect x="0" y="4" width="1" height="1"/>
-          <rect x="4" y="4" width="1" height="1"/>
-        </svg>
-      </button>
-      <span id="score-display">0</span>
+<span id="score-display">0</span>
     </div>
     <span id="timer-display">60s</span>
     <span id="miss-display">X 0/5</span>
