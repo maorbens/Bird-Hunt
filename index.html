@@ -533,6 +533,8 @@ function showIntro() {
   document.getElementById('game-over-overlay').classList.remove('visible');
   const hsEl = document.getElementById('intro-hs');
   if (hsEl) hsEl.textContent = highScore > 0 ? highScore : '---';
+  const hsWrap = document.getElementById('intro-hs-wrap');
+  if (hsWrap) hsWrap.style.visibility = highScore > 0 ? 'visible' : 'hidden';
   document.getElementById('intro-screen').classList.remove('hidden');
 }
 
