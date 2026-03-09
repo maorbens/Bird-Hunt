@@ -285,7 +285,8 @@
     /* Bottom HUD */
     #intro-hud {
       position: absolute;
-      bottom: clamp(88px, 19vh, 168px);
+      top: 50%;
+      transform: translateY(-50%);
       left: 0; right: 0;
       z-index: 3;
       display: flex;
@@ -1199,7 +1200,7 @@ function introLoopBirds(timestamp) {
 function startIntroBirdAnim() {
   resizeIntroBirdCanvas();
   introBirdLastTs = null;
-  introBirds = [newIntroBird(), newIntroBird(), newIntroBird()];
+  introBirds = [newIntroBird()];
   if (introBirdAnimId) cancelAnimationFrame(introBirdAnimId);
   introBirdAnimId = requestAnimationFrame(introLoopBirds);
 }
