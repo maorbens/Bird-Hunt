@@ -92,7 +92,7 @@
       align-items: center;
       gap: clamp(18px, 3.5vmin, 32px);
       word-spacing: 0.1em;
-      min-width: clamp(260px, 50vmin, 480px);
+      width: fit-content;
       max-width: 90vw;
     }
     #game-over-reason {
@@ -125,7 +125,7 @@
       align-self: center;
     }
     #game-over-btns #restart-btn,
-    #game-over-btns #home-btn-go { width: 100%; }
+    #game-over-btns #home-btn-go { align-self: center; }
     #restart-btn, #start-btn {
       padding: clamp(12px, 2.5vmin, 22px) clamp(24px, 6vmin, 52px);
       background: #e94560;
