@@ -721,73 +721,79 @@ function _getAudioCtx() {
   return _audioCtx;
 }
 
-function _makeNoiseBuffer(ctx) {
-  // Two seconds of loopable noise
-  const len = ctx.sampleRate * 2;
-  const buf = ctx.createBuffer(1, len, ctx.sampleRate);
-  const data = buf.getChannelData(0);
-  // Pink-ish noise: low-pass white noise approximation
-  let b0 = 0, b1 = 0, b2 = 0;
-  for (let i = 0; i < len; i++) {
-    const w = Math.random() * 2 - 1;
-    b0 = 0.99765 * b0 + w * 0.0990460;
-    b1 = 0.96300 * b1 + w * 0.2965164;
-    b2 = 0.57000 * b2 + w * 1.0526913;
-    data[i] = (b0 + b1 + b2 + w * 0.1848) / 5;
-  }
-  return buf;
+// Karplus-Strong pluck at given frequency
+function _ksPluck(ctx, freq, gain, dest) {
+  const sr = ctx.sampleRate;
+  const delayTime = 1 / freq;
+  const bufLen = Math.round(sr * delayTime);
+  // Short noise burst (one period)
+  const noiseBuf = ctx.createBuffer(1, bufLen, sr);
+  const data = noiseBuf.getChannelData(0);
+  for (let i = 0; i < bufLen; i++) data[i] = Math.random() * 2 - 1;
+  const noise = ctx.createBufferSource();
+  noise.buffer = noiseBuf;
+  // Delay + lowpass feedback loop
+  const delay = ctx.createDelay();
+  delay.delayTime.value = delayTime;
+  const lp = ctx.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.frequency.value = freq * 6;
+  const fbGain = ctx.createGain();
+  fbGain.gain.value = 0.985; // decay speed
+  const outGain = ctx.createGain();
+  outGain.gain.value = gain;
+  outGain.gain.setTargetAtTime(0, ctx.currentTime + 0.8, 0.15);
+  // Routing: noise → delay → lp → fbGain → delay (loop) + outGain → dest
+  noise.connect(delay);
+  delay.connect(lp);
+  lp.connect(fbGain);
+  fbGain.connect(delay);
+  lp.connect(outGain);
+  outGain.connect(dest);
+  noise.start();
+  noise.stop(ctx.currentTime + delayTime * 2);
+  return outGain;
 }
 
 function startStretchSound() {
   try {
     const ctx = _getAudioCtx();
-
-    // ── Layer 1: resonant squeak (high-Q bandpass on noise) ──
-    const noise = ctx.createBufferSource();
-    noise.buffer = _makeNoiseBuffer(ctx);
-    noise.loop = true;
-
-    const bp1 = ctx.createBiquadFilter();
-    bp1.type = 'bandpass';
-    bp1.frequency.value = 600;
-    bp1.Q.value = 14; // high Q → resonant squeak
-
-    const bp2 = ctx.createBiquadFilter(); // second stage for extra squeak character
-    bp2.type = 'bandpass';
-    bp2.frequency.value = 900;
-    bp2.Q.value = 8;
-
     const masterGain = ctx.createGain();
-    masterGain.gain.value = 0;
-
-    noise.connect(bp1);
-    bp1.connect(bp2);
-    bp2.connect(masterGain);
-
-    // ── Layer 2: triangle squeak tone ──
-    const squeakOsc = ctx.createOscillator();
-    squeakOsc.type = 'triangle';
-    squeakOsc.frequency.value = 400;
-
-    const squeakGain = ctx.createGain();
-    squeakGain.gain.value = 0;
-    squeakOsc.connect(squeakGain);
-    squeakGain.connect(masterGain);
-
-    // ── LFO: organic pitch wobble on squeak osc ──
-    const lfo = ctx.createOscillator();
-    lfo.frequency.value = 5;
-    const lfoGain = ctx.createGain();
-    lfoGain.gain.value = 18; // ±18Hz wobble
-    lfo.connect(lfoGain);
-    lfoGain.connect(squeakOsc.frequency);
-
+    masterGain.gain.value = 1;
     masterGain.connect(ctx.destination);
-    noise.start();
-    squeakOsc.start();
+
+    // Initial pluck — two slightly detuned strings for richness
+    _ksPluck(ctx, 180, 0.55, masterGain);
+    _ksPluck(ctx, 183, 0.45, masterGain);
+
+    // Continuous tension tone: sawtooth → resonant bandpass, pitch tracks pull
+    const tensionOsc = ctx.createOscillator();
+    tensionOsc.type = 'sawtooth';
+    tensionOsc.frequency.value = 160;
+
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = 160;
+    bp.Q.value = 18; // very resonant — string-like
+
+    const tensionGain = ctx.createGain();
+    tensionGain.gain.value = 0;
+
+    // Slow LFO for natural string tremolo
+    const lfo = ctx.createOscillator();
+    lfo.frequency.value = 6;
+    const lfoAmt = ctx.createGain();
+    lfoAmt.gain.value = 0;
+    lfo.connect(lfoAmt);
+    lfoAmt.connect(tensionGain.gain);
+
+    tensionOsc.connect(bp);
+    bp.connect(tensionGain);
+    tensionGain.connect(masterGain);
+    tensionOsc.start();
     lfo.start();
 
-    _stretchNodes = { noise, bp1, bp2, squeakOsc, squeakGain, lfo, lfoGain, masterGain };
+    _stretchNodes = { masterGain, tensionOsc, bp, tensionGain, lfo, lfoAmt };
   } catch(e) {}
 }
 
@@ -797,18 +803,12 @@ function updateStretchSound(dist) {
     const t = dist / MAX_PULL; // 0–1
     const ctx = _getAudioCtx();
     const now = ctx.currentTime;
-    const tc = 0.05;
-    // Noise bandpass: 600→1400Hz as tension builds
-    _stretchNodes.bp1.frequency.setTargetAtTime(600 + t * 800, now, tc);
-    _stretchNodes.bp2.frequency.setTargetAtTime(900 + t * 700, now, tc);
-    // Squeak tone: 400→850Hz
-    _stretchNodes.squeakOsc.frequency.setTargetAtTime(400 + t * 450, now, tc);
-    // LFO wobble increases with tension
-    _stretchNodes.lfoGain.gain.setTargetAtTime(18 + t * 30, now, tc);
-    // Overall volume: quiet at start, builds up
-    _stretchNodes.masterGain.gain.setTargetAtTime(t * 0.22, now, tc);
-    // Squeak tone only audible once pulled enough
-    _stretchNodes.squeakGain.gain.setTargetAtTime(Math.max(0, t - 0.25) * 0.35, now, tc);
+    const tc = 0.06;
+    const freq = 160 + t * 320; // 160→480Hz — string tightening
+    _stretchNodes.tensionOsc.frequency.setTargetAtTime(freq, now, tc);
+    _stretchNodes.bp.frequency.setTargetAtTime(freq, now, tc);
+    _stretchNodes.tensionGain.gain.setTargetAtTime(t * 0.12, now, tc);
+    _stretchNodes.lfoAmt.gain.setTargetAtTime(t * 0.04, now, tc);
   } catch(e) {}
 }
 
@@ -816,13 +816,12 @@ function stopStretchSound() {
   if (!_stretchNodes) return;
   try {
     const ctx = _getAudioCtx();
-    const now = ctx.currentTime;
-    _stretchNodes.masterGain.gain.setTargetAtTime(0, now, 0.04);
+    _stretchNodes.masterGain.gain.setTargetAtTime(0, ctx.currentTime, 0.05);
     const n = _stretchNodes;
     _stretchNodes = null;
     setTimeout(() => {
-      try { n.noise.stop(); n.squeakOsc.stop(); n.lfo.stop(); } catch(e) {}
-    }, 200);
+      try { n.tensionOsc.stop(); n.lfo.stop(); } catch(e) {}
+    }, 250);
   } catch(e) {}
 }
 
