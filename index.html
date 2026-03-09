@@ -1237,7 +1237,9 @@ function positionIntroHud() {
     hud.style.top       = midY + 'px';
     hud.style.transform = 'translateY(-50%)';
   } else {
-    hud.style.top       = '50%';
+    const logoBottom = document.getElementById('intro-logo').getBoundingClientRect().bottom;
+    const midY = (logoBottom + window.innerHeight) / 2;
+    hud.style.top       = midY + 'px';
     hud.style.transform = 'translateY(-50%)';
   }
 }
