@@ -1203,8 +1203,22 @@ function introLoopBirds(timestamp) {
   introBirdAnimId = requestAnimationFrame(introLoopBirds);
 }
 
+function positionIntroHud() {
+  const hud = document.getElementById('intro-hud');
+  if (window.innerWidth > window.innerHeight) {
+    const logoBottom = document.getElementById('intro-logo').getBoundingClientRect().bottom;
+    const midY = (logoBottom + window.innerHeight) / 2;
+    hud.style.top       = midY + 'px';
+    hud.style.transform = 'translateY(-50%)';
+  } else {
+    hud.style.top       = '50%';
+    hud.style.transform = 'translateY(-50%)';
+  }
+}
+
 function startIntroBirdAnim() {
   resizeIntroBirdCanvas();
+  positionIntroHud();
   introBirdLastTs = null;
   introBirds = [newIntroBird()];
   if (introBirdAnimId) cancelAnimationFrame(introBirdAnimId);
@@ -1215,7 +1229,7 @@ function stopIntroBirdAnim() {
   if (introBirdAnimId) { cancelAnimationFrame(introBirdAnimId); introBirdAnimId = null; }
 }
 
-window.addEventListener('resize', () => { if (introBirdAnimId) resizeIntroBirdCanvas(); });
+window.addEventListener('resize', () => { if (introBirdAnimId) { resizeIntroBirdCanvas(); positionIntroHud(); } });
 
 setupIdleState();
 initIntroStars();
