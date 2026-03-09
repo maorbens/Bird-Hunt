@@ -2,7 +2,7 @@
 <html lang="he">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>Bird Hunt</title>
@@ -33,7 +33,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: clamp(10px, 3vh, 22px) clamp(14px, 3.5vw, 32px);
+      padding: max(clamp(10px, 3vh, 22px), env(safe-area-inset-top)) clamp(14px, 3.5vw, 32px);
       color: #fff;
       font-size: clamp(16px, 4vmin, 28px);
       z-index: 10;
@@ -209,7 +209,7 @@
       justify-content: center;
       -webkit-align-items: center;
       align-items: center;
-      margin-top: clamp(18px, 4.5vh, 55px);
+      margin-top: max(clamp(18px, 4.5vh, 55px), calc(env(safe-area-inset-top) + 8px));
       background: linear-gradient(180deg, #9B5500 0%, #6B3200 60%, #4a2000 100%);
       border: 5px solid #FFD700;
       border-radius: 22px 22px 14px 14px;

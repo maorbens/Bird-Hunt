@@ -1,0 +1,11 @@
+{
+  "appId": "com.birdhunt.app",
+  "appName": "Bird Hunt",
+  "webDir": ".",
+  "plugins": {
+    "StatusBar": {
+      "overlaysWebView": true,
+      "style": "DARK"
+    }
+  }
+}
