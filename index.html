@@ -1001,7 +1001,7 @@ function onMiss() {
     const prevScale = stoneScale;
     stoneScale = Math.max(0.75, stoneScale * 0.75);
     if (stoneScale < prevScale && missCount < MISS_LIMIT)
-      addFloatingText('SMALLER STONE', SLING_X + 70, SLING_Y - 50, '#FF8844', 13);
+      addFloatingText('SMALLER ROCK', SLING_X + 70, SLING_Y - 50, '#FF8844', 13);
   }
 
   updateUI(true);
