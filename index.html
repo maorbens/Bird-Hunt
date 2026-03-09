@@ -765,25 +765,30 @@ function startStretchSound() {
   } catch(e) {}
 }
 
-function updateStretchSound(dist) {
+function updateStretchSound(dist, moving) {
   if (!_stretchNodes) return;
   try {
-    const t = dist / MAX_PULL;           // 0 → 1
+    const t   = dist / MAX_PULL;
     const ctx = _getAudioCtx();
     const now = ctx.currentTime;
-    const tc  = 0.03;                    // fast response = snappy feel
-    // Whoosh sweep: highpass 80→1800Hz, lowpass 400→4000Hz
-    _stretchNodes.hp.frequency.setTargetAtTime(80  + t * 1720, now, tc);
-    _stretchNodes.lp.frequency.setTargetAtTime(400 + t * 3600, now, tc);
-    // Volume: starts quiet, punches in
-    _stretchNodes.master.gain.setTargetAtTime(0.06 + t * 0.18, now, tc);
-    // Sine undertone: 120→420Hz, fades in after first third of pull
-    _stretchNodes.sine.frequency.setTargetAtTime(120 + t * 300, now, tc);
-    _stretchNodes.sineGain.gain.setTargetAtTime(Math.max(0, t - 0.3) * 0.12, now, tc);
+    // Filter positions always track current dist (silent or not)
+    _stretchNodes.hp.frequency.setTargetAtTime(80  + t * 1720, now, 0.03);
+    _stretchNodes.lp.frequency.setTargetAtTime(400 + t * 3600, now, 0.03);
+    _stretchNodes.sine.frequency.setTargetAtTime(120 + t * 300, now, 0.03);
+    if (moving) {
+      // Audible: volume reflects tension level
+      _stretchNodes.master.gain.setTargetAtTime(0.06 + t * 0.18, now, 0.03);
+      _stretchNodes.sineGain.gain.setTargetAtTime(Math.max(0, t - 0.3) * 0.12, now, 0.03);
+    } else {
+      // Holding still: silence quickly
+      _stretchNodes.master.gain.setTargetAtTime(0, now, 0.04);
+      _stretchNodes.sineGain.gain.setTargetAtTime(0, now, 0.04);
+    }
   } catch(e) {}
 }
 
 function stopStretchSound() {
+  clearTimeout(_stretchIdleTimer);
   if (!_stretchNodes) return;
   try {
     const ctx = _getAudioCtx();
@@ -797,10 +802,19 @@ function stopStretchSound() {
 }
 
 // ── Drag ──────────────────────────────────────────────────────────────────
+let _stretchIdleTimer = null;
+let _stretchLastDist  = 0;
+
+function _scheduleStretchIdle(dist) {
+  clearTimeout(_stretchIdleTimer);
+  _stretchIdleTimer = setTimeout(() => updateStretchSound(dist, false), 80);
+}
+
 function startDrag(lx, ly) {
   if (phase !== 'aim') return;
   if (Math.hypot(lx - SLING_X, ly - SLING_Y) < 50) {
     drag = { x: lx, y: ly };
+    _stretchLastDist = 0;
     startStretchSound();
   }
 }
@@ -812,7 +826,12 @@ function moveDrag(lx, ly) {
   const angle = Math.atan2(dy, dx);
   drag = { x: SLING_X + Math.cos(angle) * dist, y: SLING_Y + Math.sin(angle) * dist };
   projectile.x = drag.x; projectile.y = drag.y;
-  updateStretchSound(dist);
+  // Only trigger sound when there's meaningful movement (>1px)
+  if (Math.abs(dist - _stretchLastDist) > 1) {
+    updateStretchSound(dist, true);
+    _stretchLastDist = dist;
+    _scheduleStretchIdle(dist);
+  }
   // Haptic feedback: short pulse every 60-80ms, duration grows with pull distance
   if (navigator.vibrate) {
     const now = Date.now();
