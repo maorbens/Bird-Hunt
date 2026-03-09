@@ -960,11 +960,8 @@ function playSuccessSound() {
 }
 
 // ── Hit / Miss logic ──────────────────────────────────────────────────────
-let _comboStartedSmall = false;
 function onHit(bx, by) {
   playHitSound();
-  const prevHits = consecutiveHits;
-  if (prevHits === 0) _comboStartedSmall = stoneScale < 1; // record if streak started with small stone
   consecutiveHits++;
   stoneScale = 1; // restore stone size on any hit
 
@@ -976,7 +973,7 @@ function onHit(bx, by) {
   // Activate fire stone at 3 consecutive hits
   if (!isFireStone && consecutiveHits >= FIRE_COMBO) {
     isFireStone = true;
-    if (!_comboStartedSmall) playSuccessSound();
+    playSuccessSound();
     addFloatingText('* FIRE! *', bx, by - 58, '#FF4400');
   }
 
@@ -1002,7 +999,6 @@ function onHit(bx, by) {
 
 function onMiss() {
   consecutiveHits = 0;
-  _comboStartedSmall = false;
   missCount++;
 
   if (isFireStone) {
