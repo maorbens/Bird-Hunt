@@ -201,8 +201,12 @@
     #intro-logo {
       position: relative;
       z-index: 3;
-      width: max-content;
-      text-align: center;
+      display: -webkit-flex;
+      display: flex;
+      -webkit-justify-content: center;
+      justify-content: center;
+      -webkit-align-items: center;
+      align-items: center;
       margin-top: clamp(18px, 4.5vh, 55px);
       background: linear-gradient(180deg, #9B5500 0%, #6B3200 60%, #4a2000 100%);
       border: 5px solid #FFD700;
@@ -227,21 +231,10 @@
     }
     #intro-logo::before { left: clamp(8px, 1.8vmin, 14px); }
     #intro-logo::after  { right: clamp(8px, 1.8vmin, 14px); }
-    #intro-title > div {
-      padding-left: 0.06em;
-      text-align: center;
-    }
     #intro-title {
-      display: -webkit-box;
-      display: -webkit-flex;
-      display: flex;
-      -webkit-box-orient: vertical;
-      -webkit-flex-direction: column;
-      flex-direction: column;
-      -webkit-box-align: center;
-      -webkit-align-items: center;
-      align-items: center;
       direction: ltr;
+      text-align: center;
+      transform: translateX(6px);
       font-size: clamp(32px, 12vmin, 92px);
       color: #FFE800;
       text-shadow:
@@ -394,7 +387,7 @@
       </div>
     </div>
     <div id="intro-logo">
-      <div id="intro-title"><div>BIRD</div><div>HUNT</div></div>
+      <div id="intro-title">BIRD<br>HUNT</div>
     </div>
     <div id="intro-hero">
       <div id="intro-bird-wrap">
@@ -540,6 +533,8 @@ function showIntro() {
   document.getElementById('game-over-overlay').classList.remove('visible');
   const hsEl = document.getElementById('intro-hs');
   if (hsEl) hsEl.textContent = highScore > 0 ? highScore : '---';
+  const hsWrap = document.getElementById('intro-hs-wrap');
+  if (hsWrap) hsWrap.style.visibility = highScore > 0 ? 'visible' : 'hidden';
   document.getElementById('intro-screen').classList.remove('hidden');
 }
 
