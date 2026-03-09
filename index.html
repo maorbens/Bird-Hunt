@@ -714,6 +714,8 @@ function toLogical(cx, cy) {
 // ── Slingshot audio ───────────────────────────────────────────────────────
 let _audioCtx = null;
 let _stretchNodes = null;
+let _stretchRawBuf = null;   // raw ArrayBuffer from fetch
+let _stretchBuffer = null;   // decoded AudioBuffer
 
 function _getAudioCtx() {
   if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -721,47 +723,32 @@ function _getAudioCtx() {
   return _audioCtx;
 }
 
-function startStretchSound() {
+// Preload raw bytes (decode happens on first drag, after user gesture)
+fetch('631739__walllable__looped-rubber-y-stretch.wav')
+  .then(r => r.arrayBuffer())
+  .then(buf => { _stretchRawBuf = buf; })
+  .catch(() => {});
+
+async function startStretchSound() {
   try {
     const ctx = _getAudioCtx();
+    if (!_stretchBuffer && _stretchRawBuf) {
+      _stretchBuffer = await ctx.decodeAudioData(_stretchRawBuf.slice(0));
+    }
+    if (!_stretchBuffer) return;
+
+    const source = ctx.createBufferSource();
+    source.buffer = _stretchBuffer;
+    source.loop = true;
+    source.playbackRate.value = 0.8;
+
     const master = ctx.createGain();
     master.gain.value = 0;
+    source.connect(master);
     master.connect(ctx.destination);
+    source.start();
 
-    // ── Whoosh: noise swept through rising highpass + falling lowpass ──
-    const noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
-    const nd = noiseBuf.getChannelData(0);
-    for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
-    const noise = ctx.createBufferSource();
-    noise.buffer = noiseBuf;
-    noise.loop = true;
-
-    const hp = ctx.createBiquadFilter();  // sweeps up → thins out low end
-    hp.type = 'highpass';
-    hp.frequency.value = 80;
-    hp.Q.value = 1.2;
-
-    const lp = ctx.createBiquadFilter();  // sweeps up → opens up brightness
-    lp.type = 'lowpass';
-    lp.frequency.value = 400;
-    lp.Q.value = 2.5;
-
-    noise.connect(hp);
-    hp.connect(lp);
-    lp.connect(master);
-    noise.start();
-
-    // ── Pitch sine undertone — adds the "game-feel" musical note ──
-    const sine = ctx.createOscillator();
-    sine.type = 'sine';
-    sine.frequency.value = 120;
-    const sineGain = ctx.createGain();
-    sineGain.gain.value = 0;
-    sine.connect(sineGain);
-    sineGain.connect(master);
-    sine.start();
-
-    _stretchNodes = { master, hp, lp, noise, sine, sineGain };
+    _stretchNodes = { master, source };
   } catch(e) {}
 }
 
@@ -771,18 +758,12 @@ function updateStretchSound(dist, moving) {
     const t   = dist / MAX_PULL;
     const ctx = _getAudioCtx();
     const now = ctx.currentTime;
-    // Filter positions always track current dist (silent or not)
-    _stretchNodes.hp.frequency.setTargetAtTime(80  + t * 1720, now, 0.03);
-    _stretchNodes.lp.frequency.setTargetAtTime(400 + t * 3600, now, 0.03);
-    _stretchNodes.sine.frequency.setTargetAtTime(120 + t * 300, now, 0.03);
+    // Playback rate rises with tension (0.8 → 1.4)
+    _stretchNodes.source.playbackRate.setTargetAtTime(0.8 + t * 0.6, now, 0.05);
     if (moving) {
-      // Audible: volume reflects tension level
-      _stretchNodes.master.gain.setTargetAtTime(0.06 + t * 0.18, now, 0.03);
-      _stretchNodes.sineGain.gain.setTargetAtTime(Math.max(0, t - 0.3) * 0.12, now, 0.03);
+      _stretchNodes.master.gain.setTargetAtTime(0.05 + t * 0.25, now, 0.03);
     } else {
-      // Holding still: silence quickly
       _stretchNodes.master.gain.setTargetAtTime(0, now, 0.04);
-      _stretchNodes.sineGain.gain.setTargetAtTime(0, now, 0.04);
     }
   } catch(e) {}
 }
@@ -795,9 +776,7 @@ function stopStretchSound() {
     _stretchNodes.master.gain.setTargetAtTime(0, ctx.currentTime, 0.04);
     const n = _stretchNodes;
     _stretchNodes = null;
-    setTimeout(() => {
-      try { n.noise.stop(); n.sine.stop(); } catch(e) {}
-    }, 200);
+    setTimeout(() => { try { n.source.stop(); } catch(e) {} }, 200);
   } catch(e) {}
 }
 
