@@ -470,7 +470,11 @@ let resizeTimer;
 function handleResize() {
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => {
+    const oldVW = VW;
     resize();
+    if (oldVW) {
+      gameClouds.forEach(c => { if (c.x !== null) c.x = c.x * VW / oldVW; });
+    }
     if (projectile && phase === 'aim') {
       projectile.x = SLING_X;
       projectile.y = SLING_Y;
