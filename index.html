@@ -878,8 +878,54 @@ function spawnParticles(x, y, isFire = false) {
   }
 }
 
+// ── Hit sound ─────────────────────────────────────────────────────────────
+function playHitSound() {
+  try {
+    const ctx = _getAudioCtx();
+    const now = ctx.currentTime;
+
+    // Thud: short noise burst through low bandpass
+    const noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 0.12, ctx.sampleRate);
+    const nd = noiseBuf.getChannelData(0);
+    for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+    const noise = ctx.createBufferSource();
+    noise.buffer = noiseBuf;
+
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = 180;
+    bp.Q.value = 1.8;
+
+    const thudGain = ctx.createGain();
+    thudGain.gain.setValueAtTime(0.9, now);
+    thudGain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+
+    noise.connect(bp);
+    bp.connect(thudGain);
+    thudGain.connect(ctx.destination);
+    noise.start(now);
+    noise.stop(now + 0.18);
+
+    // Pop: short sine pitch-drop (cartoonish impact punch)
+    const pop = ctx.createOscillator();
+    pop.type = 'sine';
+    pop.frequency.setValueAtTime(520, now);
+    pop.frequency.exponentialRampToValueAtTime(90, now + 0.12);
+
+    const popGain = ctx.createGain();
+    popGain.gain.setValueAtTime(0.35, now);
+    popGain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+
+    pop.connect(popGain);
+    popGain.connect(ctx.destination);
+    pop.start(now);
+    pop.stop(now + 0.12);
+  } catch(e) {}
+}
+
 // ── Hit / Miss logic ──────────────────────────────────────────────────────
 function onHit(bx, by) {
+  playHitSound();
   consecutiveHits++;
   stoneScale = 1; // restore stone size on any hit
 
