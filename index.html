@@ -116,6 +116,15 @@
     #game-over-score { color: #FFD700; }
     #game-over-hs    { color: #aaffaa; }
     /* ── Shared pixel buttons ────────────────────────────────────────────── */
+    #game-over-btns {
+      display: flex;
+      flex-direction: column;
+      gap: clamp(18px, 3.5vmin, 32px);
+      width: fit-content;
+      align-self: center;
+    }
+    #game-over-btns #restart-btn,
+    #game-over-btns #home-btn-go { width: 100%; }
     #restart-btn, #start-btn {
       padding: clamp(12px, 2.5vmin, 22px) clamp(24px, 6vmin, 52px);
       background: #e94560;
@@ -131,6 +140,7 @@
       white-space: nowrap;
       transition: transform 0.07s, box-shadow 0.07s;
     }
+    #game-over-btns #restart-btn { padding-left: clamp(29px, 7.2vmin, 62px); padding-right: clamp(29px, 7.2vmin, 62px); }
     #restart-btn:active, #start-btn:active { transform: translate(3px,3px); box-shadow: 1px 1px 0 #000; }
     @keyframes startPulse {
       0%, 100% { transform: scale(1);    box-shadow: 4px 4px 0 #000, 0 0 8px rgba(233,69,96,0.3); }
@@ -401,8 +411,10 @@
       <div id="game-over-reason"></div>
       <div id="game-over-score"><span>ניקוד<span class="ex">:</span></span><span id="score-val"></span></div>
       <div id="game-over-hs"><span id="hs-label"></span><span id="hs-val"></span></div>
-      <button id="restart-btn" onclick="initGame()">שחק שוב</button>
-      <button id="home-btn-go" onclick="showIntro()">ראשי</button>
+      <div id="game-over-btns">
+        <button id="restart-btn" onclick="initGame()">שחק שוב</button>
+        <button id="home-btn-go" onclick="showIntro()">ראשי</button>
+      </div>
     </div>
   </div>
 
