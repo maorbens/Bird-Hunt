@@ -1087,8 +1087,10 @@ function update(dt) {
     if (fb.x + fb.r > VW)            { fb.x = VW - fb.r;            fb.vx = -Math.abs(fb.vx); }
     if (fb.y - fb.r < 20)            { fb.y = 20 + fb.r;            fb.vy =  Math.abs(fb.vy); }
     if (fb.y + fb.r > GROUND_Y - 20) { fb.y = GROUND_Y - 20 - fb.r; fb.vy = -Math.abs(fb.vy); }
-    const slingFloor = SLING_Y - 110;
-    if (fb.y + fb.r > slingFloor) { fb.y = slingFloor - fb.r; fb.vy = -Math.abs(fb.vy); }
+    if (window.innerWidth <= window.innerHeight) { // portrait only
+      const slingFloor = SLING_Y - 110;
+      if (fb.y + fb.r > slingFloor) { fb.y = slingFloor - fb.r; fb.vy = -Math.abs(fb.vy); }
+    }
   }
 
   if (phase !== 'flying') return;
