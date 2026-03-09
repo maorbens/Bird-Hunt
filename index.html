@@ -1400,6 +1400,12 @@ function stopIntroBirdAnim() {
 
 window.addEventListener('resize', () => { if (introBirdAnimId) { resizeIntroBirdCanvas(); positionIntroHud(); } });
 
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && _audioCtx && _audioCtx.state === 'suspended') {
+    _audioCtx.resume();
+  }
+});
+
 setupIdleState();
 initIntroStars();
 showIntro();
