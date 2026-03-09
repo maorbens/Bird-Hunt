@@ -711,9 +711,95 @@ function toLogical(cx, cy) {
     y: (cy - rect.top)  * H  / rect.height,
   };
 }
+// ── Slingshot audio ───────────────────────────────────────────────────────
+let _audioCtx = null;
+let _stretchOsc = null, _stretchFilter = null, _stretchGain = null;
+let _noiseSource = null, _noiseGain = null;
+
+function _getAudioCtx() {
+  if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (_audioCtx.state === 'suspended') _audioCtx.resume();
+  return _audioCtx;
+}
+
+function _makeNoiseBuffer(ctx) {
+  const len = ctx.sampleRate * 0.5;
+  const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
+  return buf;
+}
+
+function startStretchSound() {
+  try {
+    const ctx = _getAudioCtx();
+
+    // Looping noise → bandpass filter → gain
+    _stretchFilter = ctx.createBiquadFilter();
+    _stretchFilter.type = 'bandpass';
+    _stretchFilter.frequency.value = 180;
+    _stretchFilter.Q.value = 3;
+
+    _noiseGain = ctx.createGain();
+    _noiseGain.gain.value = 0;
+
+    _noiseSource = ctx.createBufferSource();
+    _noiseSource.buffer = _makeNoiseBuffer(ctx);
+    _noiseSource.loop = true;
+    _noiseSource.connect(_stretchFilter);
+    _stretchFilter.connect(_noiseGain);
+    _noiseGain.connect(ctx.destination);
+    _noiseSource.start();
+
+    // Low sawtooth tone → gain
+    _stretchOsc = ctx.createOscillator();
+    _stretchOsc.type = 'sawtooth';
+    _stretchOsc.frequency.value = 60;
+
+    _stretchGain = ctx.createGain();
+    _stretchGain.gain.value = 0;
+
+    _stretchOsc.connect(_stretchGain);
+    _stretchGain.connect(ctx.destination);
+    _stretchOsc.start();
+  } catch(e) {}
+}
+
+function updateStretchSound(dist) {
+  if (!_stretchGain) return;
+  try {
+    const t = dist / MAX_PULL; // 0–1
+    const ctx = _getAudioCtx();
+    const now = ctx.currentTime;
+    // Noise: filter freq 180→600Hz, vol 0→0.18
+    _stretchFilter.frequency.setTargetAtTime(180 + t * 420, now, 0.04);
+    _noiseGain.gain.setTargetAtTime(t * 0.18, now, 0.04);
+    // Tone: freq 60→160Hz, vol 0→0.08
+    _stretchOsc.frequency.setTargetAtTime(60 + t * 100, now, 0.04);
+    _stretchGain.gain.setTargetAtTime(t * 0.08, now, 0.04);
+  } catch(e) {}
+}
+
+function stopStretchSound() {
+  try {
+    const ctx = _getAudioCtx();
+    const now = ctx.currentTime;
+    if (_stretchGain)  _stretchGain.gain.setTargetAtTime(0, now, 0.03);
+    if (_noiseGain)    _noiseGain.gain.setTargetAtTime(0, now, 0.03);
+    const osc = _stretchOsc, ns = _noiseSource;
+    _stretchOsc = null; _stretchFilter = null; _stretchGain = null;
+    _noiseSource = null; _noiseGain = null;
+    setTimeout(() => { try { osc && osc.stop(); ns && ns.stop(); } catch(e){} }, 150);
+  } catch(e) {}
+}
+
+// ── Drag ──────────────────────────────────────────────────────────────────
 function startDrag(lx, ly) {
   if (phase !== 'aim') return;
-  if (Math.hypot(lx - SLING_X, ly - SLING_Y) < 50) { drag = { x: lx, y: ly }; }
+  if (Math.hypot(lx - SLING_X, ly - SLING_Y) < 50) {
+    drag = { x: lx, y: ly };
+    startStretchSound();
+  }
 }
 let _lastHaptic = 0;
 function moveDrag(lx, ly) {
@@ -723,19 +809,20 @@ function moveDrag(lx, ly) {
   const angle = Math.atan2(dy, dx);
   drag = { x: SLING_X + Math.cos(angle) * dist, y: SLING_Y + Math.sin(angle) * dist };
   projectile.x = drag.x; projectile.y = drag.y;
+  updateStretchSound(dist);
   // Haptic feedback: short pulse every 60-80ms, duration grows with pull distance
   if (navigator.vibrate) {
     const now = Date.now();
-    const interval = 80 - Math.round((dist / MAX_PULL) * 35); // 80ms → 45ms at full pull
+    const interval = 80 - Math.round((dist / MAX_PULL) * 35);
     if (now - _lastHaptic >= interval) {
-      const duration = 6 + Math.round((dist / MAX_PULL) * 14); // 6ms → 20ms at full pull
-      navigator.vibrate(duration);
+      navigator.vibrate(6 + Math.round((dist / MAX_PULL) * 14));
       _lastHaptic = now;
     }
   }
 }
 function endDrag() {
   if (!drag || phase !== 'aim') return;
+  stopStretchSound();
   const power = 0.22;
   projectile.vx = (SLING_X - drag.x) * power;
   projectile.vy = (SLING_Y - drag.y) * power;
