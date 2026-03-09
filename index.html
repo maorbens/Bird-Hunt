@@ -271,32 +271,16 @@
       image-rendering: pixelated;
       image-rendering: crisp-edges;
     }
-    /* Hero bird */
-    #intro-hero {
-      position: relative;
-      z-index: 3;
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding-bottom: clamp(70px, 16vh, 145px);
-    }
-    @keyframes birdFloat {
-      0%   { transform: translateY(0px)   rotate(-3deg); }
-      50%  { transform: translateY(-16px) rotate(3deg);  }
-      100% { transform: translateY(0px)   rotate(-3deg); }
-    }
-    #intro-bird-wrap {
-      animation: birdFloat 3.2s ease-in-out infinite;
-      filter:
-        drop-shadow(0 12px 20px rgba(0,0,0,0.5))
-        drop-shadow(0 0 26px rgba(245,216,0,0.4));
-    }
-    #intro-bird-svg {
-      width: clamp(150px, 36vmin, 280px);
+    /* Intro birds canvas */
+    #intro-bird-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+      pointer-events: none;
       image-rendering: pixelated;
       image-rendering: crisp-edges;
-      display: block;
     }
     /* Bottom HUD */
     #intro-hud {
@@ -391,34 +375,7 @@
     <div id="intro-logo">
       <div id="intro-title">BIRD<br>HUNT</div>
     </div>
-    <div id="intro-hero">
-      <div id="intro-bird-wrap">
-        <svg id="intro-bird-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 7" shape-rendering="crispEdges">
-          <rect x="2" y="0" width="5" height="1" fill="#886600"/>
-          <rect x="1" y="1" width="1" height="1" fill="#886600"/>
-          <rect x="2" y="1" width="5" height="1" fill="#F5D800"/>
-          <rect x="7" y="1" width="1" height="1" fill="#886600"/>
-          <rect x="0" y="2" width="1" height="1" fill="#886600"/>
-          <rect x="1" y="2" width="4" height="1" fill="#F5D800"/>
-          <rect x="5" y="2" width="1" height="1" fill="#FFFFFF"/>
-          <rect x="6" y="2" width="1" height="1" fill="#F5D800"/>
-          <rect x="7" y="2" width="2" height="1" fill="#FF8800"/>
-          <rect x="0" y="3" width="1" height="1" fill="#886600"/>
-          <rect x="1" y="3" width="3" height="1" fill="#F5D800"/>
-          <rect x="4" y="3" width="1" height="1" fill="#111111"/>
-          <rect x="5" y="3" width="1" height="1" fill="#FFFFFF"/>
-          <rect x="6" y="3" width="1" height="1" fill="#F5D800"/>
-          <rect x="7" y="3" width="2" height="1" fill="#FF8800"/>
-          <rect x="0" y="4" width="1" height="1" fill="#886600"/>
-          <rect x="1" y="4" width="6" height="1" fill="#F5D800"/>
-          <rect x="7" y="4" width="1" height="1" fill="#886600"/>
-          <rect x="1" y="5" width="2" height="1" fill="#886600"/>
-          <rect x="3" y="5" width="2" height="1" fill="#F5D800"/>
-          <rect x="5" y="5" width="2" height="1" fill="#886600"/>
-          <rect x="2" y="6" width="4" height="1" fill="#886600"/>
-        </svg>
-      </div>
-    </div>
+    <canvas id="intro-bird-canvas"></canvas>
     <div id="intro-ground"></div>
     <div id="intro-hud">
       <div id="intro-hs-wrap">שיא<span class="ex">:</span> <span id="intro-hs">---</span></div>
@@ -538,9 +495,11 @@ function showIntro() {
   const hsWrap = document.getElementById('intro-hs-wrap');
   if (hsWrap) hsWrap.style.visibility = highScore > 0 ? 'visible' : 'hidden';
   document.getElementById('intro-screen').classList.remove('hidden');
+  startIntroBirdAnim();
 }
 
 function startGame() {
+  stopIntroBirdAnim();
   document.getElementById('intro-screen').classList.add('hidden');
   initGame();
 }
@@ -1158,6 +1117,98 @@ function loop(timestamp) {
   drawFloatingTexts();
   requestAnimationFrame(loop);
 }
+
+// ── Intro Bird Canvas ──────────────────────────────────────────────────────
+const introBirdCanvas = document.getElementById('intro-bird-canvas');
+const ibc = introBirdCanvas.getContext('2d');
+ibc.imageSmoothingEnabled = false;
+
+let introBirds = [];
+let introBirdAnimId = null;
+let introBirdLastTs = null;
+
+function resizeIntroBirdCanvas() {
+  introBirdCanvas.width  = window.innerWidth;
+  introBirdCanvas.height = window.innerHeight;
+  ibc.imageSmoothingEnabled = false;
+}
+
+function newIntroBird() {
+  const fromLeft = Math.random() < 0.5;
+  const speed    = 3.5 + Math.random() * 2.5;
+  return {
+    x: fromLeft ? 60 : VW - 60,
+    y: 60 + Math.random() * (GROUND_Y - 160),
+    vx: fromLeft ? speed : -speed,
+    vy: (Math.random() - 0.5) * 3,
+    r: 28, dirTimer: 0, flap: 0,
+  };
+}
+
+function drawSpriteIBC(sprite, pal, cx, cy, flipX) {
+  const pp   = PP;
+  const rows = sprite.length, cols = sprite[0].length;
+  const ox   = cx - cols * pp / 2;
+  const oy   = cy - rows * pp / 2;
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const code = sprite[r][c];
+      if (!code) continue;
+      ibc.fillStyle = pal[code - 1];
+      const x = flipX ? ox + (cols - 1 - c) * pp : ox + c * pp;
+      ibc.fillRect(Math.round(x), Math.round(oy + r * pp),
+                   Math.max(1, Math.ceil(pp)), Math.max(1, Math.ceil(pp)));
+    }
+  }
+}
+
+function introLoopBirds(timestamp) {
+  if (!introBirdLastTs) introBirdLastTs = timestamp;
+  const delta = Math.min((timestamp - introBirdLastTs) / 1000, 0.1);
+  const dt    = delta * 60;
+  introBirdLastTs = timestamp;
+
+  ibc.clearRect(0, 0, introBirdCanvas.width, introBirdCanvas.height);
+  ibc.save();
+  ibc.scale(SCALE, SCALE);
+
+  introBirds.forEach(fb => {
+    fb.x += fb.vx * dt;
+    fb.y += fb.vy * dt;
+    fb.flap     += dt;
+    fb.dirTimer += dt;
+    if (fb.dirTimer > 60 + Math.random() * 60) {
+      fb.vy = Math.max(-4, Math.min(4, fb.vy + (Math.random() - 0.5) * 3));
+      fb.dirTimer = 0;
+    }
+    if (fb.x - fb.r < 0)             { fb.x = fb.r;                 fb.vx =  Math.abs(fb.vx); }
+    if (fb.x + fb.r > VW)            { fb.x = VW - fb.r;            fb.vx = -Math.abs(fb.vx); }
+    if (fb.y - fb.r < 20)            { fb.y = 20 + fb.r;            fb.vy =  Math.abs(fb.vy); }
+    if (fb.y + fb.r > GROUND_Y - 20) { fb.y = GROUND_Y - 20 - fb.r; fb.vy = -Math.abs(fb.vy); }
+
+    const flipX  = fb.vx < 0;
+    const wingUp = Math.floor(fb.flap / 8) % 2 === 0;
+    const sprite = wingUp ? BIRD_B : BIRD_A;
+    drawSpriteIBC(sprite, BIRD_PAL, Math.round(fb.x / PP) * PP, Math.round(fb.y / PP) * PP, flipX);
+  });
+
+  ibc.restore();
+  introBirdAnimId = requestAnimationFrame(introLoopBirds);
+}
+
+function startIntroBirdAnim() {
+  resizeIntroBirdCanvas();
+  introBirdLastTs = null;
+  introBirds = [newIntroBird(), newIntroBird(), newIntroBird()];
+  if (introBirdAnimId) cancelAnimationFrame(introBirdAnimId);
+  introBirdAnimId = requestAnimationFrame(introLoopBirds);
+}
+
+function stopIntroBirdAnim() {
+  if (introBirdAnimId) { cancelAnimationFrame(introBirdAnimId); introBirdAnimId = null; }
+}
+
+window.addEventListener('resize', () => { if (introBirdAnimId) resizeIntroBirdCanvas(); });
 
 setupIdleState();
 initIntroStars();
