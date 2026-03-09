@@ -1131,26 +1131,34 @@ function drawSky() {
 }
 
 // ── Draw: Clouds ──────────────────────────────────────────────────────────
+// speed = px per frame at 60fps; higher fy (closer) → faster → depth illusion
+const gameClouds = [
+  { fx: 0.02, fy: 0.13, w: 11, speed: 0.25, x: null },
+  { fx: 0.22, fy: 0.38, w: 14, speed: 0.70, x: null },
+  { fx: 0.42, fy: 0.21, w: 10, speed: 0.35, x: null },
+  { fx: 0.61, fy: 0.46, w: 12, speed: 0.90, x: null },
+  { fx: 0.78, fy: 0.29, w:  9, speed: 0.50, x: null },
+];
+function updateClouds(dt) {
+  const CP = 8;
+  gameClouds.forEach(c => {
+    if (c.x === null) c.x = VW * c.fx; // lazy init
+    c.x -= c.speed * dt;
+    if (c.x + c.w * CP < 0) c.x = VW + 16; // wrap around from right
+  });
+}
 function drawClouds() {
   ctx.save();
   ctx.scale(SCALE, SCALE);
   ctx.fillStyle = '#FFFFFF';
   const CP = 8;
-  function cloud(ox, oy, w, h) {
-    ctx.fillRect(ox, oy + CP, w * CP, h * CP);
+  const minCloudY = 75;
+  gameClouds.forEach(({ x, fy, w }) => {
+    const ox = Math.round(x);
+    const oy = Math.max(minCloudY, Math.round(GROUND_Y * fy));
+    ctx.fillRect(ox, oy + CP, w * CP, 3 * CP);
     ctx.fillRect(ox + CP, oy, (w - 2) * CP, CP + 4);
-  }
-  const clouds = [
-    { fx: 0.02, fy: 0.13, w: 11 },
-    { fx: 0.22, fy: 0.38, w: 14 },
-    { fx: 0.42, fy: 0.21, w: 10 },
-    { fx: 0.61, fy: 0.46, w: 12 },
-    { fx: 0.78, fy: 0.29, w:  9 },
-  ];
-  const minCloudY = 75; // always below top UI bar regardless of orientation
-  clouds.forEach(({ fx, fy, w }) =>
-    cloud(Math.round(VW * fx), Math.max(minCloudY, Math.round(GROUND_Y * fy)), w, 3)
-  );
+  });
   ctx.restore();
 }
 
@@ -1359,6 +1367,7 @@ function loop(timestamp) {
   }
 
   update(dt);
+  updateClouds(dt);
   drawSky();
   drawClouds();
   drawGround();
