@@ -211,7 +211,14 @@
       inset: 0;
       pointer-events: none;
       overflow: hidden;
-      z-index: 0;
+      z-index: 1;
+    }
+    #intro-clouds-front {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 4;
     }
     @keyframes cloudDrift {
       0%   { transform: translateX(0px); }
@@ -230,49 +237,23 @@
         #DED895 17px
       );
     }
-    /* Logo badge — pixel art style */
+    /* Logo — bare text floating in clouds */
     #intro-logo {
-      position: relative;
-      z-index: 3;
-      display: -webkit-flex;
-      display: flex;
-      -webkit-justify-content: center;
-      justify-content: center;
-      -webkit-align-items: center;
-      align-items: center;
-      margin-top: max(clamp(18px, 4.5vh, 55px), calc(env(safe-area-inset-top) + 8px));
-      /* flat pixel-art fill with subtle scan-line texture */
-      background:
-        repeating-linear-gradient(
-          transparent 0px, transparent 3px,
-          rgba(0,0,0,0.10) 3px, rgba(0,0,0,0.10) 4px
-        ),
-        #6B3200;
-      border: 4px solid #FFD700;
-      border-radius: 0;               /* square corners */
-      overflow: hidden;
-      padding: clamp(8px, 1.8vmin, 20px) clamp(28px, 9vmin, 76px) clamp(10px, 2.2vmin, 24px);
-      image-rendering: pixelated;
-      box-shadow:
-        0 0 0 3px #8B5500,            /* dark-gold ring */
-        0 0 0 6px #3a1400,            /* outer dark ring → double-border look */
-        0 8px 0 6px #3a1400,          /* pixel 3D block below badge */
-        0 12px 0 6px rgba(0,0,0,0.55),/* floor shadow */
-        inset 0 2px 0 rgba(255,255,200,0.18);
-    }
-    /* Pixel corner gems — square, flat gold */
-    #intro-logo::before, #intro-logo::after {
-      content: '';
       position: absolute;
-      width: clamp(10px, 2vmin, 16px); height: clamp(10px, 2vmin, 16px);
-      background: #FFD700;
-      border-radius: 0;               /* square pixel gem */
-      border: 2px solid #7B3F00;
-      top: clamp(6px, 1.4vmin, 12px);
-      box-shadow: inset 2px 2px 0 rgba(255,255,255,0.55); /* pixel highlight */
+      top: max(calc(env(safe-area-inset-top) + 12px), 8%);
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 3;
+      background: none;
+      border: none;
+      box-shadow: none;
+      padding: 0;
+      overflow: visible;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
-    #intro-logo::before { left: clamp(8px, 1.8vmin, 14px); }
-    #intro-logo::after  { right: clamp(8px, 1.8vmin, 14px); }
+    #intro-logo::before, #intro-logo::after { display: none; }
     /* Coin-shine sweep */
     #logo-shine {
       pointer-events: none;
@@ -295,17 +276,17 @@
     #intro-title {
       direction: ltr;
       text-align: center;
-      transform: translateX(6px);
-      font-size: clamp(32px, 12vmin, 92px);
+      font-size: clamp(72px, 22vmin, 180px);
       color: #FFE800;
       text-shadow:
-        1px 1px 0 #FFC000,
-        2px 2px 0 #E07800,
-        4px 4px 0 #7B3200,
-        5px 5px 0 rgba(0,0,0,0.65),
-        -1px -1px 0 rgba(255,255,160,0.55);
+        2px 2px 0 #FFC000,
+        4px 4px 0 #E07800,
+        6px 6px 0 #7B3200,
+        8px 8px 0 rgba(0,0,0,0.7),
+        -2px -2px 0 rgba(255,255,160,0.4);
       letter-spacing: 0.06em;
       line-height: 1.0;
+      white-space: nowrap;
     }
     /* Trees */
     #intro-trees {
@@ -347,16 +328,13 @@
       top: 50%;
       transform: translateY(-50%);
       left: 0; right: 0;
-      z-index: 3;
+      z-index: 5;
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: clamp(6px, 1.6vmin, 14px);
     }
     @media (orientation: portrait) {
-      #intro-logo {
-        margin-top: calc(max(clamp(18px, 4.5vh, 55px), calc(env(safe-area-inset-top) + 8px)) + 30px);
-      }
       #intro-clouds { top: 30px; }
       #howto-btn { order: -1; margin-top: 0; }
       #start-btn { margin-top: 5px; }
@@ -457,9 +435,9 @@
       </div>
     </div>
     <div id="intro-logo">
-      <div id="logo-shine"></div>
       <div id="intro-title">BIRD<br>HUNT</div>
     </div>
+    <div id="intro-clouds-front"></div>
     <div id="intro-hs-wrap">שיא<span class="ex">:</span> <span id="intro-hs">---</span></div>
     <canvas id="intro-bird-canvas"></canvas>
     <div id="intro-ground"></div>
@@ -527,19 +505,24 @@ try { highScore = parseInt(localStorage.getItem('birdHuntHS') || '0') || 0; } ca
 
 // ── Intro Screen ──────────────────────────────────────────────────────────
 function initIntroStars() {
-  const container = document.getElementById('intro-clouds');
-  if (!container) return;
-  container.innerHTML = '';
+  const back  = document.getElementById('intro-clouds');
+  const front = document.getElementById('intro-clouds-front');
+  if (!back) return;
+  back.innerHTML = '';
+  if (front) front.innerHTML = '';
   // Cloud data: left/top in %, w in CP units (matches drawClouds CP=8)
+  // layer: 'back'  → behind title text (z-index 1)
+  // layer: 'front' → in front of title text (z-index 4)
   const CP = 8;
   const cloudData = [
-    { left: 2,  top: 10, w: 11 },
-    { left: 22, top: 30, w: 14 },
-    { left: 42, top: 8,  w: 10 },
-    { left: 62, top: 38, w: 12 },
-    { left: 79, top: 20, w:  9 },
+    { left: 2,  top: 10, w: 11, layer: 'back'  }, // top-left, title in front
+    { left: 22, top: 14, w: 14, layer: 'front' }, // center-left, overlaps title
+    { left: 48, top: 6,  w: 10, layer: 'back'  }, // top-center, title in front
+    { left: 62, top: 32, w: 12, layer: 'back'  }, // lower-right, title in front
+    { left: 72, top: 18, w:  9, layer: 'front' }, // right, overlaps title edge
   ];
-  cloudData.forEach(({ left, top, w }, i) => {
+  cloudData.forEach(({ left, top, w, layer }, i) => {
+    const target = (layer === 'front' && front) ? front : back;
     const dur  = (10 + i * 2.3).toFixed(1);
     const del  = (i * 1.4).toFixed(1);
     const anim = `cloudDrift ${dur}s ease-in-out ${del}s infinite alternate`;
@@ -554,7 +537,7 @@ function initIntroStars() {
       'background:#fff',
       `animation:${anim}`,
     ].join(';');
-    container.appendChild(body);
+    target.appendChild(body);
     // Top puff (matches ctx.fillRect(ox+CP, oy, (w-2)*CP, CP+4))
     const puff = document.createElement('div');
     puff.style.cssText = [
@@ -566,7 +549,7 @@ function initIntroStars() {
       'background:#fff',
       `animation:${anim}`,
     ].join(';');
-    container.appendChild(puff);
+    target.appendChild(puff);
   });
 }
 
