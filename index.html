@@ -144,6 +144,22 @@
       font-size: clamp(16px, 3.6vmin, 28px);
     }
     #start-btn:active { animation: none; transform: translate(3px,3px); box-shadow: 1px 1px 0 #000; }
+    #howto-btn {
+      padding: clamp(14px, 3vmin, 28px) clamp(36px, 10vmin, 88px);
+      font-size: clamp(16px, 3.6vmin, 28px);
+      background: #1a3a6b;
+      color: #fff;
+      border: 4px solid #000;
+      box-shadow: 4px 4px 0 #000;
+      font-family: system-ui, -apple-system, sans-serif;
+      font-weight: 700;
+      text-align: center;
+      direction: rtl;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: transform 0.07s, box-shadow 0.07s;
+    }
+    #howto-btn:active { transform: translate(3px,3px); box-shadow: 1px 1px 0 #000; }
     /* Secondary home button (in game-over) */
     #home-btn-go {
       padding: clamp(12px, 2.5vmin, 22px) clamp(24px, 6vmin, 52px);
@@ -384,6 +400,7 @@
     <div id="intro-ground"></div>
     <div id="intro-hud">
       <button id="start-btn" onclick="startGame()">התחל משחק</button>
+      <button id="howto-btn">איך משחקים?</button>
     </div>
   </div>
 
