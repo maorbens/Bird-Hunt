@@ -119,7 +119,7 @@
     #game-over-btns {
       display: flex;
       flex-direction: column;
-      gap: clamp(13px, 3.5vmin, 27px);
+      gap: clamp(6px, 1.6vmin, 14px);
       margin-top: 10px;
       width: fit-content;
       align-self: center;
@@ -141,7 +141,7 @@
       white-space: nowrap;
       transition: transform 0.07s, box-shadow 0.07s;
     }
-    #game-over-btns #restart-btn { padding-left: clamp(32px, 7.92vmin, 68px); padding-right: clamp(32px, 7.92vmin, 68px); }
+    #game-over-btns #restart-btn { padding: clamp(14px, 3vmin, 28px) clamp(36px, 10vmin, 88px); font-size: clamp(16px, 3.6vmin, 28px); }
     #restart-btn:active, #start-btn:active { transform: translate(3px,3px); box-shadow: 1px 1px 0 #000; }
     @keyframes startPulse {
       0%, 100% { transform: scale(1);    box-shadow: 4px 4px 0 #000, 0 0 8px rgba(233,69,96,0.3); }
@@ -174,14 +174,14 @@
     #howto-btn:active { transform: translate(3px,3px); box-shadow: 1px 1px 0 #000; }
     /* Secondary home button (in game-over) */
     #home-btn-go {
-      padding: clamp(12px, 2.5vmin, 22px) clamp(24px, 6vmin, 52px);
+      padding: clamp(14px, 3vmin, 28px) clamp(36px, 10vmin, 88px);
       background: rgba(26, 26, 60, 0.85);
       color: #99aacc;
       border: 4px solid #556;
       box-shadow: 4px 4px 0 #000;
       font-family: system-ui, -apple-system, sans-serif;
       font-weight: 700;
-      font-size: clamp(15px, 3.2vmin, 24px);
+      font-size: clamp(16px, 3.6vmin, 28px);
       text-align: center;
       direction: rtl;
       cursor: pointer;
