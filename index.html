@@ -1127,11 +1127,14 @@ ibc.imageSmoothingEnabled = false;
 let introBirds = [];
 let introBirdAnimId = null;
 let introBirdLastTs = null;
+let introBirdMaxY = 0;
 
 function resizeIntroBirdCanvas() {
   introBirdCanvas.width  = window.innerWidth;
   introBirdCanvas.height = window.innerHeight;
   ibc.imageSmoothingEnabled = false;
+  const treeEl = document.querySelector('.intro-tree-l');
+  introBirdMaxY = treeEl ? treeEl.getBoundingClientRect().top / SCALE - 8 : GROUND_Y - 100;
 }
 
 function newIntroBird() {
@@ -1182,10 +1185,10 @@ function introLoopBirds(timestamp) {
       fb.vy = Math.max(-4, Math.min(4, fb.vy + (Math.random() - 0.5) * 3));
       fb.dirTimer = 0;
     }
-    if (fb.x - fb.r < 0)             { fb.x = fb.r;                 fb.vx =  Math.abs(fb.vx); }
-    if (fb.x + fb.r > VW)            { fb.x = VW - fb.r;            fb.vx = -Math.abs(fb.vx); }
-    if (fb.y - fb.r < 20)            { fb.y = 20 + fb.r;            fb.vy =  Math.abs(fb.vy); }
-    if (fb.y + fb.r > GROUND_Y - 20) { fb.y = GROUND_Y - 20 - fb.r; fb.vy = -Math.abs(fb.vy); }
+    if (fb.x - fb.r < 0)             { fb.x = fb.r;                fb.vx =  Math.abs(fb.vx); }
+    if (fb.x + fb.r > VW)            { fb.x = VW - fb.r;           fb.vx = -Math.abs(fb.vx); }
+    if (fb.y - fb.r < 20)            { fb.y = 20 + fb.r;           fb.vy =  Math.abs(fb.vy); }
+    if (fb.y + fb.r > introBirdMaxY) { fb.y = introBirdMaxY - fb.r; fb.vy = -Math.abs(fb.vy); }
 
     const flipX  = fb.vx < 0;
     const wingUp = Math.floor(fb.flap / 8) % 2 === 0;
