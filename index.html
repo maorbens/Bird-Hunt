@@ -1081,6 +1081,14 @@ function update(dt) {
     if (fb.x + fb.r > VW)            { fb.x = VW - fb.r;            fb.vx = -Math.abs(fb.vx); }
     if (fb.y - fb.r < 20)            { fb.y = 20 + fb.r;            fb.vy =  Math.abs(fb.vy); }
     if (fb.y + fb.r > GROUND_Y - 20) { fb.y = GROUND_Y - 20 - fb.r; fb.vy = -Math.abs(fb.vy); }
+    const slingDist = Math.hypot(fb.x - SLING_X, fb.y - SLING_Y);
+    if (slingDist < 20) {
+      const a = Math.atan2(fb.y - SLING_Y, fb.x - SLING_X);
+      fb.x = SLING_X + Math.cos(a) * 20;
+      fb.y = SLING_Y + Math.sin(a) * 20;
+      fb.vx = Math.cos(a) * Math.abs(fb.vx);
+      fb.vy = Math.sin(a) * Math.abs(fb.vy);
+    }
   }
 
   if (phase !== 'flying') return;
