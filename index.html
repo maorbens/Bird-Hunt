@@ -1082,12 +1082,16 @@ function update(dt) {
     if (fb.y - fb.r < 20)            { fb.y = 20 + fb.r;            fb.vy =  Math.abs(fb.vy); }
     if (fb.y + fb.r > GROUND_Y - 20) { fb.y = GROUND_Y - 20 - fb.r; fb.vy = -Math.abs(fb.vy); }
     const slingDist = Math.hypot(fb.x - SLING_X, fb.y - SLING_Y);
-    if (slingDist < 20) {
-      const a = Math.atan2(fb.y - SLING_Y, fb.x - SLING_X);
-      fb.x = SLING_X + Math.cos(a) * 20;
-      fb.y = SLING_Y + Math.sin(a) * 20;
-      fb.vx = Math.cos(a) * Math.abs(fb.vx);
-      fb.vy = Math.sin(a) * Math.abs(fb.vy);
+    if (slingDist < 100) {
+      const nx = (fb.x - SLING_X) / (slingDist || 1);
+      const ny = (fb.y - SLING_Y) / (slingDist || 1);
+      const dot = fb.vx * nx + fb.vy * ny;
+      if (dot < 0) {
+        fb.vx -= 2 * dot * nx;
+        fb.vy -= 2 * dot * ny;
+      }
+      fb.x = SLING_X + nx * 100;
+      fb.y = SLING_Y + ny * 100;
     }
   }
 
