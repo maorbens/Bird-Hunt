@@ -216,7 +216,7 @@
         #DED895 17px
       );
     }
-    /* Logo badge */
+    /* Logo badge — pixel art style */
     #intro-logo {
       position: relative;
       z-index: 3;
@@ -227,27 +227,35 @@
       -webkit-align-items: center;
       align-items: center;
       margin-top: max(clamp(18px, 4.5vh, 55px), calc(env(safe-area-inset-top) + 8px));
-      background: linear-gradient(180deg, #9B5500 0%, #6B3200 60%, #4a2000 100%);
-      border: 5px solid #FFD700;
-      border-radius: 22px 22px 14px 14px;
+      /* flat pixel-art fill with subtle scan-line texture */
+      background:
+        repeating-linear-gradient(
+          transparent 0px, transparent 3px,
+          rgba(0,0,0,0.10) 3px, rgba(0,0,0,0.10) 4px
+        ),
+        #6B3200;
+      border: 4px solid #FFD700;
+      border-radius: 0;               /* square corners */
       overflow: hidden;
       padding: clamp(8px, 1.8vmin, 20px) clamp(28px, 9vmin, 76px) clamp(10px, 2.2vmin, 24px);
+      image-rendering: pixelated;
       box-shadow:
-        0 0 0 3px #8B5500,
-        0 8px 0 #3a1400,
-        0 10px 0 rgba(0,0,0,0.55),
-        inset 0 2px 0 rgba(255,255,200,0.18),
-        0 0 40px rgba(255,190,0,0.22);
+        0 0 0 3px #8B5500,            /* dark-gold ring */
+        0 0 0 6px #3a1400,            /* outer dark ring → double-border look */
+        0 8px 0 6px #3a1400,          /* pixel 3D block below badge */
+        0 12px 0 6px rgba(0,0,0,0.55),/* floor shadow */
+        inset 0 2px 0 rgba(255,255,200,0.18);
     }
-    /* Gold corner gems on badge */
+    /* Pixel corner gems — square, flat gold */
     #intro-logo::before, #intro-logo::after {
       content: '';
       position: absolute;
       width: clamp(10px, 2vmin, 16px); height: clamp(10px, 2vmin, 16px);
-      background: radial-gradient(circle at 35% 30%, #FFF0A0, #FFD700 60%, #B87800);
-      border-radius: 50%;
+      background: #FFD700;
+      border-radius: 0;               /* square pixel gem */
       border: 2px solid #7B3F00;
       top: clamp(6px, 1.4vmin, 12px);
+      box-shadow: inset 2px 2px 0 rgba(255,255,255,0.55); /* pixel highlight */
     }
     #intro-logo::before { left: clamp(8px, 1.8vmin, 14px); }
     #intro-logo::after  { right: clamp(8px, 1.8vmin, 14px); }
