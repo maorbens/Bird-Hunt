@@ -227,10 +227,21 @@
     }
     #intro-logo::before { left: clamp(8px, 1.8vmin, 14px); }
     #intro-logo::after  { right: clamp(8px, 1.8vmin, 14px); }
-    #intro-title {
-      display: block;
-      direction: ltr;
+    #intro-title > div {
+      padding-left: 0.06em;
       text-align: center;
+    }
+    #intro-title {
+      display: -webkit-box;
+      display: -webkit-flex;
+      display: flex;
+      -webkit-box-orient: vertical;
+      -webkit-flex-direction: column;
+      flex-direction: column;
+      -webkit-box-align: center;
+      -webkit-align-items: center;
+      align-items: center;
+      direction: ltr;
       font-size: clamp(32px, 12vmin, 92px);
       color: #FFE800;
       text-shadow:
@@ -383,7 +394,7 @@
       </div>
     </div>
     <div id="intro-logo">
-      <div id="intro-title">BIRD<br>HUNT</div>
+      <div id="intro-title"><div>BIRD</div><div>HUNT</div></div>
     </div>
     <div id="intro-hero">
       <div id="intro-bird-wrap">
