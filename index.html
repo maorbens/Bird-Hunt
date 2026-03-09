@@ -201,10 +201,9 @@
     #intro-logo {
       position: relative;
       z-index: 3;
+      width: max-content;
+      text-align: center;
       margin-top: clamp(18px, 4.5vh, 55px);
-      display: flex;
-      justify-content: center;
-      align-items: center;
       background: linear-gradient(180deg, #9B5500 0%, #6B3200 60%, #4a2000 100%);
       border: 5px solid #FFD700;
       border-radius: 22px 22px 14px 14px;
@@ -229,6 +228,9 @@
     #intro-logo::before { left: clamp(8px, 1.8vmin, 14px); }
     #intro-logo::after  { right: clamp(8px, 1.8vmin, 14px); }
     #intro-title {
+      display: block;
+      direction: ltr;
+      text-align: center;
       font-size: clamp(32px, 12vmin, 92px);
       color: #FFE800;
       text-shadow:
@@ -239,7 +241,6 @@
         -1px -1px 0 rgba(255,255,160,0.55);
       letter-spacing: 0.06em;
       line-height: 1.0;
-      text-align: center;
     }
     /* Trees */
     #intro-trees {
