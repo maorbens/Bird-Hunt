@@ -340,6 +340,9 @@
       gap: clamp(6px, 1.6vmin, 14px);
     }
     @media (orientation: portrait) {
+      #intro-logo {
+        margin-top: calc(max(clamp(18px, 4.5vh, 55px), calc(env(safe-area-inset-top) + 8px)) + 30px);
+      }
       #howto-btn { order: -1; margin-top: 0; }
       #start-btn { margin-top: 5px; }
     }
@@ -1441,18 +1444,11 @@ function introLoopBirds(timestamp) {
 }
 
 function positionIntroHud() {
-  const hud = document.getElementById('intro-hud');
-  if (window.innerWidth > window.innerHeight) {
-    const logoBottom = document.getElementById('intro-logo').getBoundingClientRect().bottom;
-    const midY = (logoBottom + window.innerHeight) / 2;
-    hud.style.top       = midY + 'px';
-    hud.style.transform = 'translateY(-50%)';
-  } else {
-    const logoBottom = document.getElementById('intro-logo').getBoundingClientRect().bottom;
-    const midY = (logoBottom + window.innerHeight) / 2;
-    hud.style.top       = midY + 'px';
-    hud.style.transform = 'translateY(-50%)';
-  }
+  const hud      = document.getElementById('intro-hud');
+  const logoBottom = document.getElementById('intro-logo').getBoundingClientRect().bottom;
+  const midY     = (logoBottom + window.innerHeight) / 2;
+  hud.style.top       = midY + 'px';
+  hud.style.transform = 'translateY(-50%)';
 }
 
 function startIntroBirdAnim() {
