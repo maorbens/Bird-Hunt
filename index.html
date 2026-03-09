@@ -176,6 +176,14 @@
       background: #4EC0CA;
       overflow: hidden;
     }
+    #intro-screen::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: env(safe-area-inset-top, 0px);
+      background: #000;
+      z-index: 100;
+    }
     #intro-screen.hidden { display: none; }
     /* Clouds layer */
     #intro-clouds {
