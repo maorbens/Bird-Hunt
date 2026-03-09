@@ -721,94 +721,65 @@ function _getAudioCtx() {
   return _audioCtx;
 }
 
-// Karplus-Strong pluck at given frequency
-function _ksPluck(ctx, freq, gain, dest) {
-  const sr = ctx.sampleRate;
-  const delayTime = 1 / freq;
-  const bufLen = Math.round(sr * delayTime);
-  // Short noise burst (one period)
-  const noiseBuf = ctx.createBuffer(1, bufLen, sr);
-  const data = noiseBuf.getChannelData(0);
-  for (let i = 0; i < bufLen; i++) data[i] = Math.random() * 2 - 1;
-  const noise = ctx.createBufferSource();
-  noise.buffer = noiseBuf;
-  // Delay + lowpass feedback loop
-  const delay = ctx.createDelay();
-  delay.delayTime.value = delayTime;
-  const lp = ctx.createBiquadFilter();
-  lp.type = 'lowpass';
-  lp.frequency.value = freq * 6;
-  const fbGain = ctx.createGain();
-  fbGain.gain.value = 0.985; // decay speed
-  const outGain = ctx.createGain();
-  outGain.gain.value = gain;
-  outGain.gain.setTargetAtTime(0, ctx.currentTime + 0.8, 0.15);
-  // Routing: noise → delay → lp → fbGain → delay (loop) + outGain → dest
-  noise.connect(delay);
-  delay.connect(lp);
-  lp.connect(fbGain);
-  fbGain.connect(delay);
-  lp.connect(outGain);
-  outGain.connect(dest);
-  noise.start();
-  noise.stop(ctx.currentTime + delayTime * 2);
-  return outGain;
-}
-
 function startStretchSound() {
   try {
     const ctx = _getAudioCtx();
-    const masterGain = ctx.createGain();
-    masterGain.gain.value = 1;
-    masterGain.connect(ctx.destination);
+    const master = ctx.createGain();
+    master.gain.value = 0;
+    master.connect(ctx.destination);
 
-    // Initial pluck — two slightly detuned strings for richness
-    _ksPluck(ctx, 180, 0.55, masterGain);
-    _ksPluck(ctx, 183, 0.45, masterGain);
+    // ── Whoosh: noise swept through rising highpass + falling lowpass ──
+    const noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+    const nd = noiseBuf.getChannelData(0);
+    for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+    const noise = ctx.createBufferSource();
+    noise.buffer = noiseBuf;
+    noise.loop = true;
 
-    // Continuous tension tone: sawtooth → resonant bandpass, pitch tracks pull
-    const tensionOsc = ctx.createOscillator();
-    tensionOsc.type = 'sawtooth';
-    tensionOsc.frequency.value = 160;
+    const hp = ctx.createBiquadFilter();  // sweeps up → thins out low end
+    hp.type = 'highpass';
+    hp.frequency.value = 80;
+    hp.Q.value = 1.2;
 
-    const bp = ctx.createBiquadFilter();
-    bp.type = 'bandpass';
-    bp.frequency.value = 160;
-    bp.Q.value = 18; // very resonant — string-like
+    const lp = ctx.createBiquadFilter();  // sweeps up → opens up brightness
+    lp.type = 'lowpass';
+    lp.frequency.value = 400;
+    lp.Q.value = 2.5;
 
-    const tensionGain = ctx.createGain();
-    tensionGain.gain.value = 0;
+    noise.connect(hp);
+    hp.connect(lp);
+    lp.connect(master);
+    noise.start();
 
-    // Slow LFO for natural string tremolo
-    const lfo = ctx.createOscillator();
-    lfo.frequency.value = 6;
-    const lfoAmt = ctx.createGain();
-    lfoAmt.gain.value = 0;
-    lfo.connect(lfoAmt);
-    lfoAmt.connect(tensionGain.gain);
+    // ── Pitch sine undertone — adds the "game-feel" musical note ──
+    const sine = ctx.createOscillator();
+    sine.type = 'sine';
+    sine.frequency.value = 120;
+    const sineGain = ctx.createGain();
+    sineGain.gain.value = 0;
+    sine.connect(sineGain);
+    sineGain.connect(master);
+    sine.start();
 
-    tensionOsc.connect(bp);
-    bp.connect(tensionGain);
-    tensionGain.connect(masterGain);
-    tensionOsc.start();
-    lfo.start();
-
-    _stretchNodes = { masterGain, tensionOsc, bp, tensionGain, lfo, lfoAmt };
+    _stretchNodes = { master, hp, lp, noise, sine, sineGain };
   } catch(e) {}
 }
 
 function updateStretchSound(dist) {
   if (!_stretchNodes) return;
   try {
-    const t = dist / MAX_PULL; // 0–1
+    const t = dist / MAX_PULL;           // 0 → 1
     const ctx = _getAudioCtx();
     const now = ctx.currentTime;
-    const tc = 0.06;
-    const freq = 160 + t * 320; // 160→480Hz — string tightening
-    _stretchNodes.tensionOsc.frequency.setTargetAtTime(freq, now, tc);
-    _stretchNodes.bp.frequency.setTargetAtTime(freq, now, tc);
-    _stretchNodes.tensionGain.gain.setTargetAtTime(t * 0.12, now, tc);
-    _stretchNodes.lfoAmt.gain.setTargetAtTime(t * 0.04, now, tc);
+    const tc  = 0.03;                    // fast response = snappy feel
+    // Whoosh sweep: highpass 80→1800Hz, lowpass 400→4000Hz
+    _stretchNodes.hp.frequency.setTargetAtTime(80  + t * 1720, now, tc);
+    _stretchNodes.lp.frequency.setTargetAtTime(400 + t * 3600, now, tc);
+    // Volume: starts quiet, punches in
+    _stretchNodes.master.gain.setTargetAtTime(0.06 + t * 0.18, now, tc);
+    // Sine undertone: 120→420Hz, fades in after first third of pull
+    _stretchNodes.sine.frequency.setTargetAtTime(120 + t * 300, now, tc);
+    _stretchNodes.sineGain.gain.setTargetAtTime(Math.max(0, t - 0.3) * 0.12, now, tc);
   } catch(e) {}
 }
 
@@ -816,12 +787,12 @@ function stopStretchSound() {
   if (!_stretchNodes) return;
   try {
     const ctx = _getAudioCtx();
-    _stretchNodes.masterGain.gain.setTargetAtTime(0, ctx.currentTime, 0.05);
+    _stretchNodes.master.gain.setTargetAtTime(0, ctx.currentTime, 0.04);
     const n = _stretchNodes;
     _stretchNodes = null;
     setTimeout(() => {
-      try { n.tensionOsc.stop(); n.lfo.stop(); } catch(e) {}
-    }, 250);
+      try { n.noise.stop(); n.sine.stop(); } catch(e) {}
+    }, 200);
   } catch(e) {}
 }
 
