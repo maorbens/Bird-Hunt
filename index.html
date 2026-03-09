@@ -311,6 +311,10 @@
       align-items: center;
       gap: clamp(6px, 1.6vmin, 14px);
     }
+    @media (orientation: portrait) {
+      #howto-btn { order: -1; margin-top: 0; }
+      #start-btn { margin-top: 5px; }
+    }
     @media (orientation: landscape) {
       #intro-hud { flex-direction: row; justify-content: center; gap: calc(clamp(6px, 1.6vmin, 14px) + 10px); }
       #howto-btn { margin-top: 0; }
