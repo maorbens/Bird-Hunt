@@ -715,6 +715,7 @@ function startDrag(lx, ly) {
   if (phase !== 'aim') return;
   if (Math.hypot(lx - SLING_X, ly - SLING_Y) < 50) { drag = { x: lx, y: ly }; }
 }
+let _lastHaptic = 0;
 function moveDrag(lx, ly) {
   if (!drag) return;
   const dx = lx - SLING_X, dy = ly - SLING_Y;
@@ -722,6 +723,16 @@ function moveDrag(lx, ly) {
   const angle = Math.atan2(dy, dx);
   drag = { x: SLING_X + Math.cos(angle) * dist, y: SLING_Y + Math.sin(angle) * dist };
   projectile.x = drag.x; projectile.y = drag.y;
+  // Haptic feedback: short pulse every 60-80ms, duration grows with pull distance
+  if (navigator.vibrate) {
+    const now = Date.now();
+    const interval = 80 - Math.round((dist / MAX_PULL) * 35); // 80ms → 45ms at full pull
+    if (now - _lastHaptic >= interval) {
+      const duration = 6 + Math.round((dist / MAX_PULL) * 14); // 6ms → 20ms at full pull
+      navigator.vibrate(duration);
+      _lastHaptic = now;
+    }
+  }
 }
 function endDrag() {
   if (!drag || phase !== 'aim') return;
