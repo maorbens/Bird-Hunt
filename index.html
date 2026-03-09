@@ -2,16 +2,14 @@
 <html lang="he">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="theme-color" content="#000000" />
   <title>Bird Hunt</title>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   <link href="https://fonts.bunny.net/css?family=press-start-2p:400" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    :root { --sab: env(safe-area-inset-bottom, 0px); }
     html, body {
       width: 100%; height: 100%;
       overflow: hidden;
@@ -35,7 +33,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: calc(env(safe-area-inset-top, 0px) + clamp(10px, 3vh, 22px)) calc(env(safe-area-inset-right, 0px) + clamp(14px, 3.5vw, 32px)) clamp(10px, 3vh, 22px) calc(env(safe-area-inset-left, 0px) + clamp(14px, 3.5vw, 32px));
+      padding: clamp(10px, 3vh, 22px) clamp(14px, 3.5vw, 32px);
       color: #fff;
       font-size: clamp(16px, 4vmin, 28px);
       z-index: 10;
@@ -71,7 +69,24 @@
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 7' shape-rendering='crispEdges'%3E%3Crect x='1' y='0' width='2' height='1' fill='%23FF2222'/%3E%3Crect x='4' y='0' width='2' height='1' fill='%23FF2222'/%3E%3Crect x='0' y='1' width='7' height='3' fill='%23FF2222'/%3E%3Crect x='1' y='4' width='5' height='1' fill='%23FF2222'/%3E%3Crect x='2' y='5' width='3' height='1' fill='%23FF2222'/%3E%3Crect x='3' y='6' width='1' height='1' fill='%23FF2222'/%3E%3C/svg%3E");
       background-size: 100% 100%;
     }
-/* ── Game Over overlay ───────────────────────────────────────────────── */
+    /* ── In-game home button ─────────────────────────────────────────────── */
+    #home-btn {
+      pointer-events: auto;
+      background: rgba(0,0,0,0.52);
+      border: 2px solid rgba(255,255,255,0.48);
+      box-shadow: 2px 2px 0 rgba(0,0,0,0.8);
+      color: #fff;
+      font-size: clamp(14px, 3vmin, 22px);
+      padding: clamp(3px, 0.8vmin, 7px) clamp(6px, 1.2vmin, 12px);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      line-height: 1;
+      transition: transform 0.07s, box-shadow 0.07s;
+      flex-shrink: 0;
+    }
+    #home-btn:active { transform: translate(2px,2px); box-shadow: 0 0 0 rgba(0,0,0,0.8); }
+    /* ── Game Over overlay ───────────────────────────────────────────────── */
     #game-over-overlay {
       display: none;
       position: fixed;
@@ -80,7 +95,6 @@
       z-index: 20;
       align-items: center;
       justify-content: center;
-      padding-bottom: env(safe-area-inset-bottom, 0px);
     }
     #game-over-overlay.visible { display: flex; }
     #game-over-popup {
@@ -135,17 +149,11 @@
       transition: transform 0.07s, box-shadow 0.07s;
     }
     #restart-btn:active, #start-btn:active { transform: translate(3px,3px); box-shadow: 1px 1px 0 #000; }
-    @keyframes startPulse {
-      0%, 100% { transform: scale(1);    box-shadow: 4px 4px 0 #000, 0 0 8px rgba(233,69,96,0.3); }
-      50%       { transform: scale(1.08); box-shadow: 5px 5px 0 #000, 0 0 22px rgba(233,69,96,0.7); }
+    @keyframes startBlink {
+      0%, 100% { opacity: 1; box-shadow: 4px 4px 0 #000, 0 0 18px rgba(233,69,96,0.75); }
+      50%       { opacity: 0.55; box-shadow: 4px 4px 0 #000; }
     }
-    #start-btn {
-      transition: none;
-      transform-origin: center center;
-      animation: startPulse 2s ease-in-out infinite;
-      padding: clamp(14px, 3vmin, 28px) clamp(36px, 10vmin, 88px);
-      font-size: clamp(16px, 3.6vmin, 28px);
-    }
+    #start-btn { animation: startBlink 1.4s ease-in-out infinite; }
     #start-btn:active { animation: none; transform: translate(3px,3px); box-shadow: 1px 1px 0 #000; }
     /* Secondary home button (in game-over) */
     #home-btn-go {
@@ -173,172 +181,99 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      background: #4EC0CA;
+      justify-content: center;
+      background: linear-gradient(180deg, #1a8aab 0%, #2ea8c8 35%, #4EC0CA 65%, #6dd4de 100%);
       overflow: hidden;
     }
+    #intro-screen.hidden { display: none; }
+    /* Ground strip at bottom of intro */
     #intro-screen::before {
       content: '';
       position: absolute;
-      top: 0; left: 0; right: 0;
-      height: env(safe-area-inset-top, 0px);
-      background: #000;
-      z-index: 100;
+      bottom: 0; left: 0; right: 0;
+      height: clamp(40px, 9vh, 80px);
+      background: linear-gradient(180deg, #78B800 0%, #5A9000 30%, #DED895 100%);
+      z-index: 0;
     }
-    #intro-screen.hidden { display: none; }
-    /* Clouds layer */
     #intro-clouds {
       position: absolute;
       inset: 0;
       pointer-events: none;
       overflow: hidden;
-      z-index: 0;
     }
     @keyframes cloudDrift {
-      0%   { transform: translateX(0px); }
-      100% { transform: translateX(22px); }
+      0%   { transform: translateX(0px);  opacity: 0.75; }
+      100% { transform: translateX(18px); opacity: 0.95; }
     }
-    /* Ground — exact match to drawGround() */
-    #intro-ground {
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      height: clamp(80px, 17vh, 155px);
-      z-index: 1;
-      background: linear-gradient(
-        180deg,
-        #5A9000 0,    #5A9000 5px,
-        #78B800 5px,  #78B800 17px,
-        #DED895 17px
-      );
-    }
-    /* Logo badge */
-    #intro-logo {
+    #intro-panel {
       position: relative;
-      z-index: 3;
-      display: -webkit-flex;
-      display: flex;
-      -webkit-justify-content: center;
-      justify-content: center;
-      -webkit-align-items: center;
-      align-items: center;
-      margin-top: clamp(18px, 4.5vh, 55px);
-      background: linear-gradient(180deg, #9B5500 0%, #6B3200 60%, #4a2000 100%);
-      border: 5px solid #FFD700;
-      border-radius: 22px 22px 14px 14px;
-      padding: clamp(8px, 1.8vmin, 20px) clamp(28px, 9vmin, 76px) clamp(10px, 2.2vmin, 24px);
-      box-shadow:
-        0 0 0 3px #8B5500,
-        0 8px 0 #3a1400,
-        0 10px 0 rgba(0,0,0,0.55),
-        inset 0 2px 0 rgba(255,255,200,0.18),
-        0 0 40px rgba(255,190,0,0.22);
-    }
-    /* Gold corner gems on badge */
-    #intro-logo::before, #intro-logo::after {
-      content: '';
-      position: absolute;
-      width: clamp(10px, 2vmin, 16px); height: clamp(10px, 2vmin, 16px);
-      background: radial-gradient(circle at 35% 30%, #FFF0A0, #FFD700 60%, #B87800);
-      border-radius: 50%;
-      border: 2px solid #7B3F00;
-      top: clamp(6px, 1.4vmin, 12px);
-    }
-    #intro-logo::before { left: clamp(8px, 1.8vmin, 14px); }
-    #intro-logo::after  { right: clamp(8px, 1.8vmin, 14px); }
-    #intro-title {
-      direction: ltr;
-      text-align: center;
-      transform: translateX(6px);
-      font-size: clamp(32px, 12vmin, 92px);
-      color: #FFE800;
-      text-shadow:
-        1px 1px 0 #FFC000,
-        2px 2px 0 #E07800,
-        4px 4px 0 #7B3200,
-        5px 5px 0 rgba(0,0,0,0.65),
-        -1px -1px 0 rgba(255,255,160,0.55);
-      letter-spacing: 0.06em;
-      line-height: 1.0;
-    }
-    /* Trees */
-    #intro-trees {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      z-index: 2;
-    }
-    .intro-tree {
-      position: absolute;
+      z-index: 1;
+      background: rgba(26, 26, 46, 0.93);
+      border: 4px solid #FFD700;
+      box-shadow: 8px 8px 0 #000, inset 0 0 0 2px #000;
+      padding: clamp(22px, 4.5vmin, 52px) clamp(26px, 6.5vmin, 64px);
       display: flex;
       flex-direction: column;
       align-items: center;
-      bottom: calc(env(safe-area-inset-bottom, 0px) + clamp(72px, 15vh, 145px));
+      gap: clamp(12px, 2.5vmin, 26px);
+      width: min(520px, 88vw);
+      max-height: 94dvh;
+      overflow: hidden;
     }
-    .intro-tree-l { left: clamp(-14px, -1.5vw, 0px); }
-    .intro-tree-r { right: clamp(-14px, -1.5vw, 0px); }
-    /* Pixel-art tree SVG — colors match game palette */
-    .tree-svg {
-      width: clamp(56px, 14vmin, 112px);
-      height: auto;
-      image-rendering: pixelated;
-      image-rendering: crisp-edges;
+    /* pixel-art corner ornaments via pseudo-elements */
+    #intro-panel::before, #intro-panel::after {
+      content: '';
+      position: absolute;
+      width: 12px; height: 12px;
+      background: #FFD700;
+      box-shadow: inset 0 0 0 3px #000;
     }
-    /* Hero bird */
-    #intro-hero {
-      position: relative;
-      z-index: 3;
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding-bottom: clamp(70px, 16vh, 145px);
-    }
+    #intro-panel::before { top: -4px; left: -4px; }
+    #intro-panel::after  { bottom: -4px; right: -4px; }
     @keyframes birdFloat {
-      0%   { transform: translateY(0px)   rotate(-3deg); }
-      50%  { transform: translateY(-16px) rotate(3deg);  }
-      100% { transform: translateY(0px)   rotate(-3deg); }
+      0%   { transform: translateY(0px); }
+      50%  { transform: translateY(-10px); }
+      100% { transform: translateY(0px); }
     }
-    #intro-bird-wrap {
-      animation: birdFloat 3.2s ease-in-out infinite;
-      filter:
-        drop-shadow(0 12px 20px rgba(0,0,0,0.5))
-        drop-shadow(0 0 26px rgba(245,216,0,0.4));
-    }
+    #intro-bird-wrap { animation: birdFloat 2.8s ease-in-out infinite; }
     #intro-bird-svg {
-      width: clamp(150px, 36vmin, 280px);
+      width: clamp(70px, 15vmin, 128px);
       image-rendering: pixelated;
       image-rendering: crisp-edges;
       display: block;
     }
-    /* Bottom HUD */
-    #intro-hud {
-      position: absolute;
-      bottom: calc(env(safe-area-inset-bottom, 0px) + clamp(88px, 19vh, 168px));
-      left: 0; right: 0;
-      z-index: 3;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: clamp(6px, 1.6vmin, 14px);
+    #intro-title {
+      color: #FFD700;
+      font-size: clamp(26px, 8vmin, 64px);
+      text-shadow: 4px 4px 0 #c85000, 7px 7px 0 #000;
+      letter-spacing: 0.08em;
+      line-height: 1.3;
+      text-align: center;
+    }
+    #intro-divider {
+      width: 100%;
+      height: 4px;
+      background: repeating-linear-gradient(90deg, #FFD700 0 8px, transparent 8px 16px);
+      flex-shrink: 0;
+    }
+    #intro-desc {
+      color: #d8f4ff;
+      font-family: system-ui, -apple-system, sans-serif;
+      font-weight: 600;
+      font-size: clamp(12px, 2.6vmin, 19px);
+      text-shadow: 1px 1px 0 #000;
+      line-height: 1.75;
+      text-align: center;
+      direction: rtl;
+      word-break: keep-all;
     }
     #intro-hs-wrap {
       color: #aaffaa;
       font-family: system-ui, -apple-system, sans-serif;
       font-weight: 700;
       font-size: clamp(13px, 2.6vmin, 19px);
-      text-shadow: 2px 2px 0 #000, 0 0 10px rgba(0,180,0,0.3);
+      text-shadow: 2px 2px 0 #000;
       direction: rtl;
-    }
-    #intro-desc {
-      color: rgba(255,255,255,0.84);
-      font-family: system-ui, -apple-system, sans-serif;
-      font-weight: 600;
-      font-size: clamp(11px, 2.2vmin, 17px);
-      text-shadow: 1px 1px 0 #000;
-      line-height: 1.7;
-      text-align: center;
-      direction: rtl;
-      word-break: keep-all;
-      max-width: min(380px, 82vw);
     }
     .ex { font-family: system-ui, -apple-system, Arial, sans-serif; }
     #score-val, #hs-val {
@@ -355,7 +290,17 @@
   <!-- In-game UI bar -->
   <div id="ui">
     <div id="ui-left">
-<span id="score-display">0</span>
+      <button id="home-btn" onclick="showIntro()">
+        <svg width="1em" height="1em" viewBox="0 0 5 5" shape-rendering="crispEdges" fill="currentColor">
+          <rect x="2" y="0" width="1" height="1"/>
+          <rect x="1" y="1" width="3" height="1"/>
+          <rect x="0" y="2" width="5" height="1"/>
+          <rect x="0" y="3" width="1" height="2"/>
+          <rect x="2" y="3" width="1" height="2"/>
+          <rect x="4" y="3" width="1" height="2"/>
+        </svg>
+      </button>
+      <span id="score-display">0</span>
     </div>
     <span id="timer-display">60s</span>
     <span id="miss-display">X 0/5</span>
@@ -375,63 +320,43 @@
   <!-- Full-screen Intro -->
   <div id="intro-screen">
     <div id="intro-clouds"></div>
-    <div id="intro-trees">
-      <div class="intro-tree intro-tree-l">
-        <svg class="tree-svg" viewBox="0 0 7 9" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">
-          <rect x="2" y="0" width="3" height="1" fill="#5A9000"/>
-          <rect x="1" y="1" width="5" height="1" fill="#78B800"/>
-          <rect x="0" y="2" width="7" height="1" fill="#78B800"/>
-          <rect x="0" y="3" width="7" height="1" fill="#5A9000"/>
-          <rect x="0" y="4" width="7" height="1" fill="#78B800"/>
-          <rect x="1" y="5" width="5" height="1" fill="#5A9000"/>
-          <rect x="3" y="6" width="1" height="3" fill="#8B4513"/>
-        </svg>
-      </div>
-      <div class="intro-tree intro-tree-r">
-        <svg class="tree-svg" viewBox="0 0 7 9" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">
-          <rect x="2" y="0" width="3" height="1" fill="#5A9000"/>
-          <rect x="1" y="1" width="5" height="1" fill="#78B800"/>
-          <rect x="0" y="2" width="7" height="1" fill="#78B800"/>
-          <rect x="0" y="3" width="7" height="1" fill="#5A9000"/>
-          <rect x="0" y="4" width="7" height="1" fill="#78B800"/>
-          <rect x="1" y="5" width="5" height="1" fill="#5A9000"/>
-          <rect x="3" y="6" width="1" height="3" fill="#8B4513"/>
-        </svg>
-      </div>
-    </div>
-    <div id="intro-logo">
-      <div id="intro-title">BIRD<br>HUNT</div>
-    </div>
-    <div id="intro-hero">
+    <div id="intro-panel">
       <div id="intro-bird-wrap">
         <svg id="intro-bird-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 7" shape-rendering="crispEdges">
+          <!-- Row 0: cols 2-6 = dark yellow -->
           <rect x="2" y="0" width="5" height="1" fill="#886600"/>
+          <!-- Row 1 -->
           <rect x="1" y="1" width="1" height="1" fill="#886600"/>
           <rect x="2" y="1" width="5" height="1" fill="#F5D800"/>
           <rect x="7" y="1" width="1" height="1" fill="#886600"/>
+          <!-- Row 2 -->
           <rect x="0" y="2" width="1" height="1" fill="#886600"/>
           <rect x="1" y="2" width="4" height="1" fill="#F5D800"/>
           <rect x="5" y="2" width="1" height="1" fill="#FFFFFF"/>
           <rect x="6" y="2" width="1" height="1" fill="#F5D800"/>
           <rect x="7" y="2" width="2" height="1" fill="#FF8800"/>
+          <!-- Row 3 -->
           <rect x="0" y="3" width="1" height="1" fill="#886600"/>
           <rect x="1" y="3" width="3" height="1" fill="#F5D800"/>
           <rect x="4" y="3" width="1" height="1" fill="#111111"/>
           <rect x="5" y="3" width="1" height="1" fill="#FFFFFF"/>
           <rect x="6" y="3" width="1" height="1" fill="#F5D800"/>
           <rect x="7" y="3" width="2" height="1" fill="#FF8800"/>
+          <!-- Row 4 -->
           <rect x="0" y="4" width="1" height="1" fill="#886600"/>
           <rect x="1" y="4" width="6" height="1" fill="#F5D800"/>
           <rect x="7" y="4" width="1" height="1" fill="#886600"/>
+          <!-- Row 5 -->
           <rect x="1" y="5" width="2" height="1" fill="#886600"/>
           <rect x="3" y="5" width="2" height="1" fill="#F5D800"/>
           <rect x="5" y="5" width="2" height="1" fill="#886600"/>
+          <!-- Row 6 -->
           <rect x="2" y="6" width="4" height="1" fill="#886600"/>
         </svg>
       </div>
-    </div>
-    <div id="intro-ground"></div>
-    <div id="intro-hud">
+      <div id="intro-title">BIRD<br>HUNT</div>
+      <div id="intro-divider"></div>
+      <div id="intro-desc">משכו את הרוגטקה כדי לפגוע בציפור ולצבור נקודות לפני שהזמן נגמר<span class="ex">!</span></div>
       <div id="intro-hs-wrap">שיא<span class="ex">:</span> <span id="intro-hs">---</span></div>
       <button id="start-btn" onclick="startGame()">התחל משחק</button>
     </div>
@@ -446,18 +371,13 @@ ctx.imageSmoothingEnabled = false;
 const W = 800;
 let VW, H, GROUND_Y, SLING_Y, SCALE;
 
-function getSafeAreaBottom() {
-  return parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sab')) || 0;
-}
-
 function resize() {
   canvas.width  = window.innerWidth;
   canvas.height = window.innerHeight;
   SCALE    = Math.max(canvas.width, canvas.height) / W;
   VW       = Math.round(canvas.width  / SCALE);
   H        = Math.round(canvas.height / SCALE);
-  const safeBottom = getSafeAreaBottom();
-  GROUND_Y = H - Math.round((60 + safeBottom) / SCALE);
+  GROUND_Y = H - 60;
   SLING_Y  = GROUND_Y - 80;
   ctx.imageSmoothingEnabled = false;
 }
@@ -503,41 +423,40 @@ function initIntroStars() {
   const container = document.getElementById('intro-clouds');
   if (!container) return;
   container.innerHTML = '';
-  // Cloud data: left/top in %, w in CP units (matches drawClouds CP=8)
-  const CP = 8;
   const cloudData = [
-    { left: 2,  top: 10, w: 11 },
-    { left: 22, top: 30, w: 14 },
-    { left: 42, top: 8,  w: 10 },
-    { left: 62, top: 38, w: 12 },
-    { left: 79, top: 20, w:  9 },
+    { left: 3,  top: 12, w: 90,  h: 28 },
+    { left: 22, top: 28, w: 120, h: 22 },
+    { left: 50, top: 8,  w: 80,  h: 20 },
+    { left: 65, top: 38, w: 110, h: 26 },
+    { left: 78, top: 18, w: 75,  h: 18 },
+    { left: 38, top: 52, w: 95,  h: 20 },
   ];
-  cloudData.forEach(({ left, top, w }, i) => {
-    const dur  = (10 + i * 2.3).toFixed(1);
-    const del  = (i * 1.4).toFixed(1);
-    const anim = `cloudDrift ${dur}s ease-in-out ${del}s infinite alternate`;
-    // Body rect (matches ctx.fillRect(ox, oy+CP, w*CP, 3*CP))
-    const body = document.createElement('div');
-    body.style.cssText = [
+  cloudData.forEach(({ left, top, w, h }, i) => {
+    const el  = document.createElement('div');
+    const dur = (10 + i * 2.3).toFixed(1);
+    const del = (i * 1.4).toFixed(1);
+    el.style.cssText = [
       'position:absolute',
       `left:${left}%`,
-      `top:calc(${top}% + ${CP}px)`,
-      `width:${w * CP}px`,
-      `height:${3 * CP}px`,
-      'background:#fff',
-      `animation:${anim}`,
+      `top:${top}%`,
+      `width:${w}px`,
+      `height:${h}px`,
+      'background:rgba(255,255,255,0.82)',
+      'border-radius:50px',
+      `animation:cloudDrift ${dur}s ease-in-out ${del}s infinite alternate`,
     ].join(';');
-    container.appendChild(body);
-    // Top puff (matches ctx.fillRect(ox+CP, oy, (w-2)*CP, CP+4))
+    container.appendChild(el);
+    // Add a smaller puff on top of each cloud
     const puff = document.createElement('div');
     puff.style.cssText = [
       'position:absolute',
-      `left:calc(${left}% + ${CP}px)`,
-      `top:${top}%`,
-      `width:${(w - 2) * CP}px`,
-      `height:${CP + 4}px`,
-      'background:#fff',
-      `animation:${anim}`,
+      `left:${left + w * 0.0045}%`,
+      `top:${top - 1.2}%`,
+      `width:${Math.round(w * 0.55)}px`,
+      `height:${Math.round(h * 0.75)}px`,
+      'background:rgba(255,255,255,0.72)',
+      'border-radius:50px',
+      `animation:cloudDrift ${dur}s ease-in-out ${del}s infinite alternate`,
     ].join(';');
     container.appendChild(puff);
   });
@@ -551,8 +470,6 @@ function showIntro() {
   document.getElementById('game-over-overlay').classList.remove('visible');
   const hsEl = document.getElementById('intro-hs');
   if (hsEl) hsEl.textContent = highScore > 0 ? highScore : '---';
-  const hsWrap = document.getElementById('intro-hs-wrap');
-  if (hsWrap) hsWrap.style.visibility = highScore > 0 ? 'visible' : 'hidden';
   document.getElementById('intro-screen').classList.remove('hidden');
 }
 
