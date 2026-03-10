@@ -501,7 +501,7 @@ const TIME_BONUS       = 10;  // seconds added
 let score, consecutiveHits, missCount;
 let isFireStone, stoneScale;
 let timeLeft, timerRunning, lastTimestamp, timerExpired;
-let flyingBird, projectile, particles, floatingTexts, phase, drag, launched;
+let flyingBird, projectile, ghostProjectile, particles, floatingTexts, phase, drag, launched;
 let stoneDropAnim = { active: false, t: 0 };
 const STONE_DROP_DUR = 380;
 
@@ -603,6 +603,7 @@ function initGame() {
   particles       = [];
   floatingTexts   = [];
   stoneDropAnim   = { active: false, t: 0 };
+  ghostProjectile = null;
   projectile      = newProjectile();
   flyingBird      = newFlyingBird();
   updateUI();
@@ -625,6 +626,7 @@ function setupIdleState() {
   particles       = [];
   floatingTexts   = [];
   gameTimers      = [];
+  ghostProjectile = null;
   projectile      = newProjectile();
   flyingBird      = newFlyingBird();
   updateUI();
@@ -1109,6 +1111,19 @@ function update(dt) {
     }
   }
 
+  // Advance ghost projectile (early-miss stone still flying visually)
+  if (ghostProjectile) {
+    const gp = ghostProjectile;
+    gp.vy += GRAVITY * dt; gp.x += gp.vx * dt; gp.y += gp.vy * dt;
+    if (gp.y + gp.r >= GROUND_Y) {
+      gp.y = GROUND_Y - gp.r; gp.vy *= -0.4; gp.vx *= 0.7;
+      if (Math.abs(gp.vy) < 1) { gp.vy = 0; gp.vx = 0; }
+    }
+    const go = gp.x > VW + 60 || gp.x < -60 || gp.y > H + 60;
+    const gs = Math.abs(gp.vx) < 0.3 && Math.abs(gp.vy) < 0.3 && gp.y + gp.r >= GROUND_Y - 2;
+    if (go || gs) ghostProjectile = null;
+  }
+
   if (phase !== 'flying') return;
 
   const pr = projectile;
@@ -1126,9 +1141,22 @@ function update(dt) {
       onHit(fb.x, fb.y);
       return;
     }
+
+    // Early miss: stone passed its peak AND is 200px below the bird
+    if (pr.vy > 0 && pr.y - fb.y > 200) {
+      ghostProjectile = { x: pr.x, y: pr.y, vx: pr.vx, vy: pr.vy, r: pr.r };
+      if (timerExpired) {
+        phase = 'ending';
+        drag = null;
+        gameTimeout(() => endGame(), 100);
+      } else {
+        onMiss();
+      }
+      return;
+    }
   }
 
-  // Miss detection
+  // Miss detection (out of bounds or stopped on ground)
   const outOfBounds = pr.x > VW + 60 || pr.x < -60 || pr.y < -60 || pr.y > H + 60;
   const stopped = !outOfBounds && Math.abs(pr.vx) < 0.3 && Math.abs(pr.vy) < 0.3 && pr.y + pr.r >= GROUND_Y - 2;
   if (outOfBounds || stopped) {
@@ -1291,6 +1319,14 @@ function drawProjectile() {
 
   const pal = isFireStone ? FIRE_STONE_PAL : STONE_PAL;
   drawSprite(STONE_SPR, pal, pr.x, py, false, stoneScale);
+
+  // Ghost: previous stone still flying after early miss
+  if (ghostProjectile) {
+    const gp = ghostProjectile;
+    ctx.globalAlpha = 0.45;
+    drawSprite(STONE_SPR, STONE_PAL, gp.x, gp.y, false, stoneScale);
+    ctx.globalAlpha = 1;
+  }
 
   ctx.restore();
 }
