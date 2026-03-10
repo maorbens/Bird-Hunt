@@ -1275,18 +1275,18 @@ function drawSlingshotBands() {
   if (drag) {
     ex = drag.x; ey = drag.y;
   } else if (bandSnapAnim.active) {
-    const e = Math.min(bandSnapEase(bandSnapAnim.t), 1.15); // allow slight overshoot
+    const e = Math.min(bandSnapEase(bandSnapAnim.t), 1.15);
     ex = bandSnapAnim.fromX + (SLING_X - bandSnapAnim.fromX) * e;
     ey = bandSnapAnim.fromY + (SLING_Y - bandSnapAnim.fromY) * e;
   } else {
     ex = SLING_X; ey = SLING_Y;
-    if (stoneDropAnim.active) {
-      const t = stoneDropAnim.t;
-      // React on impact: pull down slightly then spring back
-      if (t >= 0.62) {
-        const st = (t - 0.62) / 0.38; // 0→1 after impact
-        ey += 9 * Math.exp(-8 * st) * Math.cos(14 * st);
-      }
+  }
+  // Stone-landing jolt: additive on top of whatever position
+  if (!drag && stoneDropAnim.active) {
+    const t = stoneDropAnim.t;
+    if (t >= 0.55) {
+      const st = (t - 0.55) / 0.45;
+      ey += 14 * Math.exp(-7 * st) * Math.cos(13 * st);
     }
   }
   ctx.save();
