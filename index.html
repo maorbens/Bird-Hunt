@@ -359,7 +359,75 @@
         transform: translateY(-3px);
       }
       #game-over-btns { margin-top: 6px; }
+      #howto-popup {
+        gap: clamp(10px, 2.4vmin, 20px);
+        padding-top: clamp(28px, 3.8vmin, 48px);
+        padding-bottom: clamp(28px, 3.8vmin, 48px);
+      }
     }
+    /* ── How-to popup ──────────────────────────────────────────────────── */
+    #howto-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.72);
+      z-index: 25;
+      align-items: center;
+      justify-content: center;
+    }
+    #howto-overlay.visible { display: flex; }
+    #howto-popup {
+      background: #1a1a2e;
+      border: 4px solid #fff;
+      box-shadow: 6px 6px 0 #000, inset 0 0 0 2px #000;
+      padding: clamp(44px, 5vmin, 68px) calc(clamp(38px, 8.4vmin, 77px) + 20px) calc(clamp(44px, 5vmin, 68px) + 10px);
+      text-align: center;
+      direction: rtl;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: clamp(18px, 3.5vmin, 32px);
+      width: fit-content;
+      max-width: 90vw;
+      max-height: 90dvh;
+      overflow-y: auto;
+    }
+    #howto-title {
+      color: #FFD700;
+      font-family: system-ui, -apple-system, sans-serif;
+      font-weight: 700;
+      font-size: clamp(22px, 5vmin, 40px);
+      text-shadow: 2px 2px 0 #000;
+    }
+    #howto-body {
+      color: rgba(255,255,255,0.88);
+      font-family: system-ui, -apple-system, sans-serif;
+      font-weight: 600;
+      font-size: clamp(13px, 2.6vmin, 20px);
+      text-shadow: 1px 1px 0 #000;
+      line-height: 1.85;
+      text-align: right;
+    }
+    #howto-body .rule-line { display: flex; align-items: flex-start; gap: 0.5em; margin-bottom: 0.25em; }
+    #howto-body .rule-icon { flex-shrink: 0; }
+    #howto-got-it {
+      padding: clamp(14px, 3vmin, 28px) clamp(36px, 10vmin, 88px);
+      background: #e94560;
+      color: #fff;
+      border: 4px solid #000;
+      box-shadow: 4px 4px 0 #000;
+      font-family: system-ui, -apple-system, sans-serif;
+      font-weight: 700;
+      font-size: clamp(16px, 3.6vmin, 28px);
+      text-align: center;
+      direction: rtl;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: transform 0.07s, box-shadow 0.07s;
+      margin-top: 6px;
+    }
+    #howto-got-it:active { transform: translate(3px,3px); box-shadow: 1px 1px 0 #000; }
+
     #intro-desc {
       color: rgba(255,255,255,0.84);
       font-family: system-ui, -apple-system, sans-serif;
@@ -403,6 +471,22 @@
         <button id="restart-btn" onclick="initGame()">שחק שוב</button>
         <button id="home-btn-go" onclick="showIntro()">ראשי</button>
       </div>
+    </div>
+  </div>
+
+  <!-- How-to overlay -->
+  <div id="howto-overlay">
+    <div id="howto-popup">
+      <div id="howto-title">איך משחקים?</div>
+      <div id="howto-body">
+        <div class="rule-line"><span class="rule-icon">🎯</span><span>גרור את האבן ברוגטקה ושחרר כדי לירות לעבר הציפור</span></div>
+        <div class="rule-line"><span class="rule-icon">⏱️</span><span>יש לך 30 שניות — פגע בכמה שיותר ציפורים</span></div>
+        <div class="rule-line"><span class="rule-icon">💥</span><span>פגיעה: 100 נקודות. פגיעה עם אבן אש: 300 נקודות</span></div>
+        <div class="rule-line"><span class="rule-icon">🔥</span><span>5 פגיעות ברצף מעניקות אבן אש</span></div>
+        <div class="rule-line"><span class="rule-icon">⏰</span><span>כל 5 פגיעות ברצף מוסיפות 10 שניות לשעון</span></div>
+        <div class="rule-line"><span class="rule-icon">❌</span><span>החטאה מאפסת את רצף הפגיעות</span></div>
+      </div>
+      <button id="howto-got-it">הבנתי!</button>
     </div>
   </div>
 
@@ -1626,6 +1710,16 @@ setupIdleState();
 initIntroStars();
 showIntro();
 requestAnimationFrame(loop);
+
+document.getElementById('howto-btn').addEventListener('click', () => {
+  document.getElementById('howto-overlay').classList.add('visible');
+});
+document.getElementById('howto-got-it').addEventListener('click', () => {
+  document.getElementById('howto-overlay').classList.remove('visible');
+});
+document.getElementById('howto-overlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) e.currentTarget.classList.remove('visible');
+});
 </script>
 </body>
 </html>
