@@ -1121,11 +1121,12 @@ function update(dt) {
     }
   }
 
-  // Fade trigger: descended past bird. If stone is close to bird, also require
-  // passing it horizontally (avoids disappearing right next to bird on wide arcs).
+  // Fade trigger: descended past bird. If stone is close to bird (Euclidean or
+  // vertically), also require passing it horizontally before fading.
   if (!pr.fading && pr.vy > 0 && fb && fb.alive && pr.y > fb.y) {
     const distToBird = Math.hypot(pr.x - fb.x, pr.y - fb.y);
-    const nearBird = distToBird < (pr.r + fb.r) * 4;
+    const nearBird = distToBird < (pr.r + fb.r) * 4 ||
+                     Math.abs(pr.y - fb.y) < (pr.r + fb.r) * 3;
     if (!nearBird || pr.x > fb.x) pr.fading = true;
   }
 
