@@ -994,7 +994,7 @@ function onHit(bx, by) {
 
   const pts = isFireStone ? 300 : 100;
   score += pts;
-  addFloatingText('+' + pts, bx, by - 30, isFireStone ? '#FF8800' : '#FFD700');
+  addFloatingText('+' + pts, bx, by - 30, isFireStone ? '#FF8800' : '#FFD700', 18);
   spawnParticles(bx, by, isFireStone);
 
   // Activate fire stone at 3 consecutive hits
