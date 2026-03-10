@@ -1118,7 +1118,7 @@ function update(dt) {
 
   // Miss detection: stone fully off-screen (never re-enters), or landed and stopped
   const outOfBounds = pr.x > VW + pr.r || pr.x < -pr.r || pr.y > H + pr.r ||
-                      (pr.vy <= 0 && pr.y + pr.r < 0); // peaked above top, won't return
+                      (pr.vy > 0 && pr.y + pr.r < 0); // peaked above top, descending but still off-screen
   const stopped = !outOfBounds && Math.abs(pr.vx) < 0.3 && Math.abs(pr.vy) < 0.3 && pr.y + pr.r >= GROUND_Y - 2;
   if (outOfBounds || stopped) {
     if (timerExpired) {
