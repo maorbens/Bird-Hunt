@@ -1259,7 +1259,6 @@ function drawSlingshotBands() {
   const rx = tx + 20, ry = ty - 30;
   const ex = drag ? drag.x : SLING_X;
   const ey = drag ? drag.y : SLING_Y;
-  if (!drag && launched) return;
   if (!drag && stoneDropAnim.active) return;
   ctx.save();
   ctx.scale(SCALE, SCALE);
