@@ -1169,7 +1169,7 @@ function update(dt) {
 
     // Early miss: stone passed its peak AND is 200px below the bird
     if (pr.vy > 0 && pr.y - fb.y > 200) {
-      ghostProjectile = { x: pr.x, y: pr.y, vx: pr.vx, vy: pr.vy, r: pr.r };
+      ghostProjectile = { x: pr.x, y: pr.y, vx: pr.vx, vy: pr.vy, r: pr.r, isFire: isFireStone, scale: stoneScale };
       if (timerExpired) {
         phase = 'ending';
         drag = null;
@@ -1339,7 +1339,7 @@ function drawProjectile() {
       ctx.save();
       ctx.scale(SCALE, SCALE);
       ctx.globalAlpha = 0.45;
-      drawSprite(STONE_SPR, STONE_PAL, ghostProjectile.x, ghostProjectile.y, false, stoneScale);
+      drawSprite(STONE_SPR, ghostProjectile.isFire ? FIRE_STONE_PAL : STONE_PAL, ghostProjectile.x, ghostProjectile.y, false, ghostProjectile.scale);
       ctx.globalAlpha = 1;
       ctx.restore();
     }
@@ -1380,7 +1380,7 @@ function drawProjectile() {
   if (ghostProjectile) {
     const gp = ghostProjectile;
     ctx.globalAlpha = 0.45;
-    drawSprite(STONE_SPR, STONE_PAL, gp.x, gp.y, false, stoneScale);
+    drawSprite(STONE_SPR, gp.isFire ? FIRE_STONE_PAL : STONE_PAL, gp.x, gp.y, false, gp.scale);
     ctx.globalAlpha = 1;
   }
 
