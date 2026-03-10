@@ -981,7 +981,7 @@ function onHit(bx, by) {
   if (!isFireStone && consecutiveHits >= FIRE_COMBO) {
     isFireStone = true;
     playSuccessSound();
-    addFloatingText('* FIRE! *', bx, by - 58, '#FF4400');
+    addFloatingText('אבן אש!', SLING_X + 70, SLING_Y - 50, '#FF4400');
   }
 
   // +10s bonus every 5 consecutive hits
@@ -1022,7 +1022,7 @@ function onMiss() {
     const prevScale = stoneScale;
     stoneScale = Math.max(0.75, stoneScale * 0.75);
     if (stoneScale < prevScale && missCount < MISS_LIMIT)
-      addFloatingText('SMALLER ROCK', SLING_X + 70, SLING_Y - 50, '#FF8844', 13);
+      addFloatingText('אבן קטנה', SLING_X + 70, SLING_Y - 50, '#FF8844', 13);
   }
 
   updateUI(true);
