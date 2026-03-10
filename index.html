@@ -1385,7 +1385,8 @@ function drawFloatingTexts() {
   ctx.scale(SCALE, SCALE);
   ctx.textAlign = 'center';
   floatingTexts.forEach(ft => {
-    ctx.font = `bold ${ft.size}px "Press Start 2P", monospace`;
+    const isHebrew = /[\u0590-\u05FF]/.test(ft.text);
+    ctx.font = `bold ${ft.size}px ${isHebrew ? 'system-ui, -apple-system, sans-serif' : '"Press Start 2P", monospace'}`;
     ctx.globalAlpha = Math.min(1, ft.life * 1.5);
     ctx.fillStyle = '#000';
     ctx.fillText(ft.text, ft.x + 1, ft.y + 1);
