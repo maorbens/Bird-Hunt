@@ -1187,7 +1187,7 @@ function drawGround() {
 }
 
 // ── Draw: Slingshot ───────────────────────────────────────────────────────
-function drawSlingshot() {
+function drawSlingshotBody() {
   ctx.save();
   ctx.scale(SCALE, SCALE);
   const bx = SLING_X, by = GROUND_Y;
@@ -1209,17 +1209,24 @@ function drawSlingshot() {
   // highlight
   ctx.strokeStyle = '#C8804A'; ctx.lineWidth = PP;
   ctx.beginPath(); ctx.moveTo(bx-PP, by); ctx.lineTo(tx-PP, ty); ctx.stroke();
+  ctx.restore();
+}
 
-  // rubber bands
+function drawSlingshotBands() {
+  const tx = SLING_X, ty = SLING_Y - 10;
+  const lx = tx - 20, ly = ty - 30;
+  const rx = tx + 20, ry = ty - 30;
   const ex = drag ? drag.x : SLING_X;
   const ey = drag ? drag.y : SLING_Y;
-  if (drag || !launched) {
-    ctx.strokeStyle = '#C8A046'; ctx.lineWidth = PP;
-    ctx.setLineDash([PP * 2, PP]);
-    ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(ex, ey); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(rx, ry); ctx.lineTo(ex, ey); ctx.stroke();
-    ctx.setLineDash([]);
-  }
+  if (!drag && launched) return;
+  ctx.save();
+  ctx.scale(SCALE, SCALE);
+  ctx.lineCap = 'square'; ctx.lineJoin = 'miter';
+  ctx.strokeStyle = '#C8A046'; ctx.lineWidth = PP;
+  ctx.setLineDash([PP * 2, PP]);
+  ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(ex, ey); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(rx, ry); ctx.lineTo(ex, ey); ctx.stroke();
+  ctx.setLineDash([]);
   ctx.restore();
 }
 
@@ -1376,9 +1383,10 @@ function loop(timestamp) {
   updateClouds(dt);
   drawSky();
   drawClouds();
+  drawSlingshotBody();
   drawGround();
   drawTrajectoryHint();
-  drawSlingshot();
+  drawSlingshotBands();
   drawProjectile();
   drawFlyingBird();
   drawParticles();
