@@ -1249,7 +1249,7 @@ function stoneDropAnimY() {
   let offset;
   if (t <= 0.70) {
     const p = t / 0.70;
-    offset = -100 + 112 * p * p; // accelerate: -100 → +12 (overshoot)
+    offset = -50 + 62 * p * p; // accelerate: -50 → +12 (overshoot)
   } else if (t <= 0.85) {
     const p = (t - 0.70) / 0.15;
     offset = 12 - 16 * p;        // bounce back: +12 → -4
