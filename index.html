@@ -629,7 +629,7 @@ function setupIdleState() {
 
 function newProjectile() {
   const r = Math.max(5, Math.round(BASE_RADIUS * stoneScale));
-  return { x: SLING_X, y: SLING_Y, vx: 0, vy: 0, r, active: false, fadeAlpha: 1, fading: false };
+  return { x: SLING_X, y: SLING_Y, vx: 0, vy: 0, r, active: false };
 }
 
 function updateUI(animateMiss = false) {
@@ -1102,18 +1102,13 @@ function update(dt) {
   const pr = projectile;
   pr.vy += GRAVITY * dt; pr.x += pr.vx * dt; pr.y += pr.vy * dt;
 
-  // Scenario 1: stone fully exited top of screen → fade immediately (next stone)
-  if (!pr.fading && pr.y + pr.r < 0) {
-    pr.fading = true;
-  }
-
   if (pr.y + pr.r >= GROUND_Y) {
     pr.y = GROUND_Y - pr.r; pr.vy *= -0.4; pr.vx *= 0.7;
     if (Math.abs(pr.vy) < 1) { pr.vy = 0; pr.vx = 0; }
   }
 
-  // Hit detection – before fading trigger so a near-miss at arc peak still registers
-  if (!pr.fading && fb && fb.alive) {
+  // Hit detection
+  if (fb && fb.alive) {
     if (Math.hypot(pr.x - fb.x, pr.y - fb.y) < pr.r + fb.r) {
       fb.alive = false;
       onHit(fb.x, fb.y);
@@ -1121,33 +1116,9 @@ function update(dt) {
     }
   }
 
-  // Fade trigger: descended past bird. If stone is close to bird (Euclidean or
-  // vertically), also require passing it horizontally before fading.
-  if (!pr.fading && pr.vy > 0 && fb && fb.alive && pr.y > fb.y) {
-    const distToBird = Math.hypot(pr.x - fb.x, pr.y - fb.y);
-    const nearBird = distToBird < (pr.r + fb.r) * 4 ||
-                     Math.abs(pr.y - fb.y) < (pr.r + fb.r) * 3;
-    if (!nearBird || pr.x > fb.x) pr.fading = true;
-  }
-
-  // Handle fade-out and early turn reset
-  if (pr.fading) {
-    pr.fadeAlpha -= dt / 15; // ~250ms at 60fps
-    if (pr.fadeAlpha <= 0) {
-      pr.fadeAlpha = 0;
-      if (timerExpired) {
-        phase = 'ending';
-        drag = null;
-        gameTimeout(() => endGame(), 100);
-      } else {
-        onMiss();
-      }
-    }
-    return;
-  }
-
-  // Miss detection
-  const outOfBounds = pr.x > VW + 60 || pr.x < -60 || pr.y < -60 || pr.y > H + 60;
+  // Miss detection: stone fully off-screen (never re-enters), or landed and stopped
+  const outOfBounds = pr.x > VW + pr.r || pr.x < -pr.r || pr.y > H + pr.r ||
+                      (pr.vy <= 0 && pr.y + pr.r < 0); // peaked above top, won't return
   const stopped = !outOfBounds && Math.abs(pr.vx) < 0.3 && Math.abs(pr.vy) < 0.3 && pr.y + pr.r >= GROUND_Y - 2;
   if (outOfBounds || stopped) {
     if (timerExpired) {
@@ -1265,10 +1236,9 @@ function drawProjectile() {
   ctx.save();
   ctx.scale(SCALE, SCALE);
   const pr = projectile;
-  const fade = pr.fadeAlpha ?? 1;
 
   // Shadow fades with height
-  const shadowAlpha = Math.max(0, 0.3 * (1 - (GROUND_Y - pr.y) / 300)) * fade;
+  const shadowAlpha = Math.max(0, 0.3 * (1 - (GROUND_Y - pr.y) / 300));
   if (shadowAlpha > 0) {
     ctx.globalAlpha = shadowAlpha;
     ctx.fillStyle = '#000';
@@ -1290,7 +1260,6 @@ function drawProjectile() {
     ctx.globalAlpha = 1;
   }
 
-  ctx.globalAlpha = fade;
   const pal = isFireStone ? FIRE_STONE_PAL : STONE_PAL;
   drawSprite(STONE_SPR, pal, pr.x, pr.y, false, stoneScale);
 
