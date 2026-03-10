@@ -970,7 +970,10 @@ function playSuccessSound() {
 function onHit(bx, by) {
   playHitSound();
   consecutiveHits++;
+  const prevStoneScale = stoneScale;
   stoneScale = 1; // restore stone size on any hit
+  if (prevStoneScale < 1)
+    addFloatingText('אבן רגילה', SLING_X + 70, SLING_Y - 50, '#88DDFF', 18);
 
   const pts = isFireStone ? 300 : 100;
   score += pts;
