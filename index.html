@@ -502,6 +502,8 @@ let score, consecutiveHits, missCount;
 let isFireStone, stoneScale;
 let timeLeft, timerRunning, lastTimestamp, timerExpired;
 let flyingBird, projectile, particles, floatingTexts, phase, drag, launched;
+let stoneDropAnim = { active: false, t: 0 };
+const STONE_DROP_DUR = 380;
 
 let highScore = 0;
 try { highScore = parseInt(localStorage.getItem('birdHuntHS') || '0') || 0; } catch(e) {}
@@ -600,6 +602,7 @@ function initGame() {
   launched        = false;
   particles       = [];
   floatingTexts   = [];
+  stoneDropAnim   = { active: false, t: 0 };
   projectile      = newProjectile();
   flyingBird      = newFlyingBird();
   updateUI();
@@ -813,6 +816,7 @@ function _scheduleStretchIdle(dist) {
 
 function startDrag(lx, ly) {
   if (phase !== 'aim') return;
+  if (stoneDropAnim.active) return;
   if (Math.hypot(lx - SLING_X, ly - SLING_Y) < 50) {
     drag = { x: lx, y: ly };
     _stretchLastDist = 0;
@@ -996,6 +1000,7 @@ function onHit(bx, by) {
   flyingBird = newFlyingBird();
   projectile = newProjectile();
   phase = 'aim'; launched = false;
+  stoneDropAnim = { active: true, t: 0 };
 }
 
 function onMiss() {
@@ -1025,6 +1030,7 @@ function onMiss() {
   }
   projectile = newProjectile();
   phase = 'aim'; launched = false;
+  stoneDropAnim = { active: true, t: 0 };
 }
 
 function endGame() {
@@ -1052,6 +1058,12 @@ function endGame() {
 
 // ── Update ────────────────────────────────────────────────────────────────
 function update(dt) {
+  // Stone drop animation
+  if (stoneDropAnim.active) {
+    stoneDropAnim.t = Math.min(1, stoneDropAnim.t + dt * (1000/60) / STONE_DROP_DUR);
+    if (stoneDropAnim.t >= 1) stoneDropAnim.active = false;
+  }
+
   // Floating texts
   for (let i = floatingTexts.length - 1; i >= 0; i--) {
     const ft = floatingTexts[i];
@@ -1219,6 +1231,7 @@ function drawSlingshotBands() {
   const ex = drag ? drag.x : SLING_X;
   const ey = drag ? drag.y : SLING_Y;
   if (!drag && launched) return;
+  if (!drag && stoneDropAnim.active) return;
   ctx.save();
   ctx.scale(SCALE, SCALE);
   ctx.lineCap = 'square'; ctx.lineJoin = 'miter';
@@ -1231,13 +1244,30 @@ function drawSlingshotBands() {
 }
 
 // ── Draw: Projectile ──────────────────────────────────────────────────────
+function stoneDropAnimY() {
+  const t = stoneDropAnim.t;
+  let offset;
+  if (t <= 0.70) {
+    const p = t / 0.70;
+    offset = -100 + 112 * p * p; // accelerate: -100 → +12 (overshoot)
+  } else if (t <= 0.85) {
+    const p = (t - 0.70) / 0.15;
+    offset = 12 - 16 * p;        // bounce back: +12 → -4
+  } else {
+    const p = (t - 0.85) / 0.15;
+    offset = -4 + 4 * p;         // settle: -4 → 0
+  }
+  return SLING_Y + offset;
+}
+
 function drawProjectile() {
   ctx.save();
   ctx.scale(SCALE, SCALE);
   const pr = projectile;
+  const py = stoneDropAnim.active ? stoneDropAnimY() : pr.y;
 
   // Shadow fades with height
-  const shadowAlpha = Math.max(0, 0.3 * (1 - (GROUND_Y - pr.y) / 300));
+  const shadowAlpha = Math.max(0, 0.3 * (1 - (GROUND_Y - py) / 300));
   if (shadowAlpha > 0) {
     ctx.globalAlpha = shadowAlpha;
     ctx.fillStyle = '#000';
@@ -1249,18 +1279,18 @@ function drawProjectile() {
   // Fire glow
   if (isFireStone) {
     ctx.globalAlpha = 0.35;
-    const grad = ctx.createRadialGradient(pr.x, pr.y, 0, pr.x, pr.y, pr.r * 2.2);
+    const grad = ctx.createRadialGradient(pr.x, py, 0, pr.x, py, pr.r * 2.2);
     grad.addColorStop(0, '#FFAA00');
     grad.addColorStop(1, 'rgba(255,80,0,0)');
     ctx.fillStyle = grad;
     ctx.beginPath();
-    ctx.arc(pr.x, pr.y, pr.r * 2.2, 0, Math.PI * 2);
+    ctx.arc(pr.x, py, pr.r * 2.2, 0, Math.PI * 2);
     ctx.fill();
     ctx.globalAlpha = 1;
   }
 
   const pal = isFireStone ? FIRE_STONE_PAL : STONE_PAL;
-  drawSprite(STONE_SPR, pal, pr.x, pr.y, false, stoneScale);
+  drawSprite(STONE_SPR, pal, pr.x, py, false, stoneScale);
 
   ctx.restore();
 }
