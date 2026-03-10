@@ -629,7 +629,7 @@ function setupIdleState() {
 
 function newProjectile() {
   const r = Math.max(5, Math.round(BASE_RADIUS * stoneScale));
-  return { x: SLING_X, y: SLING_Y, vx: 0, vy: 0, r, active: false, fadeAlpha: 1, fading: false };
+  return { x: SLING_X, y: SLING_Y, vx: 0, vy: 0, r, active: false };
 }
 
 function updateUI(animateMiss = false) {
@@ -1102,27 +1102,6 @@ function update(dt) {
   const pr = projectile;
   pr.vy += GRAVITY * dt; pr.x += pr.vx * dt; pr.y += pr.vy * dt;
 
-  // Fade trigger: descending and passed below bird's y level without hitting it
-  if (!pr.fading && fb && fb.alive && pr.vy > 0 && pr.y > fb.y) {
-    pr.fading = true;
-  }
-
-  // Handle fade-out and early turn reset
-  if (pr.fading) {
-    pr.fadeAlpha -= dt / 15; // ~250ms at 60fps
-    if (pr.fadeAlpha <= 0) {
-      pr.fadeAlpha = 0;
-      if (timerExpired) {
-        phase = 'ending';
-        drag = null;
-        gameTimeout(() => endGame(), 100);
-      } else {
-        onMiss();
-      }
-    }
-    return;
-  }
-
   if (pr.y + pr.r >= GROUND_Y) {
     pr.y = GROUND_Y - pr.r; pr.vy *= -0.4; pr.vx *= 0.7;
     if (Math.abs(pr.vy) < 1) { pr.vy = 0; pr.vx = 0; }
@@ -1256,10 +1235,9 @@ function drawProjectile() {
   ctx.save();
   ctx.scale(SCALE, SCALE);
   const pr = projectile;
-  const fade = pr.fadeAlpha ?? 1;
 
   // Shadow fades with height
-  const shadowAlpha = Math.max(0, 0.3 * (1 - (GROUND_Y - pr.y) / 300)) * fade;
+  const shadowAlpha = Math.max(0, 0.3 * (1 - (GROUND_Y - pr.y) / 300));
   if (shadowAlpha > 0) {
     ctx.globalAlpha = shadowAlpha;
     ctx.fillStyle = '#000';
@@ -1270,7 +1248,7 @@ function drawProjectile() {
 
   // Fire glow
   if (isFireStone) {
-    ctx.globalAlpha = 0.35 * fade;
+    ctx.globalAlpha = 0.35;
     const grad = ctx.createRadialGradient(pr.x, pr.y, 0, pr.x, pr.y, pr.r * 2.2);
     grad.addColorStop(0, '#FFAA00');
     grad.addColorStop(1, 'rgba(255,80,0,0)');
@@ -1281,7 +1259,6 @@ function drawProjectile() {
     ctx.globalAlpha = 1;
   }
 
-  ctx.globalAlpha = fade;
   const pal = isFireStone ? FIRE_STONE_PAL : STONE_PAL;
   drawSprite(STONE_SPR, pal, pr.x, pr.y, false, stoneScale);
 
