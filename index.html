@@ -504,6 +504,8 @@ let timeLeft, timerRunning, lastTimestamp, timerExpired;
 let flyingBird, projectile, ghostProjectile, particles, floatingTexts, phase, drag, launched;
 let stoneDropAnim = { active: false, t: 0 };
 const STONE_DROP_DUR = 380;
+let bandSnapAnim = { active: false, t: 0, fromX: 0, fromY: 0 };
+const BAND_SNAP_DUR = 350;
 
 let highScore = 0;
 try { highScore = parseInt(localStorage.getItem('birdHuntHS') || '0') || 0; } catch(e) {}
@@ -603,6 +605,7 @@ function initGame() {
   particles       = [];
   floatingTexts   = [];
   stoneDropAnim   = { active: false, t: 0 };
+  bandSnapAnim    = { active: false, t: 0, fromX: 0, fromY: 0 };
   ghostProjectile = null;
   projectile      = newProjectile();
   flyingBird      = newFlyingBird();
@@ -857,6 +860,7 @@ function endDrag() {
   projectile.vy = (SLING_Y - drag.y) * power;
   projectile.x = SLING_X; projectile.y = SLING_Y;
   projectile.active = true;
+  bandSnapAnim = { active: true, t: 0, fromX: drag.x, fromY: drag.y };
   phase = 'flying'; drag = null; launched = true;
 }
 
@@ -1066,6 +1070,11 @@ function update(dt) {
     stoneDropAnim.t = Math.min(1, stoneDropAnim.t + dt * (1000/60) / STONE_DROP_DUR);
     if (stoneDropAnim.t >= 1) stoneDropAnim.active = false;
   }
+  // Band snap-back animation
+  if (bandSnapAnim.active) {
+    bandSnapAnim.t = Math.min(1, bandSnapAnim.t + dt * (1000/60) / BAND_SNAP_DUR);
+    if (bandSnapAnim.t >= 1) bandSnapAnim.active = false;
+  }
 
   // Floating texts
   for (let i = floatingTexts.length - 1; i >= 0; i--) {
@@ -1253,13 +1262,25 @@ function drawSlingshotBody() {
   ctx.restore();
 }
 
+function bandSnapEase(t) {
+  // Spring overshoot: goes past target then settles
+  return 1 - Math.exp(-10 * t) * Math.cos(18 * t);
+}
+
 function drawSlingshotBands() {
   const tx = SLING_X, ty = SLING_Y - 10;
   const lx = tx - 20, ly = ty - 30;
   const rx = tx + 20, ry = ty - 30;
-  const ex = drag ? drag.x : SLING_X;
-  const ey = drag ? drag.y : SLING_Y;
-  if (!drag && stoneDropAnim.active) return;
+  let ex, ey;
+  if (drag) {
+    ex = drag.x; ey = drag.y;
+  } else if (bandSnapAnim.active) {
+    const e = Math.min(bandSnapEase(bandSnapAnim.t), 1.15); // allow slight overshoot
+    ex = bandSnapAnim.fromX + (SLING_X - bandSnapAnim.fromX) * e;
+    ey = bandSnapAnim.fromY + (SLING_Y - bandSnapAnim.fromY) * e;
+  } else {
+    ex = SLING_X; ey = SLING_Y;
+  }
   ctx.save();
   ctx.scale(SCALE, SCALE);
   ctx.lineCap = 'square'; ctx.lineJoin = 'miter';
