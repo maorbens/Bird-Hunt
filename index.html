@@ -629,7 +629,7 @@ function setupIdleState() {
 
 function newProjectile() {
   const r = Math.max(5, Math.round(BASE_RADIUS * stoneScale));
-  return { x: SLING_X, y: SLING_Y, vx: 0, vy: 0, r, active: false, fadeAlpha: 1, fading: false, exitedTop: false };
+  return { x: SLING_X, y: SLING_Y, vx: 0, vy: 0, r, active: false, fadeAlpha: 1, fading: false };
 }
 
 function updateUI(animateMiss = false) {
@@ -1102,11 +1102,13 @@ function update(dt) {
   const pr = projectile;
   pr.vy += GRAVITY * dt; pr.x += pr.vx * dt; pr.y += pr.vy * dt;
 
-  // Track if stone exited top of screen
-  if (pr.y < 0) pr.exitedTop = true;
+  // Scenario 1: stone fully exited top of screen → fade immediately (next stone)
+  if (!pr.fading && pr.y + pr.r < 0) {
+    pr.fading = true;
+  }
 
-  // Fade trigger: descended past bird, OR returned from above screen
-  if (!pr.fading && pr.vy > 0 && (pr.exitedTop || (fb && fb.alive && pr.y > fb.y))) {
+  // Fade trigger: descended past bird (partial top-exit treated as on-screen)
+  if (!pr.fading && pr.vy > 0 && fb && fb.alive && pr.y > fb.y) {
     pr.fading = true;
   }
 
