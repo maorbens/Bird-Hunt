@@ -1014,7 +1014,10 @@ function onMiss() {
     isFireStone = false;
     addFloatingText('MISS', projectile.x, projectile.y - 20, '#FF4444');
   } else {
-    // Normal miss: shrink stone by 25% (once only)
+    // Normal miss: always show MISS, shrink stone by 25% (once only)
+    const missX = Math.max(50, Math.min(VW - 50, projectile.x));
+    const missY = Math.max(50, Math.min(GROUND_Y - 50, projectile.y - 20));
+    addFloatingText('MISS', missX, missY, '#FF4444');
     const prevScale = stoneScale;
     stoneScale = Math.max(0.75, stoneScale * 0.75);
     if (stoneScale < prevScale && missCount < MISS_LIMIT)
