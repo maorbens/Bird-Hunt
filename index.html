@@ -409,8 +409,7 @@
       text-align: right;
     }
     #howto-body .rule-line { display: flex; align-items: flex-start; gap: 0.5em; margin-bottom: 0.25em; }
-    #howto-body .rule-icon { flex-shrink: 0; line-height: 0; }
-    #howto-body .rule-icon svg { width: 1.3em; height: 1.3em; vertical-align: middle; }
+    #howto-body .rule-icon { flex-shrink: 0; }
     #howto-got-it {
       padding: clamp(14px, 3vmin, 28px) clamp(36px, 10vmin, 88px);
       background: #e94560;
@@ -480,12 +479,12 @@
     <div id="howto-popup">
       <div id="howto-title">איך משחקים?</div>
       <div id="howto-body">
-        <div class="rule-line"><span class="rule-icon"><svg viewBox="0 0 5 7" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="1" height="2" fill="#8B4513"/><rect x="4" y="0" width="1" height="2" fill="#8B4513"/><rect x="1" y="2" width="1" height="1" fill="#8B4513"/><rect x="3" y="2" width="1" height="1" fill="#8B4513"/><rect x="2" y="3" width="1" height="3" fill="#8B4513"/><rect x="1" y="6" width="3" height="1" fill="#8B4513"/></svg></span><span>משכו את האבן ברוגטקה ושחררו כדי לירות לעבר הציפור</span></div>
-        <div class="rule-line"><span class="rule-icon"><svg viewBox="0 0 5 5" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="5" height="1" fill="#FFFFFF"/><rect x="1" y="1" width="3" height="1" fill="#FFFFFF"/><rect x="2" y="2" width="1" height="1" fill="#FFFFFF"/><rect x="1" y="3" width="3" height="1" fill="#FFFFFF"/><rect x="0" y="4" width="5" height="1" fill="#FFFFFF"/></svg></span><span>יש לכם 60 שניות — פגעו בכמה שיותר ציפורים</span></div>
-        <div class="rule-line"><span class="rule-icon"><svg viewBox="0 0 5 6" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="0" width="1" height="1" fill="#FFEE44"/><rect x="1" y="1" width="3" height="1" fill="#FF8800"/><rect x="0" y="2" width="5" height="1" fill="#FF6600"/><rect x="0" y="3" width="5" height="1" fill="#FF4400"/><rect x="1" y="4" width="3" height="1" fill="#FF4400"/><rect x="2" y="5" width="1" height="1" fill="#CC2200"/></svg></span><span>3 פגיעות ברצף מעניקות אבן אש</span></div>
-        <div class="rule-line"><span class="rule-icon"><svg viewBox="0 0 5 5" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="0" width="1" height="1" fill="#FFD700"/><rect x="1" y="1" width="3" height="1" fill="#FFD700"/><rect x="0" y="2" width="5" height="1" fill="#FFD700"/><rect x="1" y="3" width="3" height="1" fill="#FFD700"/><rect x="2" y="4" width="1" height="1" fill="#FFD700"/></svg></span><span>פגיעה: 100 נקודות. פגיעה עם אבן אש: 300 נקודות</span></div>
-        <div class="rule-line"><span class="rule-icon"><svg viewBox="0 0 5 5" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg"><rect x="1" y="0" width="3" height="1" fill="#FFFFFF"/><rect x="0" y="1" width="1" height="3" fill="#FFFFFF"/><rect x="4" y="1" width="1" height="3" fill="#FFFFFF"/><rect x="1" y="4" width="3" height="1" fill="#FFFFFF"/><rect x="2" y="1" width="1" height="2" fill="#FFAA00"/></svg></span><span>כל 5 פגיעות ברצף מוסיפות 10 שניות לשעון</span></div>
-        <div class="rule-line"><span class="rule-icon"><svg viewBox="0 0 5 5" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="1" height="1" fill="#FF4444"/><rect x="4" y="0" width="1" height="1" fill="#FF4444"/><rect x="1" y="1" width="1" height="1" fill="#FF4444"/><rect x="3" y="1" width="1" height="1" fill="#FF4444"/><rect x="2" y="2" width="1" height="1" fill="#FF4444"/><rect x="1" y="3" width="1" height="1" fill="#FF4444"/><rect x="3" y="3" width="1" height="1" fill="#FF4444"/><rect x="0" y="4" width="1" height="1" fill="#FF4444"/><rect x="4" y="4" width="1" height="1" fill="#FF4444"/></svg></span><span>החטאה מאפסת את רצף הפגיעות</span></div>
+        <div class="rule-line"><span class="rule-icon">🎯</span><span>משכו את האבן ברוגטקה ושחררו כדי לירות לעבר הציפור</span></div>
+        <div class="rule-line"><span class="rule-icon">⏱️</span><span>יש לכם 60 שניות — פגעו בכמה שיותר ציפורים</span></div>
+        <div class="rule-line"><span class="rule-icon">🔥</span><span>3 פגיעות ברצף מעניקות אבן אש</span></div>
+        <div class="rule-line"><span class="rule-icon">💥</span><span>פגיעה: 100 נקודות. פגיעה עם אבן אש: 300 נקודות</span></div>
+        <div class="rule-line"><span class="rule-icon">⏰</span><span>כל 5 פגיעות ברצף מוסיפות 10 שניות לשעון</span></div>
+        <div class="rule-line"><span class="rule-icon">❌</span><span>החטאה מאפסת את רצף הפגיעות</span></div>
       </div>
       <button id="howto-got-it">הבנתי!</button>
     </div>
