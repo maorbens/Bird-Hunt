@@ -721,12 +721,26 @@ const STONE_SPR = [
 ];
 
 // ── Flying bird ───────────────────────────────────────────────────────────
-function newFlyingBird() {
+function newFlyingBird(avoidY = null) {
   const fromLeft = Math.random() < 0.5;
   const speed    = 3.5 + Math.random() * 2.5;
+  const minY = 60, maxY = GROUND_Y - 160;
+  const range = maxY - minY;
+  let y;
+  if (avoidY !== null) {
+    // Pick a y that is at least 20% of the range away from avoidY
+    const minDist = range * 0.20;
+    let attempts = 0;
+    do {
+      y = minY + Math.random() * range;
+      attempts++;
+    } while (Math.abs(y - avoidY) < minDist && attempts < 20);
+  } else {
+    y = minY + Math.random() * range;
+  }
   return {
     x: fromLeft ? 60 : VW - 60,
-    y: 60 + Math.random() * (GROUND_Y - 160),
+    y,
     vx: fromLeft ? speed : -speed,
     vy: (Math.random() - 0.5) * 3,
     r: 28, alive: true, dirTimer: 0, flap: 0,
@@ -1005,7 +1019,8 @@ function onHit(bx, by) {
     return;
   }
 
-  flyingBird = newFlyingBird();
+  const prevBirdY = flyingBird ? flyingBird.y : null;
+  flyingBird = newFlyingBird(prevBirdY);
   projectile = newProjectile();
   phase = 'aim'; launched = false;
   stoneDropAnim = { active: true, t: 0 };
