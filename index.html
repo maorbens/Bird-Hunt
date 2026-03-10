@@ -724,7 +724,7 @@ const STONE_SPR = [
 function newFlyingBird(avoidY = null) {
   const fromLeft = Math.random() < 0.5;
   const speed    = 3.5 + Math.random() * 2.5;
-  const minY = 60, maxY = GROUND_Y - 160;
+  const minY = H * 0.08, maxY = GROUND_Y - H * 0.18;
   const range = maxY - minY;
   let y;
   if (avoidY !== null) {
