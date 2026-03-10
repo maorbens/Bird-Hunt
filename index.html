@@ -1011,7 +1011,7 @@ function onMiss() {
 
   const missX = Math.max(50, Math.min(VW - 50, projectile.x));
   const uiBottom = (document.getElementById('ui')?.getBoundingClientRect().bottom ?? 0) / SCALE;
-  const missY = Math.max(uiBottom + 15, Math.min(GROUND_Y - 50, projectile.y - 20));
+  const missY = Math.max(uiBottom + 40, Math.min(GROUND_Y - 50, projectile.y - 20));
 
   if (isFireStone) {
     // Fire miss: cancel fire, no shrink
