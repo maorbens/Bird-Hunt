@@ -1362,18 +1362,6 @@ function drawFlyingBird() {
 
   drawSprite(sprite, BIRD_PAL, px, py, flipX);
 
-  // Show combo counter above bird (from 2+ consecutive hits)
-  if (consecutiveHits >= 2) {
-    const label = 'x' + consecutiveHits;
-    ctx.font = 'bold 10px monospace';
-    ctx.textAlign = 'center';
-    const labelY = Math.max(18, fb.y - fb.r - 7);
-    ctx.fillStyle = '#000';
-    ctx.fillText(label, px + 1, labelY + 1);
-    ctx.fillStyle = consecutiveHits >= FIRE_COMBO ? '#FF4400' : '#FFD700';
-    ctx.fillText(label, px, labelY);
-  }
-
   ctx.restore();
 }
 
