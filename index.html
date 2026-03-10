@@ -1289,6 +1289,18 @@ function stoneDropAnimY() {
 }
 
 function drawProjectile() {
+  if (phase === 'ending' || phase === 'result') {
+    // Only draw ghost if still flying
+    if (ghostProjectile) {
+      ctx.save();
+      ctx.scale(SCALE, SCALE);
+      ctx.globalAlpha = 0.45;
+      drawSprite(STONE_SPR, STONE_PAL, ghostProjectile.x, ghostProjectile.y, false, stoneScale);
+      ctx.globalAlpha = 1;
+      ctx.restore();
+    }
+    return;
+  }
   ctx.save();
   ctx.scale(SCALE, SCALE);
   const pr = projectile;
