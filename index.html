@@ -1009,17 +1009,11 @@ function onMiss() {
   consecutiveHits = 0;
   missCount++;
 
-  const missX = Math.max(50, Math.min(VW - 50, projectile.x));
-  const uiBottom = (document.getElementById('ui')?.getBoundingClientRect().bottom ?? 0) / SCALE;
-  const missY = Math.max(uiBottom + 40, Math.min(GROUND_Y - 50, projectile.y - 20));
-
   if (isFireStone) {
     // Fire miss: cancel fire, no shrink
     isFireStone = false;
-    addFloatingText('אופס', missX, missY, '#FF4444', 18);
   } else {
-    // Normal miss: always show MISS, shrink stone by 25% (once only)
-    addFloatingText('אופס', missX, missY, '#FF4444', 18);
+    // Normal miss: shrink stone by 25% (once only)
     const prevScale = stoneScale;
     stoneScale = Math.max(0.75, stoneScale * 0.75);
     if (stoneScale < prevScale && missCount < MISS_LIMIT)
