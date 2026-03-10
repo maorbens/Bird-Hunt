@@ -1280,6 +1280,14 @@ function drawSlingshotBands() {
     ey = bandSnapAnim.fromY + (SLING_Y - bandSnapAnim.fromY) * e;
   } else {
     ex = SLING_X; ey = SLING_Y;
+    if (stoneDropAnim.active) {
+      const t = stoneDropAnim.t;
+      // React on impact: pull down slightly then spring back
+      if (t >= 0.62) {
+        const st = (t - 0.62) / 0.38; // 0→1 after impact
+        ey += 9 * Math.exp(-8 * st) * Math.cos(14 * st);
+      }
+    }
   }
   ctx.save();
   ctx.scale(SCALE, SCALE);
