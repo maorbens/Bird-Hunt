@@ -1107,14 +1107,23 @@ function update(dt) {
     pr.fading = true;
   }
 
-  // Fade trigger: descended past bird (partial top-exit treated as on-screen)
-  if (!pr.fading && pr.vy > 0 && fb && fb.alive && pr.y > fb.y) {
-    pr.fading = true;
-  }
-
   if (pr.y + pr.r >= GROUND_Y) {
     pr.y = GROUND_Y - pr.r; pr.vy *= -0.4; pr.vx *= 0.7;
     if (Math.abs(pr.vy) < 1) { pr.vy = 0; pr.vx = 0; }
+  }
+
+  // Hit detection – before fading trigger so a near-miss at arc peak still registers
+  if (!pr.fading && fb && fb.alive) {
+    if (Math.hypot(pr.x - fb.x, pr.y - fb.y) < pr.r + fb.r) {
+      fb.alive = false;
+      onHit(fb.x, fb.y);
+      return;
+    }
+  }
+
+  // Fade trigger: descended past bird AND already passed it horizontally
+  if (!pr.fading && pr.vy > 0 && fb && fb.alive && pr.y > fb.y && pr.x > fb.x) {
+    pr.fading = true;
   }
 
   // Handle fade-out and early turn reset
@@ -1131,15 +1140,6 @@ function update(dt) {
       }
     }
     return;
-  }
-
-  // Hit detection
-  if (fb && fb.alive) {
-    if (Math.hypot(pr.x - fb.x, pr.y - fb.y) < pr.r + fb.r) {
-      fb.alive = false;
-      onHit(fb.x, fb.y);
-      return;
-    }
   }
 
   // Miss detection
