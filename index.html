@@ -830,11 +830,13 @@ function newFlyingBird(avoidY = null) {
   } else {
     y = minY + Math.random() * range;
   }
+  const isLandscape = window.innerWidth > window.innerHeight;
+  const vyRange = isLandscape ? 6 : 3;
   return {
     x: fromLeft ? 60 : VW - 60,
     y,
     vx: fromLeft ? speed : -speed,
-    vy: (Math.random() - 0.5) * 3,
+    vy: (Math.random() - 0.5) * vyRange,
     r: 28, alive: true, dirTimer: 0, flap: 0,
   };
 }
@@ -1215,8 +1217,12 @@ function update(dt) {
   const fb = flyingBird;
   if (fb && fb.alive) {
     fb.x += fb.vx * dt; fb.y += fb.vy * dt; fb.flap += dt; fb.dirTimer += dt;
-    if (fb.dirTimer > 60 + Math.random() * 60) {
-      fb.vy = Math.max(-4, Math.min(4, fb.vy + (Math.random() - 0.5) * 3));
+    const isLandscapeNow = window.innerWidth > window.innerHeight;
+    const dirInterval = isLandscapeNow ? 30 + Math.random() * 40 : 60 + Math.random() * 60;
+    const vyNudge     = isLandscapeNow ? 5 : 3;
+    const vyMax       = isLandscapeNow ? 6 : 4;
+    if (fb.dirTimer > dirInterval) {
+      fb.vy = Math.max(-vyMax, Math.min(vyMax, fb.vy + (Math.random() - 0.5) * vyNudge));
       fb.dirTimer = 0;
     }
     if (fb.x - fb.r < 0)             { fb.x = fb.r;                 fb.vx =  Math.abs(fb.vx); }
