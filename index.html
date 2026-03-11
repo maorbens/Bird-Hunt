@@ -1513,10 +1513,14 @@ function drawFloatingTexts() {
     ctx.font = `bold ${ft.size}px ${isHebrew ? 'system-ui, -apple-system, sans-serif' : '"Press Start 2P", monospace'}`;
     ctx.direction = isHebrew ? 'rtl' : 'ltr';
     ctx.globalAlpha = Math.min(1, ft.life * 1.5);
+    const halfW = ctx.measureText(ft.text).width / 2;
+    const margin = 4;
+    const cx = Math.max(halfW + margin, Math.min(VW - halfW - margin, ft.x));
+    const cy = Math.max(ft.size + margin, ft.y);
     ctx.fillStyle = '#000';
-    ctx.fillText(ft.text, ft.x + 1, ft.y + 1);
+    ctx.fillText(ft.text, cx + 1, cy + 1);
     ctx.fillStyle = ft.color;
-    ctx.fillText(ft.text, ft.x, ft.y);
+    ctx.fillText(ft.text, cx, cy);
   });
   ctx.globalAlpha = 1;
   ctx.restore();
