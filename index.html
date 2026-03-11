@@ -537,7 +537,7 @@ ctx.imageSmoothingEnabled = false;
 
 // ── Sizing ────────────────────────────────────────────────────────────────
 const W = 800;
-let VW, H, GROUND_Y, SLING_Y, SCALE;
+let VW, H, GROUND_Y, SLING_Y, SCALE, UI_TOP_H;
 
 function resize() {
   canvas.width  = window.innerWidth;
@@ -547,6 +547,7 @@ function resize() {
   H        = Math.round(canvas.height / SCALE);
   GROUND_Y = H - 60;
   SLING_Y  = GROUND_Y - 80;
+  UI_TOP_H = Math.ceil(document.getElementById('ui').getBoundingClientRect().bottom / SCALE);
   ctx.imageSmoothingEnabled = false;
 }
 
@@ -1516,7 +1517,7 @@ function drawFloatingTexts() {
     const halfW = ctx.measureText(ft.text).width / 2;
     const margin = 4;
     const cx = Math.max(halfW + margin, Math.min(VW - halfW - margin, ft.x));
-    const cy = Math.max(ft.size + margin, ft.y);
+    const cy = Math.max(UI_TOP_H + ft.size + margin, ft.y);
     ctx.fillStyle = '#000';
     ctx.fillText(ft.text, cx + 1, cy + 1);
     ctx.fillStyle = ft.color;
