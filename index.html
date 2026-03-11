@@ -1508,11 +1508,9 @@ function drawFloatingTexts() {
   if (!floatingTexts.length) return;
   ctx.save();
   ctx.scale(SCALE, SCALE);
-  ctx.beginPath();
-  ctx.rect(0, UI_TOP_H, VW, H - UI_TOP_H);
-  ctx.clip();
   ctx.textAlign = 'center';
   floatingTexts.forEach(ft => {
+    if (ft.y < UI_TOP_H) return;
     const isHebrew = ft.forceSystemFont || /[\u0590-\u05FF]/.test(ft.text);
     ctx.font = `bold ${ft.size}px ${isHebrew ? 'system-ui, -apple-system, sans-serif' : '"Press Start 2P", monospace'}`;
     ctx.direction = isHebrew ? 'rtl' : 'ltr';
