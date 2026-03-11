@@ -743,12 +743,7 @@ function updateUI(animateMiss = false) {
 
 function addFloatingText(text, x, y, color, size, forceSystemFont = false) {
   const sz = size || 11;
-  let clampedY = Math.max(UI_TOP_H + sz + 4, y);
-  floatingTexts.forEach(ft => {
-    if (Math.abs(ft.x - x) < 80 && Math.abs(ft.y - clampedY) < sz + 4) {
-      clampedY = Math.max(clampedY, ft.y + sz + 2);
-    }
-  });
+  const clampedY = Math.max(UI_TOP_H + sz + 4, y);
   floatingTexts.push({ text, x, y: clampedY, color, life: 1, vy: -1, size: sz, forceSystemFont });
 }
 
@@ -1099,7 +1094,7 @@ function onHit(bx, by) {
   // +10s bonus every 5 consecutive hits
   if (consecutiveHits % TIME_BONUS_COMBO === 0) {
     timeLeft = Math.min(timeLeft + TIME_BONUS, 99);
-    addFloatingText('+10 שניות', bx, by - 50, '#44FF88', 18);
+    addFloatingText('+10 שניות', bx, by - 56, '#44FF88', 18);
   }
 
   updateUI();
