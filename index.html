@@ -831,7 +831,7 @@ function newFlyingBird(avoidY = null) {
     y = minY + Math.random() * range;
   }
   const isLandscape = window.innerWidth > window.innerHeight;
-  const vyRange = isLandscape ? 6 : 3;
+  const vyRange = isLandscape ? 6 : 5;
   return {
     x: fromLeft ? 60 : VW - 60,
     y,
@@ -1218,9 +1218,9 @@ function update(dt) {
   if (fb && fb.alive) {
     fb.x += fb.vx * dt; fb.y += fb.vy * dt; fb.flap += dt; fb.dirTimer += dt;
     const isLandscapeNow = window.innerWidth > window.innerHeight;
-    const dirInterval = isLandscapeNow ? 30 + Math.random() * 40 : 60 + Math.random() * 60;
-    const vyNudge     = isLandscapeNow ? 5 : 3;
-    const vyMax       = isLandscapeNow ? 6 : 4;
+    const dirInterval = isLandscapeNow ? 30 + Math.random() * 40 : 45 + Math.random() * 35;
+    const vyNudge     = isLandscapeNow ? 5 : 4;
+    const vyMax       = isLandscapeNow ? 6 : 5;
     if (fb.dirTimer > dirInterval) {
       fb.vy = Math.max(-vyMax, Math.min(vyMax, fb.vy + (Math.random() - 0.5) * vyNudge));
       fb.dirTimer = 0;
