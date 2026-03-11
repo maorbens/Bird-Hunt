@@ -742,7 +742,9 @@ function updateUI(animateMiss = false) {
 
 
 function addFloatingText(text, x, y, color, size, forceSystemFont = false) {
-  floatingTexts.push({ text, x, y, color, life: 1, vy: -1, size: size || 11, forceSystemFont });
+  const sz = size || 11;
+  const clampedY = Math.max(UI_TOP_H + sz + 4, y);
+  floatingTexts.push({ text, x, y: clampedY, color, life: 1, vy: -1, size: sz, forceSystemFont });
 }
 
 // ── Pixel Art Engine ──────────────────────────────────────────────────────
