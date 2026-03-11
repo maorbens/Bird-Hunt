@@ -746,7 +746,7 @@ function addFloatingText(text, x, y, color, size, forceSystemFont = false) {
   let clampedY = Math.max(UI_TOP_H + sz + 4, y);
   floatingTexts.forEach(ft => {
     if (Math.abs(ft.x - x) < 80 && Math.abs(ft.y - clampedY) < sz + 4) {
-      clampedY = Math.max(clampedY, ft.y + sz + 6);
+      clampedY = Math.max(clampedY, ft.y + sz + 2);
     }
   });
   floatingTexts.push({ text, x, y: clampedY, color, life: 1, vy: -1, size: sz, forceSystemFont });
