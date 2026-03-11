@@ -1099,7 +1099,7 @@ function onHit(bx, by) {
   // +10s bonus every 5 consecutive hits
   if (consecutiveHits % TIME_BONUS_COMBO === 0) {
     timeLeft = Math.min(timeLeft + TIME_BONUS, 99);
-    addFloatingText('+10 שניות', bx, by - 82, '#44FF88', 18);
+    addFloatingText('+10 שניות', bx, by - 50, '#44FF88', 18);
   }
 
   updateUI();
