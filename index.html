@@ -856,6 +856,7 @@ let _audioCtx = null;
 let _stretchNodes = null;
 let _stretchRawBuf = null;   // raw ArrayBuffer from fetch
 let _stretchBuffer = null;   // decoded AudioBuffer
+let _stretchDecodePromise = null;
 
 function _getAudioCtx() {
   if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'interactive' });
@@ -863,20 +864,32 @@ function _getAudioCtx() {
   return _audioCtx;
 }
 
-// Preload raw bytes (decode happens on first drag, after user gesture)
+function _ensureStretchDecoded(ctx) {
+  if (_stretchBuffer || _stretchDecodePromise || !_stretchRawBuf) return;
+  _stretchDecodePromise = ctx.decodeAudioData(_stretchRawBuf.slice(0))
+    .then(buf => { _stretchBuffer = buf; })
+    .catch(() => {})
+    .finally(() => { _stretchDecodePromise = null; });
+}
+
+// Preload raw bytes; decode immediately if AudioContext already exists
 fetch('631739__walllable__looped-rubber-y-stretch.wav')
   .then(r => r.arrayBuffer())
-  .then(buf => { _stretchRawBuf = buf; })
+  .then(buf => {
+    _stretchRawBuf = buf;
+    if (_audioCtx) _ensureStretchDecoded(_audioCtx);
+  })
   .catch(() => {});
 
 async function startStretchSound() {
   try {
     stopStretchSound();
     const ctx = _getAudioCtx();
-    if (!_stretchBuffer && _stretchRawBuf) {
-      _stretchBuffer = await ctx.decodeAudioData(_stretchRawBuf.slice(0));
+    if (!_stretchBuffer) {
+      _ensureStretchDecoded(ctx);
+      if (_stretchDecodePromise) await _stretchDecodePromise;
     }
-    if (!_stretchBuffer) return;
+    if (!_stretchBuffer || !drag) return;
 
     const source = ctx.createBufferSource();
     source.buffer = _stretchBuffer;
@@ -970,9 +983,7 @@ function preloadSfx() {
     Object.values(_sfx).forEach(s => {
       if (!s.buf && s.raw) ctx.decodeAudioData(s.raw.slice(0)).then(buf => { s.buf = buf; s.trim = _calcTrimOffset(buf); }).catch(() => {});
     });
-    if (!_stretchBuffer && _stretchRawBuf) {
-      ctx.decodeAudioData(_stretchRawBuf.slice(0)).then(buf => { _stretchBuffer = buf; }).catch(() => {});
-    }
+    _ensureStretchDecoded(ctx);
   } catch(e) {}
 }
 
