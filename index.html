@@ -1214,7 +1214,7 @@ function onMiss() {
     phase = 'ending';
     timerRunning = false;
     drag = null;
-    gameTimeout(() => endGame(), 400);
+    endGame();
     return;
   }
   projectile = newProjectile();
