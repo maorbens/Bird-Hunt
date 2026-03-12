@@ -1150,7 +1150,6 @@ function onHit(bx, by) {
 }
 
 function onMiss() {
-  playSfx('miss');
   consecutiveHits = 0;
   missCount++;
 
@@ -1269,6 +1268,7 @@ function update(dt) {
     const gp = ghostProjectile;
     gp.vy += GRAVITY * dt; gp.x += gp.vx * dt; gp.y += gp.vy * dt;
     if (gp.y + gp.r >= GROUND_Y) {
+      if (gp.vy > 2) playSfx('ground');
       gp.y = GROUND_Y - gp.r; gp.vy *= -0.4; gp.vx *= 0.7;
       if (Math.abs(gp.vy) < 1) { gp.vy = 0; gp.vx = 0; }
     }
@@ -1314,6 +1314,7 @@ function update(dt) {
   const outOfBounds = pr.x > VW + 60 || pr.x < -60 || pr.y < -60 || pr.y > H + 60;
   const stopped = !outOfBounds && Math.abs(pr.vx) < 0.3 && Math.abs(pr.vy) < 0.3 && pr.y + pr.r >= GROUND_Y - 2;
   if (outOfBounds || stopped) {
+    if (outOfBounds) playSfx('miss');
     if (timerExpired) {
       phase = 'ending';
       drag = null;
