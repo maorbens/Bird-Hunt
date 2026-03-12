@@ -932,19 +932,27 @@ const _sfx = {
     fetch(file).then(r => r.arrayBuffer()).then(buf => { _sfx[key].raw = buf; }).catch(() => {});
   });
 
-function _playSfxBuf(ctx, buf) {
+function _calcTrimOffset(buf, threshold = 0.01) {
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < data.length; i++) {
+    if (Math.abs(data[i]) > threshold) return i / buf.sampleRate;
+  }
+  return 0;
+}
+
+function _playSfxBuf(ctx, buf, offset) {
   const src = ctx.createBufferSource();
   src.buffer = buf;
   src.connect(ctx.destination);
-  src.start();
+  src.start(ctx.currentTime, offset);
 }
 
 function playSfx(key) {
   try {
     const ctx = _getAudioCtx();
     const s = _sfx[key];
-    if (s.buf) { _playSfxBuf(ctx, s.buf); return; }
-    if (s.raw) ctx.decodeAudioData(s.raw.slice(0)).then(buf => { s.buf = buf; _playSfxBuf(ctx, buf); }).catch(() => {});
+    if (s.buf) { _playSfxBuf(ctx, s.buf, s.trim); return; }
+    if (s.raw) ctx.decodeAudioData(s.raw.slice(0)).then(buf => { s.buf = buf; s.trim = _calcTrimOffset(buf); _playSfxBuf(ctx, buf, s.trim); }).catch(() => {});
   } catch(e) {}
 }
 
@@ -952,7 +960,7 @@ function preloadSfx() {
   try {
     const ctx = _getAudioCtx();
     Object.values(_sfx).forEach(s => {
-      if (!s.buf && s.raw) ctx.decodeAudioData(s.raw.slice(0)).then(buf => { s.buf = buf; }).catch(() => {});
+      if (!s.buf && s.raw) ctx.decodeAudioData(s.raw.slice(0)).then(buf => { s.buf = buf; s.trim = _calcTrimOffset(buf); }).catch(() => {});
     });
   } catch(e) {}
 }
