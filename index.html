@@ -1039,7 +1039,7 @@ function endDrag() {
   projectile.active = true;
   bandSnapAnim = { active: true, t: 0, fromX: drag.x, fromY: drag.y };
   if (ghostProjectile) ghostProjectile.missSoundPlayed = true;
-  if (Math.hypot(projectile.vx, projectile.vy) >= 14) playSfx('miss');
+  playSfx('miss', Math.hypot(projectile.vx, projectile.vy) / (MAX_PULL * 0.22));
   phase = 'flying'; drag = null; launched = true;
 }
 
