@@ -1331,8 +1331,9 @@ function update(dt) {
       const isLastShot = timerExpired || missCount >= MISS_LIMIT - 1;
       if (offScreen) {
         if (!pr.missSoundPlayed && pr.bounces === 0) { playSfx('miss'); pr.missSoundPlayed = true; }
-      } else if (!isLastShot) {
-        playSfx('ground', Math.pow(0.55, pr.bounces));
+      } else {
+        pr.missSoundPlayed = true;
+        if (!isLastShot) playSfx('ground', Math.pow(0.55, pr.bounces));
       }
       pr.bounces++;
     }
