@@ -962,6 +962,9 @@ function preloadSfx() {
     Object.values(_sfx).forEach(s => {
       if (!s.buf && s.raw) ctx.decodeAudioData(s.raw.slice(0)).then(buf => { s.buf = buf; s.trim = _calcTrimOffset(buf); }).catch(() => {});
     });
+    if (!_stretchBuffer && _stretchRawBuf) {
+      ctx.decodeAudioData(_stretchRawBuf.slice(0)).then(buf => { _stretchBuffer = buf; }).catch(() => {});
+    }
   } catch(e) {}
 }
 
