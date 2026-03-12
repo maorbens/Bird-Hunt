@@ -1310,7 +1310,7 @@ function update(dt) {
     const gp = ghostProjectile;
     gp.vy += GRAVITY * dt; gp.x += gp.vx * dt; gp.y += gp.vy * dt;
     if (gp.y + gp.r >= GROUND_Y) {
-      if (gp.vy > 0 && gp.x >= 0 && gp.x <= VW && phase !== 'ending') { playSfx('ground', Math.pow(0.55, gp.bounces)); gp.bounces++; }
+      if (gp.vy > 0 && gp.x >= 0 && gp.x <= VW && (phase === 'flying' || phase === 'aim')) { playSfx('ground', Math.pow(0.55, gp.bounces)); gp.bounces++; }
       gp.y = GROUND_Y - gp.r; gp.vy *= -0.4; gp.vx *= 0.7;
       if (Math.abs(gp.vy) < 1) { gp.vy = 0; gp.vx = 0; }
     }
@@ -1349,6 +1349,7 @@ function update(dt) {
 
     // Early miss: stone passed its peak AND is 200px below the bird
     if (pr.vy > 0 && pr.y - fb.y > 200) {
+      if ((pr.x < 0 || pr.x > VW) && !pr.missSoundPlayed) { playSfx('miss'); pr.missSoundPlayed = true; }
       ghostProjectile = { x: pr.x, y: pr.y, vx: pr.vx, vy: pr.vy, r: pr.r, isFire: isFireStone, scale: stoneScale, bounces: pr.bounces };
       if (timerExpired) {
         phase = 'ending';
