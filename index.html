@@ -724,7 +724,7 @@ function setupIdleState() {
 
 function newProjectile() {
   const r = Math.max(5, Math.round(BASE_RADIUS * stoneScale));
-  return { x: SLING_X, y: SLING_Y, vx: 0, vy: 0, r, active: false, bounces: 0, missSoundPlayed: false };
+  return { x: SLING_X, y: SLING_Y, vx: 0, vy: 0, r, active: false, bounces: 0 };
 }
 
 function updateUI(animateMiss = false) {
@@ -1039,6 +1039,7 @@ function endDrag() {
   projectile.active = true;
   bandSnapAnim = { active: true, t: 0, fromX: drag.x, fromY: drag.y };
   if (ghostProjectile) ghostProjectile.missSoundPlayed = true;
+  if (Math.hypot(projectile.vx, projectile.vy) >= 14) playSfx('miss');
   phase = 'flying'; drag = null; launched = true;
 }
 
@@ -1316,7 +1317,6 @@ function update(dt) {
       gp.y = GROUND_Y - gp.r; gp.vy *= -0.4; gp.vx *= 0.7;
       if (Math.abs(gp.vy) < 1) { gp.vy = 0; gp.vx = 0; }
     }
-    if (!gp.missSoundPlayed && gp.bounces === 0 && (gp.x > VW || gp.x < 0)) { playSfx('miss'); gp.missSoundPlayed = true; }
     const go = gp.x > VW + 60 || gp.x < -60 || gp.y > H + 60;
     const gs = Math.abs(gp.vx) < 0.3 && Math.abs(gp.vy) < 0.3 && gp.y + gp.r >= GROUND_Y - 2;
     if (go || gs) ghostProjectile = null;
@@ -1331,11 +1331,8 @@ function update(dt) {
     if (pr.vy > 0) {
       const offScreen = pr.x < 0 || pr.x > VW;
       const isLastShot = timerExpired || missCount >= MISS_LIMIT - 1;
-      if (offScreen) {
-        if (!pr.missSoundPlayed && pr.bounces === 0) { playSfx('miss'); pr.missSoundPlayed = true; }
-      } else {
-        pr.missSoundPlayed = true;
-        if (!isLastShot) playSfx('ground', Math.pow(0.55, pr.bounces));
+      if (!offScreen && !isLastShot) {
+        playSfx('ground', Math.pow(0.55, pr.bounces));
       }
       pr.bounces++;
     }
@@ -1353,8 +1350,7 @@ function update(dt) {
 
     // Early miss: stone passed its peak AND is 200px below the bird
     if (pr.vy > 0 && pr.y - fb.y > 200) {
-      if ((pr.x < 0 || pr.x > VW) && !pr.missSoundPlayed) { if (pr.bounces === 0) playSfx('miss'); pr.missSoundPlayed = true; }
-      ghostProjectile = { x: pr.x, y: pr.y, vx: pr.vx, vy: pr.vy, r: pr.r, isFire: isFireStone, scale: stoneScale, bounces: pr.bounces, missSoundPlayed: pr.missSoundPlayed };
+      ghostProjectile = { x: pr.x, y: pr.y, vx: pr.vx, vy: pr.vy, r: pr.r, isFire: isFireStone, scale: stoneScale, bounces: pr.bounces };
       if (timerExpired) {
         phase = 'ending';
         drag = null;
@@ -1366,7 +1362,6 @@ function update(dt) {
     }
   }
 
-  if (!pr.missSoundPlayed && pr.bounces === 0 && (pr.x > VW || pr.x < 0 || pr.y < 0)) { playSfx('miss'); pr.missSoundPlayed = true; }
   // Miss detection (out of bounds or stopped on ground)
   const outOfBounds = pr.x > VW + 60 || pr.x < -60 || pr.y < -60 || pr.y > H + 60;
   const stopped = !outOfBounds && Math.abs(pr.vx) < 0.3 && Math.abs(pr.vy) < 0.3 && pr.y + pr.r >= GROUND_Y - 2;
