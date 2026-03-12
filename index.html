@@ -1332,7 +1332,7 @@ function update(dt) {
     if (pr.vy > 0) {
       const offScreen = pr.x < 0 || pr.x > VW;
       const isLastShot = timerExpired || missCount >= MISS_LIMIT - 1;
-      if (!offScreen && !isLastShot) {
+      if (!offScreen && (!isLastShot || pr.bounces === 0)) {
         playSfx('ground', Math.pow(0.55, pr.bounces));
       }
       pr.bounces++;
