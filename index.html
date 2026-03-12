@@ -1325,7 +1325,8 @@ function update(dt) {
   pr.vy += GRAVITY * dt; pr.x += pr.vx * dt; pr.y += pr.vy * dt;
 
   if (pr.y + pr.r >= GROUND_Y) {
-    if (pr.vy > 0 && pr.x >= 0 && pr.x <= VW && !timerExpired) { playSfx('ground', Math.pow(0.55, pr.bounces)); pr.bounces++; }
+    const isLastShot = timerExpired || missCount >= MISS_LIMIT - 1;
+    if (pr.vy > 0 && pr.x >= 0 && pr.x <= VW && !isLastShot) { playSfx('ground', Math.pow(0.55, pr.bounces)); pr.bounces++; }
     pr.y = GROUND_Y - pr.r; pr.vy *= -0.4; pr.vx *= 0.7;
     if (Math.abs(pr.vy) < 1) { pr.vy = 0; pr.vx = 0; }
   }
@@ -1356,7 +1357,7 @@ function update(dt) {
   const outOfBounds = pr.x > VW + 60 || pr.x < -60 || pr.y < -60 || pr.y > H + 60;
   const stopped = !outOfBounds && Math.abs(pr.vx) < 0.3 && Math.abs(pr.vy) < 0.3 && pr.y + pr.r >= GROUND_Y - 2;
   if (outOfBounds || stopped) {
-    if (outOfBounds) playSfx('miss');
+    if (outOfBounds || (stopped && (pr.x < 0 || pr.x > VW))) playSfx('miss');
     if (timerExpired) {
       phase = 'ending';
       drag = null;
