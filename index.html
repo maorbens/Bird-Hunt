@@ -1314,7 +1314,7 @@ function update(dt) {
     const gp = ghostProjectile;
     gp.vy += GRAVITY * dt; gp.x += gp.vx * dt; gp.y += gp.vy * dt;
     if (gp.y + gp.r >= GROUND_Y) {
-      if (gp.vy > 0 && gp.x >= 0 && gp.x <= VW && (phase === 'flying' || phase === 'aim')) { playSfx('ground', Math.pow(0.55, gp.bounces)); gp.bounces++; }
+      if (gp.vy > 0 && gp.x >= 0 && gp.x <= VW && (phase === 'flying' || phase === 'aim' || (phase === 'ending' && gp.bounces === 0))) { playSfx('ground', Math.pow(0.55, gp.bounces)); gp.bounces++; }
       gp.y = GROUND_Y - gp.r; gp.vy *= -0.4; gp.vx *= 0.7;
       if (Math.abs(gp.vy) < 1) { gp.vy = 0; gp.vx = 0; }
     }
