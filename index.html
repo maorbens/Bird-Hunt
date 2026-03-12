@@ -1192,7 +1192,6 @@ function onHit(bx, by) {
 }
 
 function onMiss() {
-  if (ghostProjectile) ghostProjectile.missSoundPlayed = true;
   consecutiveHits = 0;
   missCount++;
 
@@ -1375,6 +1374,7 @@ function update(dt) {
       drag = null;
       gameTimeout(() => endGame(), 100);
     } else {
+      if (ghostProjectile) ghostProjectile.missSoundPlayed = true;
       onMiss();
     }
   }
