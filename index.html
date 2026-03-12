@@ -1210,6 +1210,7 @@ function onMiss() {
   updateUI(true);
 
   if (missCount >= MISS_LIMIT) {
+    if (ghostProjectile) ghostProjectile.missSoundPlayed = true;
     phase = 'ending';
     timerRunning = false;
     drag = null;
