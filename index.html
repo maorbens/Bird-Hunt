@@ -724,7 +724,7 @@ function setupIdleState() {
 
 function newProjectile() {
   const r = Math.max(5, Math.round(BASE_RADIUS * stoneScale));
-  return { x: SLING_X, y: SLING_Y, vx: 0, vy: 0, r, active: false, bounces: 0 };
+  return { x: SLING_X, y: SLING_Y, vx: 0, vy: 0, r, active: false, bounces: 0, missSoundPlayed: false };
 }
 
 function updateUI(animateMiss = false) {
@@ -1310,7 +1310,7 @@ function update(dt) {
     const gp = ghostProjectile;
     gp.vy += GRAVITY * dt; gp.x += gp.vx * dt; gp.y += gp.vy * dt;
     if (gp.y + gp.r >= GROUND_Y) {
-      if (gp.vy > 0 && gp.x >= 0 && gp.x <= VW && !timerExpired) { playSfx('ground', Math.pow(0.55, gp.bounces)); gp.bounces++; }
+      if (gp.vy > 0 && gp.x >= 0 && gp.x <= VW && phase !== 'ending') { playSfx('ground', Math.pow(0.55, gp.bounces)); gp.bounces++; }
       gp.y = GROUND_Y - gp.r; gp.vy *= -0.4; gp.vx *= 0.7;
       if (Math.abs(gp.vy) < 1) { gp.vy = 0; gp.vx = 0; }
     }
@@ -1325,8 +1325,16 @@ function update(dt) {
   pr.vy += GRAVITY * dt; pr.x += pr.vx * dt; pr.y += pr.vy * dt;
 
   if (pr.y + pr.r >= GROUND_Y) {
-    const isLastShot = timerExpired || missCount >= MISS_LIMIT - 1;
-    if (pr.vy > 0 && pr.x >= 0 && pr.x <= VW && !isLastShot) { playSfx('ground', Math.pow(0.55, pr.bounces)); pr.bounces++; }
+    if (pr.vy > 0) {
+      const offScreen = pr.x < 0 || pr.x > VW;
+      const isLastShot = timerExpired || missCount >= MISS_LIMIT - 1;
+      if (offScreen) {
+        if (!pr.missSoundPlayed) { playSfx('miss'); pr.missSoundPlayed = true; }
+      } else if (!isLastShot) {
+        playSfx('ground', Math.pow(0.55, pr.bounces));
+      }
+      pr.bounces++;
+    }
     pr.y = GROUND_Y - pr.r; pr.vy *= -0.4; pr.vx *= 0.7;
     if (Math.abs(pr.vy) < 1) { pr.vy = 0; pr.vx = 0; }
   }
@@ -1357,7 +1365,7 @@ function update(dt) {
   const outOfBounds = pr.x > VW + 60 || pr.x < -60 || pr.y < -60 || pr.y > H + 60;
   const stopped = !outOfBounds && Math.abs(pr.vx) < 0.3 && Math.abs(pr.vy) < 0.3 && pr.y + pr.r >= GROUND_Y - 2;
   if (outOfBounds || stopped) {
-    if (outOfBounds || (stopped && (pr.x < 0 || pr.x > VW))) playSfx('miss');
+    if (outOfBounds && !pr.missSoundPlayed) playSfx('miss');
     if (timerExpired) {
       phase = 'ending';
       drag = null;
