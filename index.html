@@ -1314,12 +1314,10 @@ function update(dt) {
       gp.y = GROUND_Y - gp.r; gp.vy *= -0.4; gp.vx *= 0.7;
       if (Math.abs(gp.vy) < 1) { gp.vy = 0; gp.vx = 0; }
     }
+    if (!gp.missSoundPlayed && (gp.x > VW || gp.x < 0)) { playSfx('miss'); gp.missSoundPlayed = true; }
     const go = gp.x > VW + 60 || gp.x < -60 || gp.y > H + 60;
     const gs = Math.abs(gp.vx) < 0.3 && Math.abs(gp.vy) < 0.3 && gp.y + gp.r >= GROUND_Y - 2;
-    if (go || gs) {
-      if (go && (gp.x > VW + 60 || gp.x < -60) && !gp.missSoundPlayed) playSfx('miss');
-      ghostProjectile = null;
-    }
+    if (go || gs) ghostProjectile = null;
   }
 
   if (phase !== 'flying') return;
@@ -1365,11 +1363,11 @@ function update(dt) {
     }
   }
 
+  if (!pr.missSoundPlayed && (pr.x > VW || pr.x < 0 || pr.y < 0)) { playSfx('miss'); pr.missSoundPlayed = true; }
   // Miss detection (out of bounds or stopped on ground)
   const outOfBounds = pr.x > VW + 60 || pr.x < -60 || pr.y < -60 || pr.y > H + 60;
   const stopped = !outOfBounds && Math.abs(pr.vx) < 0.3 && Math.abs(pr.vy) < 0.3 && pr.y + pr.r >= GROUND_Y - 2;
   if (outOfBounds || stopped) {
-    if (outOfBounds && !pr.missSoundPlayed) playSfx('miss');
     if (timerExpired) {
       phase = 'ending';
       drag = null;
