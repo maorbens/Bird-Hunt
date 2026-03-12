@@ -664,6 +664,7 @@ function showIntro() {
 function startGame() {
   stopIntroBirdAnim();
   document.getElementById('intro-screen').classList.add('hidden');
+  preloadSfx();
   initGame();
 }
 
@@ -980,7 +981,6 @@ function _scheduleStretchIdle(dist) {
 function startDrag(lx, ly) {
   if (phase !== 'aim') return;
   if (stoneDropAnim.active) return;
-  preloadSfx();
   if (Math.hypot(lx - SLING_X, ly - SLING_Y) < 50) {
     drag = { x: lx, y: ly };
     _stretchLastDist = 0;
