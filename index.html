@@ -920,6 +920,31 @@ function stopStretchSound() {
   } catch(e) {}
 }
 
+// ── One-shot SFX ──────────────────────────────────────────────────────────
+const _sfx = {
+  miss:   { raw: null, buf: null },
+  ground: { raw: null, buf: null },
+  fire:   { raw: null, buf: null },
+  extra:  { raw: null, buf: null },
+};
+[['miss','miss.wav'],['ground','hit_to_ground.wav'],['fire','fire_rock.wav'],['extra','extra_10.wav']]
+  .forEach(([key, file]) => {
+    fetch(file).then(r => r.arrayBuffer()).then(buf => { _sfx[key].raw = buf; }).catch(() => {});
+  });
+
+async function playSfx(key) {
+  try {
+    const ctx = _getAudioCtx();
+    const s = _sfx[key];
+    if (!s.buf && s.raw) s.buf = await ctx.decodeAudioData(s.raw.slice(0));
+    if (!s.buf) return;
+    const src = ctx.createBufferSource();
+    src.buffer = s.buf;
+    src.connect(ctx.destination);
+    src.start();
+  } catch(e) {}
+}
+
 // ── Drag ──────────────────────────────────────────────────────────────────
 let _stretchIdleTimer = null;
 let _stretchLastDist  = 0;
@@ -1094,6 +1119,7 @@ function onHit(bx, by) {
   // +10s bonus every 5 consecutive hits (added first so it appears above score)
   if (consecutiveHits % TIME_BONUS_COMBO === 0) {
     timeLeft = Math.min(timeLeft + TIME_BONUS, 99);
+    playSfx('extra');
     addFloatingText('+10 שניות', bx, by - 56, '#44FF88', 18);
   }
 
@@ -1103,7 +1129,7 @@ function onHit(bx, by) {
   // Activate fire stone at 3 consecutive hits
   if (!isFireStone && consecutiveHits >= FIRE_COMBO) {
     isFireStone = true;
-    playSuccessSound();
+    playSfx('fire');
     addFloatingText('אבן אש!', SLING_X + 70, SLING_Y - 50, '#FF4400', 18);
   }
 
@@ -1124,6 +1150,7 @@ function onHit(bx, by) {
 }
 
 function onMiss() {
+  playSfx('miss');
   consecutiveHits = 0;
   missCount++;
 
@@ -1256,6 +1283,7 @@ function update(dt) {
   pr.vy += GRAVITY * dt; pr.x += pr.vx * dt; pr.y += pr.vy * dt;
 
   if (pr.y + pr.r >= GROUND_Y) {
+    if (pr.vy > 2) playSfx('ground');
     pr.y = GROUND_Y - pr.r; pr.vy *= -0.4; pr.vx *= 0.7;
     if (Math.abs(pr.vy) < 1) { pr.vy = 0; pr.vx = 0; }
   }
