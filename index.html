@@ -1038,6 +1038,7 @@ function endDrag() {
   projectile.x = SLING_X; projectile.y = SLING_Y;
   projectile.active = true;
   bandSnapAnim = { active: true, t: 0, fromX: drag.x, fromY: drag.y };
+  if (ghostProjectile) ghostProjectile.missSoundPlayed = true;
   phase = 'flying'; drag = null; launched = true;
 }
 
@@ -1374,7 +1375,6 @@ function update(dt) {
       drag = null;
       gameTimeout(() => endGame(), 100);
     } else {
-      if (ghostProjectile) ghostProjectile.missSoundPlayed = true;
       onMiss();
     }
   }
