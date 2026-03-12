@@ -954,9 +954,10 @@ function _calcTrimOffset(buf, threshold = 0.01) {
   return 0;
 }
 
-function _playSfxBuf(ctx, buf, offset, gain = 1, duration = null) {
+function _playSfxBuf(ctx, buf, offset, gain = 1, rate = 1) {
   const src = ctx.createBufferSource();
   src.buffer = buf;
+  src.playbackRate.value = rate;
   if (gain !== 1) {
     const g = ctx.createGain();
     g.gain.value = gain;
@@ -965,17 +966,15 @@ function _playSfxBuf(ctx, buf, offset, gain = 1, duration = null) {
   } else {
     src.connect(ctx.destination);
   }
-  const now = ctx.currentTime;
-  src.start(now, offset);
-  if (duration != null) src.stop(now + duration);
+  src.start(ctx.currentTime, offset);
 }
 
-function playSfx(key, gain = 1, duration = null) {
+function playSfx(key, gain = 1, rate = 1) {
   try {
     const ctx = _getAudioCtx();
     const s = _sfx[key];
-    if (s.buf) { _playSfxBuf(ctx, s.buf, s.trim, gain, duration); return; }
-    if (s.raw) ctx.decodeAudioData(s.raw.slice(0)).then(buf => { s.buf = buf; s.trim = _calcTrimOffset(buf); _playSfxBuf(ctx, buf, s.trim, gain, duration); }).catch(() => {});
+    if (s.buf) { _playSfxBuf(ctx, s.buf, s.trim, gain, rate); return; }
+    if (s.raw) ctx.decodeAudioData(s.raw.slice(0)).then(buf => { s.buf = buf; s.trim = _calcTrimOffset(buf); _playSfxBuf(ctx, buf, s.trim, gain, rate); }).catch(() => {});
   } catch(e) {}
 }
 
@@ -1041,8 +1040,7 @@ function endDrag() {
   projectile.active = true;
   bandSnapAnim = { active: true, t: 0, fromX: drag.x, fromY: drag.y };
   if (ghostProjectile) ghostProjectile.missSoundPlayed = true;
-  const _launchRatio = Math.min(Math.hypot(projectile.vx, projectile.vy) / (MAX_PULL * 0.22), 1);
-  playSfx('miss', 1, 0.08 + 0.42 * (1 - _launchRatio));
+  playSfx('miss', 1, 0.5 + 1.5 * Math.min(Math.hypot(projectile.vx, projectile.vy) / (MAX_PULL * 0.22), 1));
   phase = 'flying'; drag = null; launched = true;
 }
 
