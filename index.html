@@ -1314,7 +1314,7 @@ function update(dt) {
       gp.y = GROUND_Y - gp.r; gp.vy *= -0.4; gp.vx *= 0.7;
       if (Math.abs(gp.vy) < 1) { gp.vy = 0; gp.vx = 0; }
     }
-    if (!gp.missSoundPlayed && (gp.x > VW || gp.x < 0)) { playSfx('miss'); gp.missSoundPlayed = true; }
+    if (!gp.missSoundPlayed && gp.bounces === 0 && (gp.x > VW || gp.x < 0)) { playSfx('miss'); gp.missSoundPlayed = true; }
     const go = gp.x > VW + 60 || gp.x < -60 || gp.y > H + 60;
     const gs = Math.abs(gp.vx) < 0.3 && Math.abs(gp.vy) < 0.3 && gp.y + gp.r >= GROUND_Y - 2;
     if (go || gs) ghostProjectile = null;
