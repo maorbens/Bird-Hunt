@@ -724,7 +724,7 @@ function setupIdleState() {
 
 function newProjectile() {
   const r = Math.max(5, Math.round(BASE_RADIUS * stoneScale));
-  return { x: SLING_X, y: SLING_Y, vx: 0, vy: 0, r, active: false };
+  return { x: SLING_X, y: SLING_Y, vx: 0, vy: 0, r, active: false, bounces: 0 };
 }
 
 function updateUI(animateMiss = false) {
@@ -941,19 +941,26 @@ function _calcTrimOffset(buf, threshold = 0.01) {
   return 0;
 }
 
-function _playSfxBuf(ctx, buf, offset) {
+function _playSfxBuf(ctx, buf, offset, gain = 1) {
   const src = ctx.createBufferSource();
   src.buffer = buf;
-  src.connect(ctx.destination);
+  if (gain !== 1) {
+    const g = ctx.createGain();
+    g.gain.value = gain;
+    src.connect(g);
+    g.connect(ctx.destination);
+  } else {
+    src.connect(ctx.destination);
+  }
   src.start(ctx.currentTime, offset);
 }
 
-function playSfx(key) {
+function playSfx(key, gain = 1) {
   try {
     const ctx = _getAudioCtx();
     const s = _sfx[key];
-    if (s.buf) { _playSfxBuf(ctx, s.buf, s.trim); return; }
-    if (s.raw) ctx.decodeAudioData(s.raw.slice(0)).then(buf => { s.buf = buf; s.trim = _calcTrimOffset(buf); _playSfxBuf(ctx, buf, s.trim); }).catch(() => {});
+    if (s.buf) { _playSfxBuf(ctx, s.buf, s.trim, gain); return; }
+    if (s.raw) ctx.decodeAudioData(s.raw.slice(0)).then(buf => { s.buf = buf; s.trim = _calcTrimOffset(buf); _playSfxBuf(ctx, buf, s.trim, gain); }).catch(() => {});
   } catch(e) {}
 }
 
@@ -1292,7 +1299,7 @@ function update(dt) {
     const gp = ghostProjectile;
     gp.vy += GRAVITY * dt; gp.x += gp.vx * dt; gp.y += gp.vy * dt;
     if (gp.y + gp.r >= GROUND_Y) {
-      if (gp.vy > 0) playSfx('ground');
+      if (gp.vy > 0) { playSfx('ground', Math.pow(0.55, gp.bounces)); gp.bounces++; }
       gp.y = GROUND_Y - gp.r; gp.vy *= -0.4; gp.vx *= 0.7;
       if (Math.abs(gp.vy) < 1) { gp.vy = 0; gp.vx = 0; }
     }
@@ -1307,7 +1314,7 @@ function update(dt) {
   pr.vy += GRAVITY * dt; pr.x += pr.vx * dt; pr.y += pr.vy * dt;
 
   if (pr.y + pr.r >= GROUND_Y) {
-    if (pr.vy > 0) playSfx('ground');
+    if (pr.vy > 0) { playSfx('ground', Math.pow(0.55, pr.bounces)); pr.bounces++; }
     pr.y = GROUND_Y - pr.r; pr.vy *= -0.4; pr.vx *= 0.7;
     if (Math.abs(pr.vy) < 1) { pr.vy = 0; pr.vx = 0; }
   }
@@ -1322,7 +1329,7 @@ function update(dt) {
 
     // Early miss: stone passed its peak AND is 200px below the bird
     if (pr.vy > 0 && pr.y - fb.y > 200) {
-      ghostProjectile = { x: pr.x, y: pr.y, vx: pr.vx, vy: pr.vy, r: pr.r, isFire: isFireStone, scale: stoneScale };
+      ghostProjectile = { x: pr.x, y: pr.y, vx: pr.vx, vy: pr.vy, r: pr.r, isFire: isFireStone, scale: stoneScale, bounces: pr.bounces };
       if (timerExpired) {
         phase = 'ending';
         drag = null;
