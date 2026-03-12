@@ -1363,7 +1363,7 @@ function update(dt) {
     }
   }
 
-  if (!pr.missSoundPlayed && (pr.x > VW || pr.x < 0 || pr.y < 0)) { playSfx('miss'); pr.missSoundPlayed = true; }
+  if (!pr.missSoundPlayed && pr.bounces === 0 && (pr.x > VW || pr.x < 0 || pr.y < 0)) { playSfx('miss'); pr.missSoundPlayed = true; }
   // Miss detection (out of bounds or stopped on ground)
   const outOfBounds = pr.x > VW + 60 || pr.x < -60 || pr.y < -60 || pr.y > H + 60;
   const stopped = !outOfBounds && Math.abs(pr.vx) < 0.3 && Math.abs(pr.vy) < 0.3 && pr.y + pr.r >= GROUND_Y - 2;
