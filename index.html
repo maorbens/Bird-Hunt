@@ -1316,7 +1316,10 @@ function update(dt) {
     }
     const go = gp.x > VW + 60 || gp.x < -60 || gp.y > H + 60;
     const gs = Math.abs(gp.vx) < 0.3 && Math.abs(gp.vy) < 0.3 && gp.y + gp.r >= GROUND_Y - 2;
-    if (go || gs) ghostProjectile = null;
+    if (go || gs) {
+      if (go && (gp.x > VW + 60 || gp.x < -60) && !gp.missSoundPlayed) playSfx('miss');
+      ghostProjectile = null;
+    }
   }
 
   if (phase !== 'flying') return;
@@ -1350,7 +1353,7 @@ function update(dt) {
     // Early miss: stone passed its peak AND is 200px below the bird
     if (pr.vy > 0 && pr.y - fb.y > 200) {
       if ((pr.x < 0 || pr.x > VW) && !pr.missSoundPlayed) { playSfx('miss'); pr.missSoundPlayed = true; }
-      ghostProjectile = { x: pr.x, y: pr.y, vx: pr.vx, vy: pr.vy, r: pr.r, isFire: isFireStone, scale: stoneScale, bounces: pr.bounces };
+      ghostProjectile = { x: pr.x, y: pr.y, vx: pr.vx, vy: pr.vy, r: pr.r, isFire: isFireStone, scale: stoneScale, bounces: pr.bounces, missSoundPlayed: pr.missSoundPlayed };
       if (timerExpired) {
         phase = 'ending';
         drag = null;
