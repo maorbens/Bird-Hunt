@@ -1310,7 +1310,7 @@ function update(dt) {
     const gp = ghostProjectile;
     gp.vy += GRAVITY * dt; gp.x += gp.vx * dt; gp.y += gp.vy * dt;
     if (gp.y + gp.r >= GROUND_Y) {
-      if (gp.vy > 0) { playSfx('ground', Math.pow(0.55, gp.bounces)); gp.bounces++; }
+      if (gp.vy > 0 && gp.x >= 0 && gp.x <= VW && !timerExpired) { playSfx('ground', Math.pow(0.55, gp.bounces)); gp.bounces++; }
       gp.y = GROUND_Y - gp.r; gp.vy *= -0.4; gp.vx *= 0.7;
       if (Math.abs(gp.vy) < 1) { gp.vy = 0; gp.vx = 0; }
     }
@@ -1325,7 +1325,7 @@ function update(dt) {
   pr.vy += GRAVITY * dt; pr.x += pr.vx * dt; pr.y += pr.vy * dt;
 
   if (pr.y + pr.r >= GROUND_Y) {
-    if (pr.vy > 0) { playSfx('ground', Math.pow(0.55, pr.bounces)); pr.bounces++; }
+    if (pr.vy > 0 && pr.x >= 0 && pr.x <= VW && !timerExpired) { playSfx('ground', Math.pow(0.55, pr.bounces)); pr.bounces++; }
     pr.y = GROUND_Y - pr.r; pr.vy *= -0.4; pr.vx *= 0.7;
     if (Math.abs(pr.vy) < 1) { pr.vy = 0; pr.vx = 0; }
   }
