@@ -1321,7 +1321,7 @@ function update(dt) {
     }
     fb.tweetTimer -= dt;
     if (fb.tweetTimer <= 0 && phase !== 'ending' && phase !== 'result') {
-      playSfx('tweet', 0.35, 0.8 + Math.random() * 0.5);
+      playSfx('tweet', 0.2, 0.8 + Math.random() * 0.5);
       fb.tweetTimer = Math.random() < 0.3 ? 15 + Math.random() * 20 : 60 + Math.random() * 90;
     }
     if (fb.x - fb.r < 0)             { fb.x = fb.r;                 fb.vx =  Math.abs(fb.vx); }
