@@ -840,7 +840,7 @@ function newFlyingBird(avoidY = null) {
     y,
     vx: fromLeft ? speed : -speed,
     vy: (Math.random() - 0.5) * vyRange,
-    r: 28, alive: true, dirTimer: 0, flap: 0,
+    r: 28, alive: true, dirTimer: 0, flap: 0, tweetTimer: 120 + Math.random() * 180,
   };
 }
 
@@ -943,8 +943,9 @@ const _sfx = {
   extra:  { raw: null, buf: null },
   button:    { raw: null, buf: null },
   game_over: { raw: null, buf: null },
+  tweet:     { raw: null, buf: null },
 };
-[['miss','miss.wav'],['ground','hit_to_ground.wav'],['fire','fire_rock.wav'],['extra','extra_10_seconds.wav'],['button','button.wav'],['game_over','game_over.wav']]
+[['miss','miss.wav'],['ground','hit_to_ground.wav'],['fire','fire_rock.wav'],['extra','extra_10_seconds.wav'],['button','button.wav'],['game_over','game_over.wav'],['tweet','tweet.wav']]
   .forEach(([key, file]) => {
     fetch(file).then(r => r.arrayBuffer()).then(buf => { _sfx[key].raw = buf; }).catch(() => {});
   });
@@ -1317,6 +1318,11 @@ function update(dt) {
     if (fb.dirTimer > dirInterval) {
       fb.vy = Math.max(-vyMax, Math.min(vyMax, fb.vy + (Math.random() - 0.5) * vyNudge));
       fb.dirTimer = 0;
+    }
+    fb.tweetTimer -= dt;
+    if (fb.tweetTimer <= 0 && phase !== 'ending' && phase !== 'result') {
+      playSfx('tweet');
+      fb.tweetTimer = 120 + Math.random() * 180;
     }
     if (fb.x - fb.r < 0)             { fb.x = fb.r;                 fb.vx =  Math.abs(fb.vx); }
     if (fb.x + fb.r > VW)            { fb.x = VW - fb.r;            fb.vx = -Math.abs(fb.vx); }
