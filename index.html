@@ -468,8 +468,8 @@
       <div id="game-over-score"><span>ניקוד<span class="ex">:</span></span><span id="score-val"></span></div>
       <div id="game-over-hs"><span id="hs-label"></span><span id="hs-val"></span></div>
       <div id="game-over-btns">
-        <button id="restart-btn" onclick="initGame()">שחק שוב</button>
-        <button id="home-btn-go" onclick="showIntro()">ראשי</button>
+        <button id="restart-btn" onclick="playSfx('button');initGame()">שחק שוב</button>
+        <button id="home-btn-go" onclick="playSfx('button');showIntro()">ראשי</button>
       </div>
     </div>
   </div>
@@ -525,7 +525,7 @@
     <canvas id="intro-bird-canvas"></canvas>
     <div id="intro-ground"></div>
     <div id="intro-hud">
-      <button id="start-btn" onclick="startGame()">התחל משחק</button>
+      <button id="start-btn" onclick="playSfx('button');startGame()">התחל משחק</button>
       <button id="howto-btn">איך משחקים?</button>
     </div>
   </div>
@@ -940,8 +940,9 @@ const _sfx = {
   ground: { raw: null, buf: null },
   fire:   { raw: null, buf: null },
   extra:  { raw: null, buf: null },
+  button: { raw: null, buf: null },
 };
-[['miss','miss.wav'],['ground','hit_to_ground.wav'],['fire','fire_rock.wav'],['extra','extra_10_seconds.wav']]
+[['miss','miss.wav'],['ground','hit_to_ground.wav'],['fire','fire_rock.wav'],['extra','extra_10_seconds.wav'],['button','button.wav']]
   .forEach(([key, file]) => {
     fetch(file).then(r => r.arrayBuffer()).then(buf => { _sfx[key].raw = buf; }).catch(() => {});
   });
@@ -1814,9 +1815,11 @@ showIntro();
 requestAnimationFrame(loop);
 
 document.getElementById('howto-btn').addEventListener('click', () => {
+  playSfx('button');
   document.getElementById('howto-overlay').classList.add('visible');
 });
 document.getElementById('howto-got-it').addEventListener('click', () => {
+  playSfx('button');
   document.getElementById('howto-overlay').classList.remove('visible');
 });
 </script>
