@@ -676,6 +676,7 @@ function gameTimeout(fn, delay) {
 }
 
 function initGame() {
+  _stopTicking();
   gameTimers.forEach(clearTimeout); gameTimers = [];
   score           = 0;
   consecutiveHits = 0;
@@ -989,6 +990,21 @@ function preloadSfx() {
   } catch(e) {}
 }
 
+// ── Ticking audio (last 10 seconds) ──────────────────────────────────────
+const _tickingAudio = new Audio('last_10_seconds.wav');
+let _tickingStarted = false;
+function _startTicking() {
+  if (_tickingStarted) return;
+  _tickingStarted = true;
+  _tickingAudio.currentTime = 0;
+  _tickingAudio.play().catch(() => {});
+}
+function _stopTicking() {
+  _tickingStarted = false;
+  _tickingAudio.pause();
+  _tickingAudio.currentTime = 0;
+}
+
 // ── Drag ──────────────────────────────────────────────────────────────────
 let _stretchIdleTimer = null;
 let _stretchLastDist  = 0;
@@ -1165,6 +1181,7 @@ function onHit(bx, by) {
   // +10s bonus every 5 consecutive hits (added first so it appears above score)
   if (consecutiveHits % TIME_BONUS_COMBO === 0) {
     timeLeft = Math.min(timeLeft + TIME_BONUS, 99);
+    if (timeLeft > 10) _stopTicking();
     playSfx('extra');
     addFloatingText('+10 שניות', bx, by - 56, '#44FF88', 18);
   }
@@ -1226,6 +1243,7 @@ function onMiss() {
 }
 
 function endGame() {
+  _stopTicking();
   timerRunning = false;
   phase = 'result';
   const isNew = score > highScore;
@@ -1673,6 +1691,7 @@ function loop(timestamp) {
     timerEl.textContent = t + 's';
     if (t <= 10) {
       timerEl.style.color = Math.floor(timestamp / 400) % 2 === 0 ? '#FF0000' : '#FF9999';
+      _startTicking();
     } else {
       timerEl.style.color = '#FF6B6B';
     }
