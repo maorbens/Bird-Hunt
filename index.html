@@ -941,7 +941,7 @@ const _sfx = {
   fire:   { raw: null, buf: null },
   extra:  { raw: null, buf: null },
 };
-[['miss','miss.wav'],['ground','hit_to_ground.wav'],['fire','fire_rock.wav'],['extra','extra_10.wav']]
+[['miss','miss.wav'],['ground','hit_to_ground.wav'],['fire','fire_rock.wav'],['extra','extra_10_seconds.wav']]
   .forEach(([key, file]) => {
     fetch(file).then(r => r.arrayBuffer()).then(buf => { _sfx[key].raw = buf; }).catch(() => {});
   });
