@@ -840,7 +840,7 @@ function newFlyingBird(avoidY = null) {
     y,
     vx: fromLeft ? speed : -speed,
     vy: (Math.random() - 0.5) * vyRange,
-    r: 28, alive: true, dirTimer: 0, flap: 0, tweetTimer: 120 + Math.random() * 180,
+    r: 28, alive: true, dirTimer: 0, flap: 0, tweetTimer: 60 + Math.random() * 90,
   };
 }
 
@@ -1321,8 +1321,8 @@ function update(dt) {
     }
     fb.tweetTimer -= dt;
     if (fb.tweetTimer <= 0 && phase !== 'ending' && phase !== 'result') {
-      playSfx('tweet');
-      fb.tweetTimer = 120 + Math.random() * 180;
+      playSfx('tweet', 0.35);
+      fb.tweetTimer = 60 + Math.random() * 90;
     }
     if (fb.x - fb.r < 0)             { fb.x = fb.r;                 fb.vx =  Math.abs(fb.vx); }
     if (fb.x + fb.r > VW)            { fb.x = VW - fb.r;            fb.vx = -Math.abs(fb.vx); }
