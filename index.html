@@ -988,6 +988,7 @@ function preloadSfx() {
     });
     _ensureStretchDecoded(ctx);
   } catch(e) {}
+  _tickingAudio.load();
 }
 
 // ── Ticking audio (last 10 seconds) ──────────────────────────────────────
