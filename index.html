@@ -1828,7 +1828,8 @@ function stopIntroBirdAnim() {
 window.addEventListener('resize', () => { if (introBirdAnimId) { resizeIntroBirdCanvas(); positionIntroHud(); } });
 
 function _resumeAudio() {
-  if (_audioCtx && _audioCtx.state !== 'running') _audioCtx.resume();
+  if (!_audioCtx) { preloadSfx(); return; }
+  if (_audioCtx.state !== 'running') _audioCtx.resume();
 }
 
 document.addEventListener('visibilitychange', () => {
@@ -1836,7 +1837,7 @@ document.addEventListener('visibilitychange', () => {
 });
 
 // iOS reports 'running' but silences audio after backgrounding — always call resume() on touch
-document.addEventListener('touchstart', () => { if (_audioCtx) _audioCtx.resume(); }, { passive: true, capture: true });
+document.addEventListener('touchstart', _resumeAudio, { passive: true, capture: true });
 document.addEventListener('mousedown',  _resumeAudio, { passive: true, capture: true });
 
 setupIdleState();
