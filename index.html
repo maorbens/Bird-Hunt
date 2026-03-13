@@ -941,9 +941,10 @@ const _sfx = {
   ground: { raw: null, buf: null },
   fire:   { raw: null, buf: null },
   extra:  { raw: null, buf: null },
-  button: { raw: null, buf: null },
+  button:    { raw: null, buf: null },
+  game_over: { raw: null, buf: null },
 };
-[['miss','miss.wav'],['ground','hit_to_ground.wav'],['fire','fire_rock.wav'],['extra','extra_10_seconds.wav'],['button','button.wav']]
+[['miss','miss.wav'],['ground','hit_to_ground.wav'],['fire','fire_rock.wav'],['extra','extra_10_seconds.wav'],['button','button.wav'],['game_over','game_over.wav']]
   .forEach(([key, file]) => {
     fetch(file).then(r => r.arrayBuffer()).then(buf => { _sfx[key].raw = buf; }).catch(() => {});
   });
@@ -1242,6 +1243,7 @@ function onMiss() {
 
 function endGame() {
   _stopTicking();
+  playSfx('game_over');
   timerRunning = false;
   phase = 'result';
   const isNew = score > highScore;
