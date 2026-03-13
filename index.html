@@ -992,15 +992,12 @@ function preloadSfx() {
 
 // ── Ticking audio (last 10 seconds) ──────────────────────────────────────
 const _tickingAudio = new Audio('last_10_seconds.wav');
-let _tickingStarted = false;
 function _startTicking() {
-  if (_tickingStarted) return;
-  _tickingStarted = true;
+  if (!_tickingAudio.paused) return;
   _tickingAudio.currentTime = 0;
   _tickingAudio.play().catch(() => {});
 }
 function _stopTicking() {
-  _tickingStarted = false;
   _tickingAudio.pause();
   _tickingAudio.currentTime = 0;
 }
