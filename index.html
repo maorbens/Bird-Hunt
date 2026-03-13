@@ -1784,12 +1784,10 @@ function introLoopBirds(timestamp) {
       fb.vy = Math.max(-4, Math.min(4, fb.vy + (Math.random() - 0.5) * 3));
       fb.dirTimer = 0;
     }
-    if (_audioCtx && _audioCtx.state === 'running') {
-      fb.tweetTimer -= dt;
-      if (fb.tweetTimer <= 0 && !document.getElementById('howto-overlay').classList.contains('visible')) {
-        playSfx('tweet', 0.05, 0.8 + Math.random() * 0.5);
-        fb.tweetTimer = Math.random() < 0.3 ? 15 + Math.random() * 20 : 60 + Math.random() * 90;
-      }
+    fb.tweetTimer -= dt;
+    if (fb.tweetTimer <= 0 && !document.getElementById('howto-overlay').classList.contains('visible')) {
+      playSfx('tweet', 0.05, 0.8 + Math.random() * 0.5);
+      fb.tweetTimer = Math.random() < 0.3 ? 15 + Math.random() * 20 : 60 + Math.random() * 90;
     }
     if (fb.x - fb.r < 0)             { fb.x = fb.r;                fb.vx =  Math.abs(fb.vx); }
     if (fb.x + fb.r > VW)            { fb.x = VW - fb.r;           fb.vx = -Math.abs(fb.vx); }
@@ -1838,8 +1836,8 @@ document.addEventListener('visibilitychange', () => {
 });
 
 // iOS reports 'running' but silences audio after backgrounding — always call resume() on touch
-document.addEventListener('touchstart', () => { if (_audioCtx) _audioCtx.resume(); introBirds.forEach(b => { b.tweetTimer = 5 + Math.random() * 15; }); }, { passive: true, capture: true });
-document.addEventListener('mousedown',  () => { _resumeAudio(); introBirds.forEach(b => { b.tweetTimer = 5 + Math.random() * 15; }); }, { passive: true, capture: true });
+document.addEventListener('touchstart', () => { if (_audioCtx) _audioCtx.resume(); }, { passive: true, capture: true });
+document.addEventListener('mousedown',  _resumeAudio, { passive: true, capture: true });
 
 setupIdleState();
 initIntroStars();
