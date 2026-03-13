@@ -1744,7 +1744,7 @@ function newIntroBird() {
     y: 60 + Math.random() * (GROUND_Y - 160),
     vx: fromLeft ? speed : -speed,
     vy: (Math.random() - 0.5) * 3,
-    r: 28, dirTimer: 0, flap: 0,
+    r: 28, dirTimer: 0, flap: 0, tweetTimer: 20 + Math.random() * 40,
   };
 }
 
@@ -1783,6 +1783,11 @@ function introLoopBirds(timestamp) {
     if (fb.dirTimer > 60 + Math.random() * 60) {
       fb.vy = Math.max(-4, Math.min(4, fb.vy + (Math.random() - 0.5) * 3));
       fb.dirTimer = 0;
+    }
+    fb.tweetTimer -= dt;
+    if (fb.tweetTimer <= 0 && !document.getElementById('howto-overlay').classList.contains('visible')) {
+      playSfx('tweet', 0.05, 0.8 + Math.random() * 0.5);
+      fb.tweetTimer = Math.random() < 0.3 ? 15 + Math.random() * 20 : 60 + Math.random() * 90;
     }
     if (fb.x - fb.r < 0)             { fb.x = fb.r;                fb.vx =  Math.abs(fb.vx); }
     if (fb.x + fb.r > VW)            { fb.x = VW - fb.r;           fb.vx = -Math.abs(fb.vx); }
