@@ -1828,8 +1828,7 @@ function stopIntroBirdAnim() {
 window.addEventListener('resize', () => { if (introBirdAnimId) { resizeIntroBirdCanvas(); positionIntroHud(); } });
 
 function _resumeAudio() {
-  if (!_audioCtx) { preloadSfx(); return; }
-  if (_audioCtx.state !== 'running') _audioCtx.resume();
+  if (_audioCtx && _audioCtx.state !== 'running') _audioCtx.resume();
 }
 
 document.addEventListener('visibilitychange', () => {
@@ -1844,6 +1843,7 @@ setupIdleState();
 initIntroStars();
 showIntro();
 requestAnimationFrame(loop);
+preloadSfx();
 
 document.getElementById('howto-btn').addEventListener('click', () => {
   playSfx('button');
