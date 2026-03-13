@@ -1690,16 +1690,21 @@ function loop(timestamp) {
   }
   lastTimestamp = timestamp;
 
-  if (timerRunning) {
+  {
     // Update timer DOM
-    const t = Math.ceil(timeLeft);
     const timerEl = document.getElementById('timer-display');
-    timerEl.textContent = t + 's';
-    if (t <= 10) {
-      timerEl.style.color = Math.floor(timestamp / 400) % 2 === 0 ? '#FF0000' : '#FF9999';
-      _startTicking();
-    } else {
-      timerEl.style.color = '#FF6B6B';
+    if (timerExpired || timeLeft <= 0) {
+      timerEl.textContent = 'Game Over';
+      timerEl.style.color = '#FF0000';
+    } else if (timerRunning) {
+      const t = Math.ceil(timeLeft);
+      timerEl.textContent = t + 's';
+      if (t <= 10) {
+        timerEl.style.color = Math.floor(timestamp / 400) % 2 === 0 ? '#FF0000' : '#FF9999';
+        _startTicking();
+      } else {
+        timerEl.style.color = '#FF6B6B';
+      }
     }
   }
 
