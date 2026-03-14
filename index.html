@@ -588,7 +588,7 @@ const CP               = 8;   // pixel size of one "canvas pixel" (pixel-art gri
 let score, consecutiveHits, missCount;
 let isFireStone, stoneScale;
 let timeLeft, timerRunning, lastTimestamp, timerExpired;
-let flyingBird, projectile, ghostProjectile, particles, floatingTexts, phase, drag, launched;
+let flyingBird, projectile, ghostProjectile, particles, floatingTexts, phase, drag;
 let stoneDropAnim = { active: false, t: 0 };
 const STONE_DROP_DUR = 380;
 let bandSnapAnim = { active: false, t: 0, fromX: 0, fromY: 0 };
@@ -690,7 +690,6 @@ function initGame() {
   timerExpired    = false;
   phase           = 'aim';
   drag            = null;
-  launched        = false;
   particles       = [];
   floatingTexts   = [];
   stoneDropAnim   = { active: false, t: 0 };
@@ -714,7 +713,6 @@ function setupIdleState() {
   timerExpired    = false;
   phase           = 'aim';
   drag            = null;
-  launched        = false;
   particles       = [];
   floatingTexts   = [];
   gameTimers      = [];
@@ -1087,10 +1085,9 @@ function endDrag() {
   projectile.vx = (SLING_X - drag.x) * power;
   projectile.vy = (SLING_Y - drag.y) * power;
   projectile.x = SLING_X; projectile.y = SLING_Y;
-  projectile.active = true;
   bandSnapAnim = { active: true, t: 0, fromX: drag.x, fromY: drag.y };
   playSfx('throw', 1, 0.5 + 1.5 * Math.min(Math.hypot(projectile.vx, projectile.vy) / (MAX_PULL * 0.22), 1));
-  phase = 'flying'; drag = null; launched = true;
+  phase = 'flying'; drag = null;
 }
 
 canvas.addEventListener('mousedown',  e => { const p = toLogical(e.clientX, e.clientY); startDrag(p.x, p.y); });
@@ -1203,7 +1200,7 @@ function onHit(bx, by) {
   const prevBirdY = flyingBird ? flyingBird.y : null;
   flyingBird = newFlyingBird(prevBirdY);
   projectile = newProjectile();
-  phase = 'aim'; launched = false;
+  phase = 'aim';
   stoneDropAnim = { active: true, t: 0 };
 }
 
@@ -1232,7 +1229,7 @@ function onMiss() {
     return;
   }
   projectile = newProjectile();
-  phase = 'aim'; launched = false;
+  phase = 'aim';
   stoneDropAnim = { active: true, t: 0 };
 }
 
