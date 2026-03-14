@@ -1813,18 +1813,21 @@ window.addEventListener('resize', () => { if (introBirdAnimId) { resizeIntroBird
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
     _stopTicking();
-    // Leave the AudioContext suspended — iOS will suspend it on background.
-    // Do NOT close it: a closed context cannot be reopened, and Safari does
-    // not count visibilitychange as a user gesture so resume() would fail.
+    // Close the context so iOS fully releases the audio session.
+    // When ticking was active, iOS uses a "Playback" session (shown as blue
+    // speaker icon in the tab). Stopping the ticking deactivates the session;
+    // resume() on the old context no longer works. Closing here forces a
+    // clean recreation from a user gesture on the next touch.
+    if (_audioCtx) { _audioCtx.close().catch(() => {}); _audioCtx = null; }
   } else {
-    // Try to resume; will silently fail if not a user gesture (Safari).
-    // The touchstart handler below will finish the job on first tap.
+    // Try to resume the existing context optimistically (works in Capacitor;
+    // silently fails in Safari — touchstart handler below is the real fix).
     if (_audioCtx && _audioCtx.state !== 'running') _audioCtx.resume().catch(() => {});
   }
 });
 
-// On every user interaction: create context if needed, then resume.
-// This is the only reliable way to unblock audio in Safari after backgrounding.
+// On every user interaction: recreate context from scratch if needed (user
+// gesture allows creating/resuming AudioContext in Safari), then resume.
 function _ensureAudioRunning() {
   if (!_audioCtx || _audioCtx.state === 'closed') { preloadSfx(); return; }
   if (_audioCtx.state !== 'running') _audioCtx.resume().catch(() => {});
