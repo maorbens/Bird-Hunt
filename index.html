@@ -819,7 +819,7 @@ const STONE_SPR = [
 function newFlyingBird(avoidY = null) {
   const fromLeft = Math.random() < 0.5;
   const speed    = 3.5 + Math.random() * 2.5;
-  const minY = H * 0.08, maxY = GROUND_Y - H * 0.18;
+  const minY = UI_TOP_H, maxY = GROUND_Y - H * 0.18;
   const range = maxY - minY;
   let y;
   if (avoidY !== null) {
@@ -1326,7 +1326,7 @@ function update(dt) {
     }
     if (fb.x - fb.r < 0)             { fb.x = fb.r;                 fb.vx =  Math.abs(fb.vx); }
     if (fb.x + fb.r > VW)            { fb.x = VW - fb.r;            fb.vx = -Math.abs(fb.vx); }
-    if (fb.y - fb.r < 20)            { fb.y = 20 + fb.r;            fb.vy =  Math.abs(fb.vy); }
+    if (fb.y - fb.r < UI_TOP_H)       { fb.y = UI_TOP_H + fb.r;      fb.vy =  Math.abs(fb.vy); }
     if (fb.y + fb.r > GROUND_Y - 20) { fb.y = GROUND_Y - 20 - fb.r; fb.vy = -Math.abs(fb.vy); }
     if (window.innerWidth <= window.innerHeight) { // portrait only
       const slingFloor = SLING_Y - 110;
