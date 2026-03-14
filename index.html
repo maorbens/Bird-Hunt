@@ -1812,13 +1812,16 @@ function _resumeAudio() {
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
     _stopTicking();
+    if (_audioCtx) { _audioCtx.close().catch(() => {}); _audioCtx = null; }
   } else {
-    _resumeAudio();
+    // Recreate AudioContext from scratch — on iOS/Capacitor a fresh context
+    // starts running immediately because the native app holds audio permission.
+    _audioCtx = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'interactive' });
+    _audioCtx.resume().catch(() => {});
   }
 });
 
-// iOS lies: reports state='running' but silences audio after backgrounding.
-// Always call resume() unconditionally on user gesture — it's a no-op if already running.
+// iOS touchstart safety net (also catches cases where visibilitychange fires late)
 document.addEventListener('touchstart', () => { if (_audioCtx) _audioCtx.resume(); }, { passive: true, capture: true });
 document.addEventListener('mousedown',  () => { if (_audioCtx) _audioCtx.resume(); }, { passive: true, capture: true });
 
