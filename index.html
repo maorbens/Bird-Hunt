@@ -1015,8 +1015,12 @@ function _startTicking() {
       src.start(0, s.trim || 0);
       _tickingSource = src;
     };
-    if (s.buf) { play(s.buf); return; }
-    if (s.raw) ctx.decodeAudioData(s.raw.slice(0)).then(buf => { s.buf = buf; s.trim = _calcTrimOffset(buf); play(buf); }).catch(() => {});
+    const fire = () => {
+      if (s.buf) { play(s.buf); return; }
+      if (s.raw) ctx.decodeAudioData(s.raw.slice(0)).then(buf => { s.buf = buf; s.trim = _calcTrimOffset(buf); play(buf); }).catch(() => {});
+    };
+    if (ctx.state === 'running') { fire(); return; }
+    ctx.resume().then(fire).catch(() => {});
   } catch(e) {}
 }
 function _stopTicking() {
