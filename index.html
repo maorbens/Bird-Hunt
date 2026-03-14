@@ -880,7 +880,9 @@ function _getAudioCtx() {
     // unlocked by a prior user gesture. This covers iOS's non-standard
     // 'interrupted' state that visibilitychange alone misses.
     _audioCtx.addEventListener('statechange', () => {
-      if (_audioCtx && _audioCtx.state !== 'running') _audioCtx.resume().catch(() => {});
+      // Only auto-resume in foreground; let iOS suspend the context in background
+      // so the audio session is released and we don't hijack Control Center.
+      if (_audioCtx && _audioCtx.state !== 'running' && !document.hidden) _audioCtx.resume().catch(() => {});
     });
     _startSilentOscillator(_audioCtx);
   }
