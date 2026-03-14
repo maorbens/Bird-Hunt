@@ -861,7 +861,15 @@ let _stretchBuffer = null;   // decoded AudioBuffer
 let _stretchDecodePromise = null;
 
 function _getAudioCtx() {
-  if (!_audioCtx || _audioCtx.state === 'closed') _audioCtx = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'interactive' });
+  if (!_audioCtx || _audioCtx.state === 'closed') {
+    _audioCtx = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'interactive' });
+    // resume() on statechange is gesture-free because the context was already
+    // unlocked by a prior user gesture. This covers iOS's non-standard
+    // 'interrupted' state that visibilitychange alone misses.
+    _audioCtx.addEventListener('statechange', () => {
+      if (_audioCtx && _audioCtx.state !== 'running') _audioCtx.resume().catch(() => {});
+    });
+  }
   if (_audioCtx.state === 'suspended') _audioCtx.resume();
   return _audioCtx;
 }
@@ -1817,15 +1825,33 @@ function stopIntroBirdAnim() {
 window.addEventListener('resize', () => { if (introBirdAnimId) { resizeIntroBirdCanvas(); positionIntroHud(); } });
 
 let _audioWasBackgrounded = false;
+let _zombieCheckTimeout = null;
 
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
     _stopTicking();
     stopStretchSound();
     _audioWasBackgrounded = true;
+    clearTimeout(_zombieCheckTimeout);
   } else {
-    // Try optimistically — works in Capacitor and some iOS versions.
+    // Unconditional resume — covers suspended + iOS's non-standard 'interrupted'.
     if (_audioCtx) _audioCtx.resume().catch(() => {});
+
+    // Zombie detection: iOS sometimes reports state='running' but currentTime
+    // freezes and no audio plays. Detect by checking currentTime after 2s.
+    clearTimeout(_zombieCheckTimeout);
+    _zombieCheckTimeout = setTimeout(() => {
+      if (!_audioCtx || _audioCtx.state !== 'running') return;
+      const t0 = _audioCtx.currentTime;
+      setTimeout(() => {
+        if (_audioCtx && _audioCtx.state === 'running' && _audioCtx.currentTime === t0) {
+          // Zombie confirmed — destroy so _ensureAudioRunning recreates on next gesture.
+          _audioCtx.close().catch(() => {});
+          _audioCtx = null;
+          _audioWasBackgrounded = true;
+        }
+      }, 500);
+    }, 1500);
   }
 });
 
@@ -1841,6 +1867,9 @@ function _ensureAudioRunning() {
 }
 document.addEventListener('touchstart', _ensureAudioRunning, { passive: true, capture: true });
 document.addEventListener('mousedown',  _ensureAudioRunning, { passive: true, capture: true });
+
+// Prevent iOS from suspending the audio session during backgrounding (Safari iOS 17+).
+if (navigator.audioSession) navigator.audioSession.type = 'playback';
 
 setupIdleState();
 initIntroStars();
