@@ -1111,9 +1111,10 @@ function spawnParticles(x, y, isFire = false) {
 }
 
 // ── Hit sound ─────────────────────────────────────────────────────────────
-function playHitSound() {
+async function playHitSound() {
   try {
     const ctx = _getAudioCtx();
+    if (ctx.state !== 'running') await ctx.resume();
     const now = ctx.currentTime;
 
     // Thud: short noise burst through low bandpass
