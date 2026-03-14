@@ -853,6 +853,7 @@ function toLogical(cx, cy) {
 }
 // ── Slingshot audio ───────────────────────────────────────────────────────
 let _audioCtx = null;
+let _keepAliveOsc = null;
 let _stretchNodes = null;
 let _stretchRawBuf = null;   // raw ArrayBuffer from fetch
 let _stretchBuffer = null;   // decoded AudioBuffer
@@ -867,6 +868,16 @@ function _getAudioCtx() {
     _audioCtx.addEventListener('statechange', () => {
       if (_audioCtx && _audioCtx.state !== 'running' && !document.hidden) _audioCtx.resume().catch(() => {});
     });
+    // Keep-alive oscillator: gain=1e-37 is technically non-zero so WebKit's
+    // isPlayingAudio() stays true and the context isn't suspended mid-game.
+    // Inaudible in practice. Safe with 'ambient' session — won't appear in
+    // Control Center (that only happens with 'playback'/'play-and-record').
+    _keepAliveOsc = _audioCtx.createOscillator();
+    const _keepAliveGain = _audioCtx.createGain();
+    _keepAliveGain.gain.value = 1e-37;
+    _keepAliveOsc.connect(_keepAliveGain);
+    _keepAliveGain.connect(_audioCtx.destination);
+    _keepAliveOsc.start();
   }
   if (_audioCtx.state === 'suspended') _audioCtx.resume();
   return _audioCtx;
@@ -1860,6 +1871,7 @@ function _ensureAudioRunning() {
     // Destroy it — a fresh context is created on the next playSfx call.
     _audioCtx.close().catch(() => {});
     _audioCtx = null;
+    _keepAliveOsc = null;
   }
   _audioWasBackgrounded = false;
   if (!_audioCtx || _audioCtx.state === 'closed') { preloadSfx(); return; }
