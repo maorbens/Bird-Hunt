@@ -857,6 +857,21 @@ let _stretchNodes = null;
 let _stretchRawBuf = null;   // raw ArrayBuffer from fetch
 let _stretchBuffer = null;   // decoded AudioBuffer
 let _stretchDecodePromise = null;
+let _silentOsc = null;
+
+// A silent oscillator (gain=1e-37) keeps iOS from suspending the AudioContext
+// after backgrounding. This is the standard fix used by Tone.js / PixiJS.
+function _startSilentOscillator(ctx) {
+  if (_silentOsc) { try { _silentOsc.disconnect(); } catch(e){} _silentOsc = null; }
+  try {
+    const g = ctx.createGain();
+    g.gain.value = 1e-37;
+    g.connect(ctx.destination);
+    _silentOsc = ctx.createOscillator();
+    _silentOsc.connect(g);
+    _silentOsc.start();
+  } catch(e) {}
+}
 
 function _getAudioCtx() {
   if (!_audioCtx || _audioCtx.state === 'closed') {
@@ -867,6 +882,7 @@ function _getAudioCtx() {
     _audioCtx.addEventListener('statechange', () => {
       if (_audioCtx && _audioCtx.state !== 'running') _audioCtx.resume().catch(() => {});
     });
+    _startSilentOscillator(_audioCtx);
   }
   if (_audioCtx.state === 'suspended') _audioCtx.resume();
   return _audioCtx;
@@ -1850,7 +1866,7 @@ document.addEventListener('visibilitychange', () => {
         _audioCtx = null;
         _audioWasBackgrounded = true;
       }
-    }, 2000);
+    }, 500);
   }
 });
 
