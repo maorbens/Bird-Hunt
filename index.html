@@ -887,6 +887,7 @@ async function startStretchSound() {
   try {
     stopStretchSound();
     const ctx = _getAudioCtx();
+    if (ctx.state !== 'running') await ctx.resume();
     if (!_stretchBuffer) {
       _ensureStretchDecoded(ctx);
       if (_stretchDecodePromise) await _stretchDecodePromise;
@@ -1816,13 +1817,15 @@ window.addEventListener('resize', () => { if (introBirdAnimId) { resizeIntroBird
 
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
-    const tickingWasActive = !!_tickingSource;
+    const loopingWasActive = !!_tickingSource || !!_stretchNodes;
     _stopTicking();
-    if (tickingWasActive && _audioCtx) {
-      // The ticking loop triggers iOS's "Playback" audio session (blue speaker
-      // icon). When it stops on background, iOS deactivates that session and
-      // resume() on the old context stops working. Close it so _ensureAudioRunning
-      // can create a fresh context from a real user gesture on return.
+    stopStretchSound();
+    if (loopingWasActive && _audioCtx) {
+      // Any active looping source (ticking or stretch) causes iOS to activate a
+      // "Playback" audio session (blue speaker icon). When those sources stop on
+      // background, iOS deactivates that session and resume() on the old context
+      // stops working. Close it so _ensureAudioRunning recreates it from a real
+      // user gesture on return.
       _audioCtx.close().catch(() => {});
       _audioCtx = null;
     }
