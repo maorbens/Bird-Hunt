@@ -1818,18 +1818,11 @@ window.addEventListener('resize', () => { if (introBirdAnimId) { resizeIntroBird
 
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
-    const loopingWasActive = !!_tickingSource || !!_stretchNodes;
     _stopTicking();
     stopStretchSound();
-    if (loopingWasActive && _audioCtx) {
-      // Any active looping source (ticking or stretch) causes iOS to activate a
-      // "Playback" audio session (blue speaker icon). When those sources stop on
-      // background, iOS deactivates that session and resume() on the old context
-      // stops working. Close it so _ensureAudioRunning recreates it from a real
-      // user gesture on return.
-      _audioCtx.close().catch(() => {});
-      _audioCtx = null;
-    }
+    // Leave the AudioContext as-is — iOS suspends it automatically on background.
+    // Closing it forces a new context on return which needs a user gesture to
+    // resume; the old suspended context can be resumed by visibilitychange alone.
   } else {
     if (_audioCtx && _audioCtx.state !== 'running') _audioCtx.resume().catch(() => {});
   }
