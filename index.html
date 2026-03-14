@@ -937,7 +937,7 @@ function stopStretchSound() {
 
 // ── One-shot SFX ──────────────────────────────────────────────────────────
 const _sfx = {
-  miss:   { raw: null, buf: null },
+  throw:  { raw: null, buf: null },
   ground: { raw: null, buf: null },
   fire:   { raw: null, buf: null },
   extra:  { raw: null, buf: null },
@@ -945,7 +945,7 @@ const _sfx = {
   game_over: { raw: null, buf: null },
   tweet:     { raw: null, buf: null },
 };
-[['miss','miss.wav'],['ground','hit_to_ground.wav'],['fire','fire_rock.wav'],['extra','extra_10_seconds.wav'],['button','button.wav'],['game_over','game_over.wav'],['tweet','tweet.wav']]
+[['throw','throw.wav'],['ground','hit_to_ground.wav'],['fire','fire_rock.wav'],['extra','extra_10_seconds.wav'],['button','button.wav'],['game_over','game_over.wav'],['tweet','tweet.wav']]
   .forEach(([key, file]) => {
     fetch(file).then(r => r.arrayBuffer()).then(buf => { _sfx[key].raw = buf; }).catch(() => {});
   });
@@ -1056,7 +1056,7 @@ function endDrag() {
   projectile.x = SLING_X; projectile.y = SLING_Y;
   projectile.active = true;
   bandSnapAnim = { active: true, t: 0, fromX: drag.x, fromY: drag.y };
-  playSfx('miss', 1, 0.5 + 1.5 * Math.min(Math.hypot(projectile.vx, projectile.vy) / (MAX_PULL * 0.22), 1));
+  playSfx('throw', 1, 0.5 + 1.5 * Math.min(Math.hypot(projectile.vx, projectile.vy) / (MAX_PULL * 0.22), 1));
   phase = 'flying'; drag = null; launched = true;
 }
 
