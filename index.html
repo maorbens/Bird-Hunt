@@ -1812,16 +1812,17 @@ window.addEventListener('resize', () => { if (introBirdAnimId) { resizeIntroBird
 
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
+    const tickingWasActive = !!_tickingSource;
     _stopTicking();
-    // Close the context so iOS fully releases the audio session.
-    // When ticking was active, iOS uses a "Playback" session (shown as blue
-    // speaker icon in the tab). Stopping the ticking deactivates the session;
-    // resume() on the old context no longer works. Closing here forces a
-    // clean recreation from a user gesture on the next touch.
-    if (_audioCtx) { _audioCtx.close().catch(() => {}); _audioCtx = null; }
+    if (tickingWasActive && _audioCtx) {
+      // The ticking loop triggers iOS's "Playback" audio session (blue speaker
+      // icon). When it stops on background, iOS deactivates that session and
+      // resume() on the old context stops working. Close it so _ensureAudioRunning
+      // can create a fresh context from a real user gesture on return.
+      _audioCtx.close().catch(() => {});
+      _audioCtx = null;
+    }
   } else {
-    // Try to resume the existing context optimistically (works in Capacitor;
-    // silently fails in Safari — touchstart handler below is the real fix).
     if (_audioCtx && _audioCtx.state !== 'running') _audioCtx.resume().catch(() => {});
   }
 });
