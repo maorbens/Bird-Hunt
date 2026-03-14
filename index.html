@@ -945,8 +945,9 @@ const _sfx = {
   button:    { raw: null, buf: null },
   game_over: { raw: null, buf: null },
   tweet:     { raw: null, buf: null },
+  ticking:   { raw: null, buf: null },
 };
-[['throw','throw.wav'],['ground','hit_to_ground.wav'],['fire','fire_rock.wav'],['extra','extra_10_seconds.wav'],['button','button.wav'],['game_over','game_over.wav'],['tweet','tweet.wav']]
+[['throw','throw.wav'],['ground','hit_to_ground.wav'],['fire','fire_rock.wav'],['extra','extra_10_seconds.wav'],['button','button.wav'],['game_over','game_over.wav'],['tweet','tweet.wav'],['ticking','last_10_seconds.wav']]
   .forEach(([key, file]) => {
     fetch(file).then(r => r.arrayBuffer()).then(buf => { _sfx[key].raw = buf; }).catch(() => {});
   });
@@ -991,19 +992,32 @@ function preloadSfx() {
     });
     _ensureStretchDecoded(ctx);
   } catch(e) {}
-  _tickingAudio.load();
 }
 
-// ── Ticking audio (last 10 seconds) ──────────────────────────────────────
-const _tickingAudio = new Audio('last_10_seconds.wav');
+// ── Ticking audio (last 10 seconds) — Web Audio API to avoid iOS media session ──
+let _tickingSource = null;
 function _startTicking() {
-  if (!_tickingAudio.paused) return;
-  _tickingAudio.currentTime = 0;
-  _tickingAudio.play().catch(() => {});
+  if (_tickingSource) return;
+  try {
+    const ctx = _getAudioCtx();
+    const s = _sfx.ticking;
+    const play = (buf) => {
+      if (_tickingSource) return;
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      src.loop = true;
+      src.connect(ctx.destination);
+      src.start(0, s.trim || 0);
+      _tickingSource = src;
+    };
+    if (s.buf) { play(s.buf); return; }
+    if (s.raw) ctx.decodeAudioData(s.raw.slice(0)).then(buf => { s.buf = buf; s.trim = _calcTrimOffset(buf); play(buf); }).catch(() => {});
+  } catch(e) {}
 }
 function _stopTicking() {
-  _tickingAudio.pause();
-  _tickingAudio.currentTime = 0;
+  if (!_tickingSource) return;
+  try { _tickingSource.stop(); } catch(e) {}
+  _tickingSource = null;
 }
 
 // ── Drag ──────────────────────────────────────────────────────────────────
