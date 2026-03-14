@@ -1834,13 +1834,18 @@ document.addEventListener('visibilitychange', () => {
     // Unconditional resume — covers suspended + iOS's non-standard 'interrupted'.
     if (_audioCtx) _audioCtx.resume().catch(() => {});
 
-    // Zombie detection: iOS sometimes reports state='running' but currentTime
-    // freezes and no audio plays. Sample t0 now, confirm it's still frozen after 2s.
+    // Stuck/zombie detection: iOS can leave the context either:
+    //  (a) state='running' but currentTime frozen (zombie), or
+    //  (b) state!='running' because resume() silently never resolves ('interrupted').
+    // Sample t0 now; after 2 s destroy if still frozen or still not running.
     clearTimeout(_zombieCheckTimeout);
     const _zombieT0 = _audioCtx ? _audioCtx.currentTime : -1;
     _zombieCheckTimeout = setTimeout(() => {
-      if (_audioCtx && _audioCtx.state === 'running' && _audioCtx.currentTime === _zombieT0) {
-        // Zombie confirmed — destroy so _ensureAudioRunning recreates on next gesture.
+      if (!_audioCtx) return;
+      const zombie = _audioCtx.state === 'running' && _audioCtx.currentTime === _zombieT0;
+      const stuck  = _audioCtx.state !== 'running';
+      if (zombie || stuck) {
+        // Destroy so _ensureAudioRunning recreates on next gesture.
         _audioCtx.close().catch(() => {});
         _audioCtx = null;
         _audioWasBackgrounded = true;
@@ -1850,14 +1855,19 @@ document.addEventListener('visibilitychange', () => {
 });
 
 // On every user interaction: resume AudioContext.
-// iOS sometimes reports state='running' but silences audio after backgrounding —
-// so always call resume() after a background, regardless of reported state.
+// iOS can leave the context in an 'interrupted' state where resume() never
+// resolves. Detect that on the first gesture after backgrounding and destroy
+// the stuck context so _getAudioCtx() creates a fresh one for the next playSfx.
 function _ensureAudioRunning() {
-  if (!_audioCtx || _audioCtx.state === 'closed') { preloadSfx(); return; }
-  if (_audioCtx.state !== 'running' || _audioWasBackgrounded) {
-    _audioCtx.resume().catch(() => {});
-    _audioWasBackgrounded = false;
+  if (_audioWasBackgrounded && _audioCtx && _audioCtx.state !== 'running') {
+    // Context stuck (e.g. iOS 'interrupted' where resume() silently fails).
+    // Destroy it — a fresh context is created on the next playSfx call.
+    _audioCtx.close().catch(() => {});
+    _audioCtx = null;
   }
+  _audioWasBackgrounded = false;
+  if (!_audioCtx || _audioCtx.state === 'closed') { preloadSfx(); return; }
+  if (_audioCtx.state !== 'running') _audioCtx.resume().catch(() => {});
 }
 document.addEventListener('touchstart', _ensureAudioRunning, { passive: true, capture: true });
 document.addEventListener('mousedown',  _ensureAudioRunning, { passive: true, capture: true });
