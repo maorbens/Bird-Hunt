@@ -1842,9 +1842,15 @@ document.addEventListener('visibilitychange', () => {
     stopStretchSound();
     _audioWasBackgrounded = true;
     clearTimeout(_zombieCheckTimeout);
+    // Stop silent oscillator so iOS doesn't treat the game as an active music
+    // player in the background (prevents Control Center / Now Playing hijack
+    // and conflicts with other apps' audio sessions).
+    if (_silentOsc) { try { _silentOsc.stop(); } catch(e){} _silentOsc = null; }
   } else {
     // Unconditional resume — covers suspended + iOS's non-standard 'interrupted'.
     if (_audioCtx) _audioCtx.resume().catch(() => {});
+    // Restart silent oscillator now that we're back in foreground.
+    if (_audioCtx && _audioCtx.state !== 'closed') _startSilentOscillator(_audioCtx);
 
     // Stuck/zombie detection: iOS can leave the context either:
     //  (a) state='running' but currentTime frozen (zombie), or
