@@ -1508,13 +1508,9 @@ function drawSlingshotBands() {
   } else {
     ex = SLING_X; ey = SLING_Y;
   }
-  // Stone-landing jolt: additive on top of whatever position
+  // Stone-landing: rubber band vertex tracks the stone's Y position
   if (!drag && stoneDropAnim.active) {
-    const t = stoneDropAnim.t;
-    if (t >= 0.55) {
-      const st = (t - 0.55) / 0.45;
-      ey += 14 * Math.exp(-7 * st) * Math.cos(13 * st);
-    }
+    ey = stoneDropAnimY();
   }
   ctx.save();
   ctx.scale(SCALE, SCALE);
