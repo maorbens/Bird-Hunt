@@ -978,9 +978,14 @@ function _playSfxBuf(ctx, buf, offset, gain = 1, rate = 1) {
 function playSfx(key, gain = 1, rate = 1) {
   try {
     const ctx = _getAudioCtx();
+    const play = (buf, trim) => { if (ctx.state === 'running') _playSfxBuf(ctx, buf, trim, gain, rate); };
     const s = _sfx[key];
-    if (s.buf) { _playSfxBuf(ctx, s.buf, s.trim, gain, rate); return; }
-    if (s.raw) ctx.decodeAudioData(s.raw.slice(0)).then(buf => { s.buf = buf; s.trim = _calcTrimOffset(buf); _playSfxBuf(ctx, buf, s.trim, gain, rate); }).catch(() => {});
+    const fire = () => {
+      if (s.buf) { play(s.buf, s.trim); return; }
+      if (s.raw) ctx.decodeAudioData(s.raw.slice(0)).then(buf => { s.buf = buf; s.trim = _calcTrimOffset(buf); play(buf, s.trim); }).catch(() => {});
+    };
+    if (ctx.state === 'running') { fire(); return; }
+    ctx.resume().then(fire).catch(() => {});
   } catch(e) {}
 }
 
