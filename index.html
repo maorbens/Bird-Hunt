@@ -984,17 +984,22 @@ function _playSfxBuf(ctx, buf, offset, gain = 1, rate = 1) {
   src.start(ctx.currentTime, offset);
 }
 
+// Decode s.raw if needed, then call onReady(buf, trim). Caches result on s.
+function _decodeAndPlay(ctx, s, onReady) {
+  if (s.buf) { onReady(s.buf, s.trim); return; }
+  if (s.raw) ctx.decodeAudioData(s.raw.slice(0)).then(buf => { s.buf = buf; s.trim = _calcTrimOffset(buf); onReady(buf, s.trim); }).catch(() => {});
+}
+// Call fn immediately if ctx is running, otherwise resume first.
+function _resumeAndFire(ctx, fn) {
+  if (ctx.state === 'running') { fn(); return; }
+  ctx.resume().then(fn).catch(() => {});
+}
+
 function playSfx(key, gain = 1, rate = 1) {
   try {
     const ctx = _getAudioCtx();
     const play = (buf, trim) => { if (ctx.state === 'running') _playSfxBuf(ctx, buf, trim, gain, rate); };
-    const s = _sfx[key];
-    const fire = () => {
-      if (s.buf) { play(s.buf, s.trim); return; }
-      if (s.raw) ctx.decodeAudioData(s.raw.slice(0)).then(buf => { s.buf = buf; s.trim = _calcTrimOffset(buf); play(buf, s.trim); }).catch(() => {});
-    };
-    if (ctx.state === 'running') { fire(); return; }
-    ctx.resume().then(fire).catch(() => {});
+    _resumeAndFire(ctx, () => _decodeAndPlay(ctx, _sfx[key], play));
   } catch(e) {}
 }
 
@@ -1024,12 +1029,7 @@ function _startTicking() {
       src.start(0, s.trim || 0);
       _tickingSource = src;
     };
-    const fire = () => {
-      if (s.buf) { play(s.buf); return; }
-      if (s.raw) ctx.decodeAudioData(s.raw.slice(0)).then(buf => { s.buf = buf; s.trim = _calcTrimOffset(buf); play(buf); }).catch(() => {});
-    };
-    if (ctx.state === 'running') { fire(); return; }
-    ctx.resume().then(fire).catch(() => {});
+    _resumeAndFire(ctx, () => _decodeAndPlay(ctx, s, play));
   } catch(e) {}
 }
 function _stopTicking() {
@@ -1838,20 +1838,17 @@ document.addEventListener('visibilitychange', () => {
     if (_audioCtx) _audioCtx.resume().catch(() => {});
 
     // Zombie detection: iOS sometimes reports state='running' but currentTime
-    // freezes and no audio plays. Detect by checking currentTime after 2s.
+    // freezes and no audio plays. Sample t0 now, confirm it's still frozen after 2s.
     clearTimeout(_zombieCheckTimeout);
+    const _zombieT0 = _audioCtx ? _audioCtx.currentTime : -1;
     _zombieCheckTimeout = setTimeout(() => {
-      if (!_audioCtx || _audioCtx.state !== 'running') return;
-      const t0 = _audioCtx.currentTime;
-      setTimeout(() => {
-        if (_audioCtx && _audioCtx.state === 'running' && _audioCtx.currentTime === t0) {
-          // Zombie confirmed — destroy so _ensureAudioRunning recreates on next gesture.
-          _audioCtx.close().catch(() => {});
-          _audioCtx = null;
-          _audioWasBackgrounded = true;
-        }
-      }, 500);
-    }, 1500);
+      if (_audioCtx && _audioCtx.state === 'running' && _audioCtx.currentTime === _zombieT0) {
+        // Zombie confirmed — destroy so _ensureAudioRunning recreates on next gesture.
+        _audioCtx.close().catch(() => {});
+        _audioCtx = null;
+        _audioWasBackgrounded = true;
+      }
+    }, 2000);
   }
 });
 
