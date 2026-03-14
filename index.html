@@ -1796,7 +1796,11 @@ function _resumeAudio() {
 }
 
 document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) _resumeAudio();
+  if (document.hidden) {
+    _stopTicking();
+  } else {
+    _resumeAudio();
+  }
 });
 
 // iOS reports 'running' but silences audio after backgrounding — always call resume() on touch
