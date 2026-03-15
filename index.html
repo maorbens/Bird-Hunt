@@ -964,8 +964,9 @@ const _sfx = {
   game_over: { raw: null, buf: null },
   tweet:     { raw: null, buf: null },
   ticking:   { raw: null, buf: null },
+  fail:      { raw: null, buf: null },
 };
-[['throw','throw.wav'],['ground','hit_to_ground.wav'],['fire','fire_rock.wav'],['extra','extra_10_seconds.wav'],['button','button.wav'],['game_over','game_over.wav'],['tweet','tweet.wav'],['ticking','last_10_seconds.wav']]
+[['throw','throw.wav'],['ground','hit_to_ground.wav'],['fire','fire_rock.wav'],['extra','extra_10_seconds.wav'],['button','button.wav'],['game_over','game_over.wav'],['tweet','tweet.wav'],['ticking','last_10_seconds.wav'],['fail','fail.wav']]
   .forEach(([key, file]) => {
     fetch(file).then(r => r.arrayBuffer()).then(buf => { _sfx[key].raw = buf; }).catch(() => {});
   });
@@ -1218,6 +1219,7 @@ function onHit(bx, by) {
 function onMiss() {
   consecutiveHits = 0;
   missCount++;
+  playSfx('fail');
 
   if (isFireStone) {
     // Fire miss: cancel fire, no shrink
