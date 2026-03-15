@@ -1572,7 +1572,7 @@ function drawProjectile() {
 
   // Shadow fades with height
   const shadowAlpha = Math.max(0, 0.3 * (1 - (GROUND_Y - py) / 300));
-  if (shadowAlpha > 0) {
+  if (shadowAlpha > 0 && py < GROUND_Y) {
     ctx.globalAlpha = shadowAlpha;
     ctx.fillStyle = '#000';
     const sw = Math.round(24 * stoneScale);
