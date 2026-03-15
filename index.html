@@ -1510,18 +1510,18 @@ function drawSlingshotBands() {
   } else if (bandSnapAnim.active) {
     const e = Math.min(bandSnapEase(bandSnapAnim.t), 1.15);
     ex = bandSnapAnim.fromX + (SLING_X - bandSnapAnim.fromX) * e;
-    ey = bandSnapAnim.fromY + (SLING_Y - bandSnapAnim.fromY) * e;
+    ey = bandSnapAnim.fromY + (SLING_Y - 7 - bandSnapAnim.fromY) * e;
   } else {
-    ex = SLING_X; ey = SLING_Y - 4;
+    ex = SLING_X; ey = SLING_Y - 7;
   }
   // Stone-landing: band dips DOWN elastically when stone arrives (no upward tracking)
   if (!drag && stoneDropAnim.active) {
     const IMPACT_T = 0.60;
     if (stoneDropAnim.t < IMPACT_T) {
-      ey = SLING_Y - 4; // stay at shortened rest until impact
+      ey = SLING_Y - 7; // stay at shortened rest until impact
     } else {
       const ti = (stoneDropAnim.t - IMPACT_T) / (1 - IMPACT_T);
-      ey = SLING_Y + 14 * Math.exp(-8 * ti) * Math.sin(ti * 14);
+      ey = (SLING_Y - 7) + 18 * Math.exp(-5 * ti) * Math.sin(ti * 12);
     }
   }
   ctx.save();
