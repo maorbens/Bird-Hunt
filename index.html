@@ -1697,15 +1697,18 @@ function drawFirstShotHint() {
   }
   if (current) lines.push(current);
 
-  const lineHeight    = size * 1.3;
-  const baseY         = GROUND_Y - marginY;
-  ctx.strokeStyle     = 'rgba(0,0,0,0.85)';
-  ctx.lineWidth       = 3;
-  ctx.lineJoin        = 'round';
+  const lineHeight = size * 1.3;
+  const baseY      = GROUND_Y - marginY;
+  // Draw all shadows first, then all white text — prevents later white
+  // text from covering an earlier shadow in the same pass
+  ctx.fillStyle = 'rgba(0,0,0,0.9)';
   for (let i = 0; i < lines.length; i++) {
     const y = baseY - (lines.length - 1 - i) * lineHeight;
-    ctx.strokeText(lines[i], x, y);
-    ctx.fillStyle = '#ffffff';
+    ctx.fillText(lines[i], x, y + 1);
+  }
+  ctx.fillStyle = '#ffffff';
+  for (let i = 0; i < lines.length; i++) {
+    const y = baseY - (lines.length - 1 - i) * lineHeight;
     ctx.fillText(lines[i], x, y);
   }
   ctx.restore();
