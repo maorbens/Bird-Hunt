@@ -579,7 +579,6 @@ const FIRE_COMBO       = 3;   // consecutive hits to activate fire stone
 const TIME_BONUS_COMBO = 5;   // consecutive hits to add time
 const TIME_BONUS       = 10;  // seconds added
 const CP               = 8;   // pixel size of one "canvas pixel" (pixel-art grid)
-const BAND_REST_OFFSET = 18;  // how many px above SLING_Y the band rests when no stone
 
 // ── State ─────────────────────────────────────────────────────────────────
 let score, consecutiveHits, missCount;
@@ -1101,7 +1100,7 @@ function endDrag() {
   projectile.vx = (SLING_X - drag.x) * power;
   projectile.vy = (SLING_Y - drag.y) * power;
   projectile.x = SLING_X; projectile.y = SLING_Y;
-  bandSnapAnim = { active: true, t: 0, fromX: drag.x, fromY: drag.y + projectile.r * 0.9 };
+  bandSnapAnim = { active: true, t: 0, fromX: drag.x, fromY: drag.y };
   playSfx('throw', 1, 0.5 + 1.5 * Math.min(Math.hypot(projectile.vx, projectile.vy) / (MAX_PULL * 0.22), 1));
   phase = 'flying'; drag = null;
   firstShot = false;
@@ -1511,37 +1510,22 @@ function drawSlingshotBands() {
   } else if (bandSnapAnim.active) {
     const e = Math.min(bandSnapEase(bandSnapAnim.t), 1.15);
     ex = bandSnapAnim.fromX + (SLING_X - bandSnapAnim.fromX) * e;
-    ey = bandSnapAnim.fromY + (SLING_Y - BAND_REST_OFFSET - bandSnapAnim.fromY) * e;
-  } else if (stoneDropAnim.active) {
-    ex = SLING_X; ey = stoneDropBandY();
-  } else if (phase === 'aim') {
-    ex = SLING_X; ey = SLING_Y;               // stone loaded, weight pulls band down
+    ey = bandSnapAnim.fromY + (SLING_Y - bandSnapAnim.fromY) * e;
   } else {
-    ex = SLING_X; ey = SLING_Y - BAND_REST_OFFSET; // no stone – short resting band
+    ex = SLING_X; ey = SLING_Y;
   }
-  // Stone radius: shift vertex to stone bottom (0 = no stone)
-  const r = (drag || stoneDropAnim.active || phase === 'aim') ? projectile.r : 0;
-  const evx = ex, evy = ey + r;   // both bands meet at stone bottom
-
+  // Stone-landing: rubber band vertex tracks the stone's Y position
+  if (!drag && stoneDropAnim.active) {
+    ey = stoneDropAnimY();
+  }
   ctx.save();
   ctx.scale(SCALE, SCALE);
-  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.lineCap = 'square'; ctx.lineJoin = 'miter';
   ctx.strokeStyle = '#C8A046'; ctx.lineWidth = PP;
-  const BOW = 16; // perpendicular bow in px
-  // Cubic bezier: two control points both pushed perpendicularly outward
-  // gives a full, symmetric, natural-looking arc on any angle
-  // Left band bows outward (left): perpendicular = (-dy, dx)/len
-  { const dx = evx - lx, dy = evy - ly, len = Math.hypot(dx, dy);
-    const px = (-dy / len) * BOW, py = (dx / len) * BOW;
-    const cp1x = lx + dx * 0.35 + px, cp1y = ly + dy * 0.35 + py;
-    const cp2x = lx + dx * 0.65 + px, cp2y = ly + dy * 0.65 + py;
-    ctx.beginPath(); ctx.moveTo(lx, ly); ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, evx, evy); ctx.stroke(); }
-  // Right band bows outward (right): perpendicular = (dy, -dx)/len
-  { const dx = evx - rx, dy = evy - ry, len = Math.hypot(dx, dy);
-    const px = (dy / len) * BOW, py = (-dx / len) * BOW;
-    const cp1x = rx + dx * 0.35 + px, cp1y = ry + dy * 0.35 + py;
-    const cp2x = rx + dx * 0.65 + px, cp2y = ry + dy * 0.65 + py;
-    ctx.beginPath(); ctx.moveTo(rx, ry); ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, evx, evy); ctx.stroke(); }
+  ctx.setLineDash([PP * 2, PP]);
+  ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(ex, ey); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(rx, ry); ctx.lineTo(ex, ey); ctx.stroke();
+  ctx.setLineDash([]);
   ctx.restore();
 }
 
@@ -1558,24 +1542,6 @@ function stoneDropAnimY() {
   } else {
     const p = (t - 0.85) / 0.15;
     offset = -4 + 4 * p;         // settle: -4 → 0
-  }
-  return SLING_Y + offset;
-}
-
-// Rubber band vertex Y during stone landing – animates from rest down to loaded position
-function stoneDropBandY() {
-  const t = stoneDropAnim.t;
-  const REST = -BAND_REST_OFFSET; // e.g. -18
-  let offset;
-  if (t <= 0.55) {
-    const p = t / 0.55;
-    offset = REST + (10 - REST) * p * p; // REST → +10 (stone pulls band down, overshoot)
-  } else if (t <= 0.75) {
-    const p = (t - 0.55) / 0.20;
-    offset = 10 - 15 * p;               // +10 → -5
-  } else {
-    const p = (t - 0.75) / 0.25;
-    offset = -5 + 5 * p;                // -5 → 0 (settle at SLING_Y)
   }
   return SLING_Y + offset;
 }
