@@ -248,6 +248,21 @@
         #DED895 17px
       );
     }
+    /* Hint text — bottom right above ground */
+    #intro-hint {
+      position: absolute;
+      bottom: calc(clamp(80px, 17vh, 155px) + clamp(8px, 2vmin, 18px));
+      right: clamp(10px, 3vw, 36px);
+      z-index: 5;
+      font-family: system-ui, -apple-system, sans-serif;
+      font-weight: 700;
+      font-size: clamp(11px, 2.2vmin, 18px);
+      color: #fff;
+      text-shadow: 0 1px 1px rgba(0,0,0,0.9);
+      direction: rtl;
+      text-align: right;
+      pointer-events: none;
+    }
     /* Logo — bare text floating in clouds */
     #intro-logo {
       position: absolute;
@@ -525,6 +540,7 @@
     <div id="intro-clouds-ls-front"></div>
     <canvas id="intro-bird-canvas"></canvas>
     <div id="intro-ground"></div>
+    <div id="intro-hint">משכו את האבן ברוגטקה ושחררו כדי לפגוע בציפור</div>
     <div id="intro-hud">
       <button id="start-btn" onclick="playSfx('button');startGame()">התחל משחק</button>
       <button id="howto-btn">איך משחקים?</button>
