@@ -1750,34 +1750,34 @@ function drawSlingshotGhostHint() {
   if (t < 0.35) {
     // Fade in at rest
     const p = t / 0.35;
-    stoneAlpha = p * 0.45;
-    bandsAlpha = p * 0.35;
+    stoneAlpha = p * 0.75;
+    bandsAlpha = p * 0.70;
   } else if (t < 1.25) {
     // Pull back (slow, deliberate)
     const p = _smoothstep((t - 0.35) / 0.90);
     gx = SLING_X + (pullX - SLING_X) * p;
     gy = SLING_Y + (pullY - SLING_Y) * p;
-    stoneAlpha = 0.45;
-    bandsAlpha = 0.35 + 0.20 * p;
+    stoneAlpha = 0.75;
+    bandsAlpha = 0.70 + 0.15 * p;
   } else if (t < 1.65) {
     // Hold at full pull – gentle pulse
     gx = pullX; gy = pullY;
-    stoneAlpha = 0.45 + 0.10 * Math.abs(Math.sin((t - 1.25) / 0.40 * Math.PI));
-    bandsAlpha = 0.55;
+    stoneAlpha = 0.75 + 0.15 * Math.abs(Math.sin((t - 1.25) / 0.40 * Math.PI));
+    bandsAlpha = 0.85;
   } else if (t < 2.05) {
     // Release: stone vanishes, trajectory emerges
     const p = (t - 1.65) / 0.40;
     gx = null; gy = null;
     stoneAlpha = 0;
-    bandsAlpha = Math.max(0, (1 - p) * 0.30);
+    bandsAlpha = Math.max(0, (1 - p) * 0.50);
     showTrajectory = true;
-    trajAlpha = Math.min(1, p * 4) * 0.55;
+    trajAlpha = Math.min(1, p * 4) * 0.90;
   } else if (t < 2.65) {
     // Trajectory lingers then fades
     gx = null; gy = null;
     stoneAlpha = 0; bandsAlpha = 0;
     showTrajectory = true;
-    trajAlpha = t < 2.40 ? 0.55 : 0.55 * (2.65 - t) / 0.25;
+    trajAlpha = t < 2.40 ? 0.90 : 0.90 * (2.65 - t) / 0.25;
   }
   // 2.65 → 3.2: gap (all alpha 0, implicit)
 
@@ -1787,8 +1787,8 @@ function drawSlingshotGhostHint() {
   // Ghost bands
   if (gx !== null && bandsAlpha > 0) {
     ctx.globalAlpha = bandsAlpha;
-    ctx.strokeStyle = '#77BBFF';
-    ctx.lineWidth = PP;
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.lineWidth = PP * 1.5;
     ctx.lineCap = 'square';
     ctx.setLineDash([PP * 2, PP]);
     ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(gx, gy); ctx.stroke();
@@ -1808,7 +1808,7 @@ function drawSlingshotGhostHint() {
     let px = SLING_X, py = SLING_Y;
     let pvx = (SLING_X - pullX) * power;
     let pvy = (SLING_Y - pullY) * power;
-    ctx.fillStyle = '#99CCFF';
+    ctx.fillStyle = '#FFFFFF';
     ctx.globalAlpha = trajAlpha;
     for (let i = 0; i < 30; i++) {
       pvy += GRAVITY; px += pvx; py += pvy;
