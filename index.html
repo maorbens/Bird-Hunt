@@ -589,6 +589,7 @@ let score, consecutiveHits, missCount;
 let isFireStone, stoneScale;
 let timeLeft, timerRunning, lastTimestamp, timerExpired;
 let flyingBird, projectile, ghostProjectile, particles, floatingTexts, phase, drag;
+let firstShot = true;
 let stoneDropAnim = { active: false, t: 0 };
 const STONE_DROP_DUR = 380;
 let bandSnapAnim = { active: false, t: 0, fromX: 0, fromY: 0 };
@@ -718,6 +719,7 @@ function setupIdleState() {
   floatingTexts   = [];
   gameTimers      = [];
   ghostProjectile = null;
+  firstShot       = false;
   projectile      = newProjectile();
   flyingBird      = newFlyingBird();
   updateUI();
