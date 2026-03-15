@@ -1519,24 +1519,22 @@ function drawSlingshotBands() {
   } else {
     ex = SLING_X; ey = SLING_Y - BAND_REST_OFFSET; // no stone – short resting band
   }
-  // Stone radius for pouch sizing (0 when no stone in sling)
+  // Stone radius: shift vertex to stone bottom (0 = no stone)
   const r = (drag || stoneDropAnim.active || phase === 'aim') ? projectile.r : 0;
-  // Each band wraps to the bottom of the stone; spread width scales with stone radius
-  const elx = ex - r * 0.45, ely = ey + r * 0.9;   // left band endpoint
-  const erx = ex + r * 0.45, ery = ey + r * 0.9;   // right band endpoint
+  const evx = ex, evy = ey + r;   // both bands meet at stone bottom
 
   ctx.save();
   ctx.scale(SCALE, SCALE);
   ctx.lineCap = 'round'; ctx.lineJoin = 'round';
   ctx.strokeStyle = '#C8A046'; ctx.lineWidth = PP;
   // Left band – arc bowing outward
-  const lmx = (lx + elx) / 2, lmy = (ly + ely) / 2;
+  const lmx = (lx + evx) / 2, lmy = (ly + evy) / 2;
   const lcpx = lmx + (lmx - SLING_X) * 0.4, lcpy = lmy;
-  ctx.beginPath(); ctx.moveTo(lx, ly); ctx.quadraticCurveTo(lcpx, lcpy, elx, ely); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(lx, ly); ctx.quadraticCurveTo(lcpx, lcpy, evx, evy); ctx.stroke();
   // Right band – arc bowing outward
-  const rmx = (rx + erx) / 2, rmy = (ry + ery) / 2;
+  const rmx = (rx + evx) / 2, rmy = (ry + evy) / 2;
   const rcpx = rmx + (rmx - SLING_X) * 0.4, rcpy = rmy;
-  ctx.beginPath(); ctx.moveTo(rx, ry); ctx.quadraticCurveTo(rcpx, rcpy, erx, ery); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(rx, ry); ctx.quadraticCurveTo(rcpx, rcpy, evx, evy); ctx.stroke();
   ctx.restore();
 }
 
