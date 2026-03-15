@@ -1512,27 +1512,25 @@ function drawSlingshotBands() {
     const e = Math.min(bandSnapEase(bandSnapAnim.t), 1.15);
     ex = bandSnapAnim.fromX + (SLING_X - bandSnapAnim.fromX) * e;
     ey = bandSnapAnim.fromY + (SLING_Y - BAND_REST_OFFSET - bandSnapAnim.fromY) * e;
+  } else if (stoneDropAnim.active) {
+    ex = SLING_X; ey = stoneDropBandY();
+  } else if (phase === 'aim') {
+    ex = SLING_X; ey = SLING_Y;               // stone loaded, weight pulls band down
   } else {
-    ex = SLING_X; ey = SLING_Y - BAND_REST_OFFSET;
-  }
-  // Stone-landing: band stretches down elastically under stone weight
-  if (!drag && stoneDropAnim.active) {
-    ey = stoneDropBandY();
+    ex = SLING_X; ey = SLING_Y - BAND_REST_OFFSET; // no stone – short resting band
   }
   ctx.save();
   ctx.scale(SCALE, SCALE);
   ctx.lineCap = 'round'; ctx.lineJoin = 'round';
   ctx.strokeStyle = '#C8A046'; ctx.lineWidth = PP;
-  ctx.setLineDash([PP * 2, PP]);
-  // Left band – arc curving inward (toward center)
-  const lcpx = (lx + ex) / 2 + (ex - lx) * 0.18;
-  const lcpy = (ly + ey) / 2;
+  // Left band – arc curving inward; control point pulled 60% toward center line
+  const lmx = (lx + ex) / 2, lmy = (ly + ey) / 2;
+  const lcpx = lmx + (SLING_X - lmx) * 0.6, lcpy = lmy;
   ctx.beginPath(); ctx.moveTo(lx, ly); ctx.quadraticCurveTo(lcpx, lcpy, ex, ey); ctx.stroke();
-  // Right band – arc curving inward (toward center)
-  const rcpx = (rx + ex) / 2 + (ex - rx) * 0.18;
-  const rcpy = (ry + ey) / 2;
+  // Right band – arc curving inward
+  const rmx = (rx + ex) / 2, rmy = (ry + ey) / 2;
+  const rcpx = rmx + (SLING_X - rmx) * 0.6, rcpy = rmy;
   ctx.beginPath(); ctx.moveTo(rx, ry); ctx.quadraticCurveTo(rcpx, rcpy, ex, ey); ctx.stroke();
-  ctx.setLineDash([]);
   ctx.restore();
 }
 
