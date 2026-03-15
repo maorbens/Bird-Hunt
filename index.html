@@ -1699,12 +1699,15 @@ function drawFirstShotHint() {
 
   const lineHeight = size * 1.3;
   const baseY      = GROUND_Y - marginY;
-  // Render shadow as a manual offset pass — avoids ctx.shadow* unreliability
-  // with ctx.scale() on iOS Safari, and avoids the all-sides outline of strokeText.
-  ctx.fillStyle = 'rgba(0,0,0,0.75)';
-  for (let i = 0; i < lines.length; i++) {
-    const y = baseY - (lines.length - 1 - i) * lineHeight;
-    ctx.fillText(lines[i], x + 1, y + 2);
+  // 4-direction outline: draw dark text at ±1px offsets then white on top.
+  // Guarantees readability on any background colour without relying on
+  // ctx.shadow* (unreliable with ctx.scale on iOS Safari).
+  ctx.fillStyle = 'rgba(0,0,0,0.7)';
+  for (const [dx, dy] of [[1,0],[-1,0],[0,1],[0,-1]]) {
+    for (let i = 0; i < lines.length; i++) {
+      const y = baseY - (lines.length - 1 - i) * lineHeight;
+      ctx.fillText(lines[i], x + dx, y + dy);
+    }
   }
   ctx.fillStyle = '#ffffff';
   for (let i = 0; i < lines.length; i++) {
