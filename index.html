@@ -1520,11 +1520,17 @@ function drawSlingshotBands() {
   }
   ctx.save();
   ctx.scale(SCALE, SCALE);
-  ctx.lineCap = 'square'; ctx.lineJoin = 'miter';
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
   ctx.strokeStyle = '#C8A046'; ctx.lineWidth = PP;
   ctx.setLineDash([PP * 2, PP]);
-  ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(ex, ey); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(rx, ry); ctx.lineTo(ex, ey); ctx.stroke();
+  // Left band – arc curving inward (toward center)
+  const lcpx = (lx + ex) / 2 + (ex - lx) * 0.18;
+  const lcpy = (ly + ey) / 2;
+  ctx.beginPath(); ctx.moveTo(lx, ly); ctx.quadraticCurveTo(lcpx, lcpy, ex, ey); ctx.stroke();
+  // Right band – arc curving inward (toward center)
+  const rcpx = (rx + ex) / 2 + (ex - rx) * 0.18;
+  const rcpy = (ry + ey) / 2;
+  ctx.beginPath(); ctx.moveTo(rx, ry); ctx.quadraticCurveTo(rcpx, rcpy, ex, ey); ctx.stroke();
   ctx.setLineDash([]);
   ctx.restore();
 }
