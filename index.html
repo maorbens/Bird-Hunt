@@ -1687,7 +1687,8 @@ function drawFirstShotHint() {
   ctx.direction  = 'rtl';
   ctx.textAlign  = 'right';
   const marginX  = 22;
-  const marginY  = 90;
+  const isPortrait = canvas.height > canvas.width;
+  const marginY  = isPortrait ? 90 : 42;
   const x        = VW - marginX;
   const maxWidth = VW - marginX - (SLING_X + 80);
 
