@@ -1731,9 +1731,9 @@ function _smoothstep(t) { return t * t * (3 - 2 * t); }
 function drawSlingshotGhostHint() {
   if (!firstShot || phase !== 'aim' || drag) return;
 
-  // Pull target: toward center of screen (right + slightly down from slingshot)
-  const pullX = SLING_X + 85;
-  const pullY = SLING_Y + 45;
+  // Pull mostly downward (slight left) → trajectory arcs upward across visible area
+  const pullX = SLING_X - 28;
+  const pullY = SLING_Y + 65;
 
   // Slingshot fork tips (same coords as drawSlingshotBody/Bands)
   const tx = SLING_X, ty = SLING_Y - 10;
