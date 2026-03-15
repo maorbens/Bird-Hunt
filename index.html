@@ -590,6 +590,8 @@ let isFireStone, stoneScale;
 let timeLeft, timerRunning, lastTimestamp, timerExpired;
 let flyingBird, projectile, ghostProjectile, particles, floatingTexts, phase, drag;
 let firstShot = true;
+let ghostPullAnim = { t: 0 };
+const GHOST_CYCLE = 3.2; // seconds per loop
 let stoneDropAnim = { active: false, t: 0 };
 const STONE_DROP_DUR = 380;
 let bandSnapAnim = { active: false, t: 0, fromX: 0, fromY: 0 };
@@ -697,6 +699,7 @@ function initGame() {
   bandSnapAnim    = { active: false, t: 0, fromX: 0, fromY: 0 };
   ghostProjectile = null;
   firstShot       = true;
+  ghostPullAnim   = { t: 0 };
   projectile      = newProjectile();
   flyingBird      = newFlyingBird();
   updateUI();
@@ -1277,6 +1280,11 @@ function endGame() {
 
 // ── Update ────────────────────────────────────────────────────────────────
 function update(dt) {
+  // Ghost pull animation (first-shot demo)
+  if (firstShot && phase === 'aim' && !drag) {
+    ghostPullAnim.t = (ghostPullAnim.t + dt / 60) % GHOST_CYCLE;
+  }
+
   // Stone drop animation
   if (stoneDropAnim.active) {
     stoneDropAnim.t = Math.min(1, stoneDropAnim.t + dt * (1000/60) / STONE_DROP_DUR);
@@ -1717,6 +1725,102 @@ function drawFirstShotHint() {
   ctx.restore();
 }
 
+// ── Draw: Slingshot ghost pull hint ───────────────────────────────────────
+function _smoothstep(t) { return t * t * (3 - 2 * t); }
+
+function drawSlingshotGhostHint() {
+  if (!firstShot || phase !== 'aim' || drag) return;
+
+  // Pull target: lower-left → launches upper-right toward where birds fly
+  const pullX = SLING_X - 68;
+  const pullY = SLING_Y + 52;
+
+  // Slingshot fork tips (same coords as drawSlingshotBody/Bands)
+  const tx = SLING_X, ty = SLING_Y - 10;
+  const lx = tx - 20, ly = ty - 30;
+  const rx = tx + 20, ry = ty - 30;
+
+  // t in seconds within [0, GHOST_CYCLE]
+  const t = ghostPullAnim.t;
+
+  let gx = SLING_X, gy = SLING_Y;
+  let stoneAlpha = 0, bandsAlpha = 0;
+  let showTrajectory = false, trajAlpha = 0;
+
+  if (t < 0.35) {
+    // Fade in at rest
+    const p = t / 0.35;
+    stoneAlpha = p * 0.45;
+    bandsAlpha = p * 0.35;
+  } else if (t < 1.25) {
+    // Pull back (slow, deliberate)
+    const p = _smoothstep((t - 0.35) / 0.90);
+    gx = SLING_X + (pullX - SLING_X) * p;
+    gy = SLING_Y + (pullY - SLING_Y) * p;
+    stoneAlpha = 0.45;
+    bandsAlpha = 0.35 + 0.20 * p;
+  } else if (t < 1.65) {
+    // Hold at full pull – gentle pulse
+    gx = pullX; gy = pullY;
+    stoneAlpha = 0.45 + 0.10 * Math.abs(Math.sin((t - 1.25) / 0.40 * Math.PI));
+    bandsAlpha = 0.55;
+  } else if (t < 2.05) {
+    // Release: stone vanishes, trajectory emerges
+    const p = (t - 1.65) / 0.40;
+    gx = null; gy = null;
+    stoneAlpha = 0;
+    bandsAlpha = Math.max(0, (1 - p) * 0.30);
+    showTrajectory = true;
+    trajAlpha = Math.min(1, p * 4) * 0.55;
+  } else if (t < 2.65) {
+    // Trajectory lingers then fades
+    gx = null; gy = null;
+    stoneAlpha = 0; bandsAlpha = 0;
+    showTrajectory = true;
+    trajAlpha = t < 2.40 ? 0.55 : 0.55 * (2.65 - t) / 0.25;
+  }
+  // 2.65 → 3.2: gap (all alpha 0, implicit)
+
+  ctx.save();
+  ctx.scale(SCALE, SCALE);
+
+  // Ghost bands
+  if (gx !== null && bandsAlpha > 0) {
+    ctx.globalAlpha = bandsAlpha;
+    ctx.strokeStyle = '#77BBFF';
+    ctx.lineWidth = PP;
+    ctx.lineCap = 'square';
+    ctx.setLineDash([PP * 2, PP]);
+    ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(gx, gy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(rx, ry); ctx.lineTo(gx, gy); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // Ghost stone
+  if (gx !== null && stoneAlpha > 0) {
+    ctx.globalAlpha = stoneAlpha;
+    drawSprite(STONE_SPR, STONE_PAL, gx, gy, false, stoneScale);
+  }
+
+  // Ghost trajectory dots
+  if (showTrajectory && trajAlpha > 0) {
+    const power = 0.22;
+    let px = SLING_X, py = SLING_Y;
+    let pvx = (SLING_X - pullX) * power;
+    let pvy = (SLING_Y - pullY) * power;
+    ctx.fillStyle = '#99CCFF';
+    ctx.globalAlpha = trajAlpha;
+    for (let i = 0; i < 30; i++) {
+      pvy += GRAVITY; px += pvx; py += pvy;
+      if (py > GROUND_Y || px > VW) break;
+      if (i % 3 === 0) ctx.fillRect(Math.round(px / PP) * PP, Math.round(py / PP) * PP, PP, PP);
+    }
+  }
+
+  ctx.globalAlpha = 1;
+  ctx.restore();
+}
+
 // ── Game loop ─────────────────────────────────────────────────────────────
 function loop(timestamp) {
   // Timer
@@ -1766,6 +1870,7 @@ function loop(timestamp) {
   drawClouds();
   drawSlingshotBody();
   drawGround();
+  drawSlingshotGhostHint();
   drawTrajectoryHint();
   drawSlingshotBands();
   drawProjectile();
