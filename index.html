@@ -579,7 +579,7 @@ const FIRE_COMBO       = 3;   // consecutive hits to activate fire stone
 const TIME_BONUS_COMBO = 5;   // consecutive hits to add time
 const TIME_BONUS       = 10;  // seconds added
 const CP               = 8;   // pixel size of one "canvas pixel" (pixel-art grid)
-const BAND_REST_OFFSET = 20;  // px above SLING_Y where band rests when no stone
+const BAND_REST_OFFSET = 12;  // px above SLING_Y where band rests when no stone
 
 // ── State ─────────────────────────────────────────────────────────────────
 let score, consecutiveHits, missCount;
@@ -1509,9 +1509,10 @@ function drawSlingshotBands() {
   if (drag) {
     ex = drag.x; ey = drag.y;
   } else if (bandSnapAnim.active) {
-    const e = Math.min(bandSnapEase(bandSnapAnim.t), 1.15);
+    const e  = Math.min(bandSnapEase(bandSnapAnim.t), 1.15);
+    const eY = Math.min(e, 1.0); // no Y overshoot – prevents jump when stone arrives
     ex = bandSnapAnim.fromX + (SLING_X - bandSnapAnim.fromX) * e;
-    ey = bandSnapAnim.fromY + (SLING_Y - BAND_REST_OFFSET - bandSnapAnim.fromY) * e;
+    ey = bandSnapAnim.fromY + (SLING_Y - BAND_REST_OFFSET - bandSnapAnim.fromY) * eY;
   } else if (stoneDropAnim.active) {
     // band sinks smoothly from rest position down to loaded position as stone settles
     const t = stoneDropAnim.t;
