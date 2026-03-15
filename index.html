@@ -1101,7 +1101,7 @@ function endDrag() {
   projectile.vx = (SLING_X - drag.x) * power;
   projectile.vy = (SLING_Y - drag.y) * power;
   projectile.x = SLING_X; projectile.y = SLING_Y;
-  bandSnapAnim = { active: true, t: 0, fromX: drag.x, fromY: drag.y };
+  bandSnapAnim = { active: true, t: 0, fromX: drag.x, fromY: drag.y + projectile.r * 0.9 };
   playSfx('throw', 1, 0.5 + 1.5 * Math.min(Math.hypot(projectile.vx, projectile.vy) / (MAX_PULL * 0.22), 1));
   phase = 'flying'; drag = null;
   firstShot = false;
@@ -1519,18 +1519,24 @@ function drawSlingshotBands() {
   } else {
     ex = SLING_X; ey = SLING_Y - BAND_REST_OFFSET; // no stone – short resting band
   }
+  // Stone radius for pouch sizing (0 when no stone in sling)
+  const r = (drag || stoneDropAnim.active || phase === 'aim') ? projectile.r : 0;
+  // Each band wraps to the bottom of the stone; spread width scales with stone radius
+  const elx = ex - r * 0.45, ely = ey + r * 0.9;   // left band endpoint
+  const erx = ex + r * 0.45, ery = ey + r * 0.9;   // right band endpoint
+
   ctx.save();
   ctx.scale(SCALE, SCALE);
   ctx.lineCap = 'round'; ctx.lineJoin = 'round';
   ctx.strokeStyle = '#C8A046'; ctx.lineWidth = PP;
-  // Left band – arc bowing outward; control point pushed away from center
-  const lmx = (lx + ex) / 2, lmy = (ly + ey) / 2;
+  // Left band – arc bowing outward
+  const lmx = (lx + elx) / 2, lmy = (ly + ely) / 2;
   const lcpx = lmx + (lmx - SLING_X) * 0.4, lcpy = lmy;
-  ctx.beginPath(); ctx.moveTo(lx, ly); ctx.quadraticCurveTo(lcpx, lcpy, ex, ey); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(lx, ly); ctx.quadraticCurveTo(lcpx, lcpy, elx, ely); ctx.stroke();
   // Right band – arc bowing outward
-  const rmx = (rx + ex) / 2, rmy = (ry + ey) / 2;
+  const rmx = (rx + erx) / 2, rmy = (ry + ery) / 2;
   const rcpx = rmx + (rmx - SLING_X) * 0.4, rcpy = rmy;
-  ctx.beginPath(); ctx.moveTo(rx, ry); ctx.quadraticCurveTo(rcpx, rcpy, ex, ey); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(rx, ry); ctx.quadraticCurveTo(rcpx, rcpy, erx, ery); ctx.stroke();
   ctx.restore();
 }
 
