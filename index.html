@@ -1527,17 +1527,21 @@ function drawSlingshotBands() {
   ctx.scale(SCALE, SCALE);
   ctx.lineCap = 'round'; ctx.lineJoin = 'round';
   ctx.strokeStyle = '#C8A046'; ctx.lineWidth = PP;
-  const BOW = 10; // perpendicular bow in px
-  // Left band: control point perpendicular to band direction, bowing outward (left)
+  const BOW = 16; // perpendicular bow in px
+  // Cubic bezier: two control points both pushed perpendicularly outward
+  // gives a full, symmetric, natural-looking arc on any angle
+  // Left band bows outward (left): perpendicular = (-dy, dx)/len
   { const dx = evx - lx, dy = evy - ly, len = Math.hypot(dx, dy);
-    const mx = (lx + evx) / 2, my = (ly + evy) / 2;
-    const cpx = mx + (-dy / len) * BOW, cpy = my + (dx / len) * BOW;
-    ctx.beginPath(); ctx.moveTo(lx, ly); ctx.quadraticCurveTo(cpx, cpy, evx, evy); ctx.stroke(); }
-  // Right band: control point perpendicular to band direction, bowing outward (right)
+    const px = (-dy / len) * BOW, py = (dx / len) * BOW;
+    const cp1x = lx + dx * 0.35 + px, cp1y = ly + dy * 0.35 + py;
+    const cp2x = lx + dx * 0.65 + px, cp2y = ly + dy * 0.65 + py;
+    ctx.beginPath(); ctx.moveTo(lx, ly); ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, evx, evy); ctx.stroke(); }
+  // Right band bows outward (right): perpendicular = (dy, -dx)/len
   { const dx = evx - rx, dy = evy - ry, len = Math.hypot(dx, dy);
-    const mx = (rx + evx) / 2, my = (ry + evy) / 2;
-    const cpx = mx + (dy / len) * BOW, cpy = my + (-dx / len) * BOW;
-    ctx.beginPath(); ctx.moveTo(rx, ry); ctx.quadraticCurveTo(cpx, cpy, evx, evy); ctx.stroke(); }
+    const px = (dy / len) * BOW, py = (-dx / len) * BOW;
+    const cp1x = rx + dx * 0.35 + px, cp1y = ry + dy * 0.35 + py;
+    const cp2x = rx + dx * 0.65 + px, cp2y = ry + dy * 0.65 + py;
+    ctx.beginPath(); ctx.moveTo(rx, ry); ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, evx, evy); ctx.stroke(); }
   ctx.restore();
 }
 
