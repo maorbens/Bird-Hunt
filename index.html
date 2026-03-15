@@ -1283,8 +1283,8 @@ function update(dt) {
     ghostPullAnim.t = (ghostPullAnim.t + dt / 60) % GHOST_CYCLE;
   }
 
-  // Stone drop animation
-  if (stoneDropAnim.active) {
+  // Stone drop animation – wait for band snap to finish first (prevents Y jump)
+  if (stoneDropAnim.active && !bandSnapAnim.active) {
     stoneDropAnim.t = Math.min(1, stoneDropAnim.t + dt * (1000/60) / STONE_DROP_DUR);
     if (stoneDropAnim.t >= 1) stoneDropAnim.active = false;
   }
