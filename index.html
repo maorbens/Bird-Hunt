@@ -248,21 +248,6 @@
         #DED895 17px
       );
     }
-    /* Hint text — bottom right above ground */
-    #intro-hint {
-      position: absolute;
-      bottom: calc(clamp(80px, 17vh, 155px) + clamp(8px, 2vmin, 18px));
-      right: clamp(10px, 3vw, 36px);
-      z-index: 5;
-      font-family: system-ui, -apple-system, sans-serif;
-      font-weight: 700;
-      font-size: clamp(11px, 2.2vmin, 18px);
-      color: #fff;
-      text-shadow: 0 1px 1px rgba(0,0,0,0.9);
-      direction: rtl;
-      text-align: right;
-      pointer-events: none;
-    }
     /* Logo — bare text floating in clouds */
     #intro-logo {
       position: absolute;
@@ -540,7 +525,6 @@
     <div id="intro-clouds-ls-front"></div>
     <canvas id="intro-bird-canvas"></canvas>
     <div id="intro-ground"></div>
-    <div id="intro-hint">משכו את האבן ברוגטקה ושחררו כדי לפגוע בציפור</div>
     <div id="intro-hud">
       <button id="start-btn" onclick="playSfx('button');startGame()">התחל משחק</button>
       <button id="howto-btn">איך משחקים?</button>
@@ -711,6 +695,7 @@ function initGame() {
   stoneDropAnim   = { active: false, t: 0 };
   bandSnapAnim    = { active: false, t: 0, fromX: 0, fromY: 0 };
   ghostProjectile = null;
+  firstShot       = true;
   projectile      = newProjectile();
   flyingBird      = newFlyingBird();
   updateUI();
@@ -1116,6 +1101,7 @@ function endDrag() {
   bandSnapAnim = { active: true, t: 0, fromX: drag.x, fromY: drag.y };
   playSfx('throw', 1, 0.5 + 1.5 * Math.min(Math.hypot(projectile.vx, projectile.vy) / (MAX_PULL * 0.22), 1));
   phase = 'flying'; drag = null;
+  firstShot = false;
 }
 
 canvas.addEventListener('mousedown',  e => { const p = toLogical(e.clientX, e.clientY); startDrag(p.x, p.y); });
@@ -1679,6 +1665,26 @@ function drawTrajectoryHint() {
   ctx.restore();
 }
 
+// ── Draw: First-shot hint ─────────────────────────────────────────────────
+function drawFirstShotHint() {
+  if (!firstShot || phase !== 'aim') return;
+  ctx.save();
+  ctx.scale(SCALE, SCALE);
+  const text    = 'משכו את האבן ברוגטקה ושחררו כדי לפגוע בציפור';
+  const size    = Math.round(Math.max(9, Math.min(14, VW * 0.018)));
+  ctx.font      = `bold ${size}px system-ui, -apple-system, sans-serif`;
+  ctx.direction = 'rtl';
+  ctx.textAlign = 'right';
+  const margin  = 12;
+  const x       = VW - margin;
+  const y       = GROUND_Y - margin;
+  ctx.fillStyle = 'rgba(0,0,0,0.9)';
+  ctx.fillText(text, x + 0, y + 1);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillText(text, x, y);
+  ctx.restore();
+}
+
 // ── Game loop ─────────────────────────────────────────────────────────────
 function loop(timestamp) {
   // Timer
@@ -1734,6 +1740,7 @@ function loop(timestamp) {
   drawFlyingBird();
   drawParticles();
   drawFloatingTexts();
+  drawFirstShotHint();
   requestAnimationFrame(loop);
 }
 
