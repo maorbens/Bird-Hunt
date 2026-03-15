@@ -590,8 +590,6 @@ let isFireStone, stoneScale;
 let timeLeft, timerRunning, lastTimestamp, timerExpired;
 let flyingBird, projectile, ghostProjectile, particles, floatingTexts, phase, drag;
 let firstShot = true;
-let _hintShown = false;
-try { _hintShown = !!localStorage.getItem('birdHuntHinted'); } catch(e) {}
 let ghostPullAnim = { t: 0 };
 const GHOST_CYCLE = 3.2; // seconds per loop
 let stoneDropAnim = { active: false, t: 0 };
@@ -700,7 +698,7 @@ function initGame() {
   stoneDropAnim   = { active: false, t: 0 };
   bandSnapAnim    = { active: false, t: 0, fromX: 0, fromY: 0 };
   ghostProjectile = null;
-  firstShot       = !_hintShown;
+  firstShot       = true;
   ghostPullAnim   = { t: 0 };
   projectile      = newProjectile();
   flyingBird      = newFlyingBird();
@@ -1070,7 +1068,7 @@ function startDrag(lx, ly) {
   if (stoneDropAnim.active) return;
   if (Math.hypot(lx - SLING_X, ly - SLING_Y) < 50) {
     drag = { x: lx, y: ly };
-    if (firstShot) { firstShot = false; _hintShown = true; try { localStorage.setItem('birdHuntHinted', '1'); } catch(e) {} }
+    firstShot = false;
     _stretchLastDist = 0;
     startStretchSound();
   }
@@ -1109,7 +1107,7 @@ function endDrag() {
   bandSnapAnim = { active: true, t: 0, fromX: drag.x, fromY: drag.y };
   playSfx('throw', 1, 0.5 + 1.5 * Math.min(Math.hypot(projectile.vx, projectile.vy) / (MAX_PULL * 0.22), 1));
   phase = 'flying'; drag = null;
-  if (firstShot) { firstShot = false; _hintShown = true; try { localStorage.setItem('birdHuntHinted', '1'); } catch(e) {} }
+  firstShot = false;
 }
 
 canvas.addEventListener('mousedown',  e => { const p = toLogical(e.clientX, e.clientY); startDrag(p.x, p.y); });
@@ -1678,55 +1676,6 @@ function drawTrajectoryHint() {
   ctx.restore();
 }
 
-// ── Draw: First-shot hint ─────────────────────────────────────────────────
-function drawFirstShotHint() {
-  if (!firstShot || phase !== 'aim') return;
-  ctx.save();
-  ctx.scale(SCALE, SCALE);
-  const text     = 'משכו את האבן ברוגטקה ושחררו כדי לפגוע בציפור';
-  const size     = 18;
-  ctx.font       = `bold ${size}px system-ui, -apple-system, sans-serif`;
-  ctx.direction  = 'rtl';
-  ctx.textAlign  = 'right';
-  const marginX  = 35;
-  const marginY  = 35;
-  const x        = VW - marginX;
-  const maxWidth = VW - marginX - (SLING_X + 80);
-
-  // word-wrap into lines that fit maxWidth
-  const words = text.split(' ');
-  const lines = [];
-  let current = '';
-  for (const word of words) {
-    const candidate = current ? current + ' ' + word : word;
-    if (ctx.measureText(candidate).width > maxWidth && current) {
-      lines.push(current);
-      current = word;
-    } else {
-      current = candidate;
-    }
-  }
-  if (current) lines.push(current);
-
-  const lineHeight = size * 1.3;
-  const baseY      = GROUND_Y - marginY;
-  // 4-direction outline: draw dark text at ±1px offsets then white on top.
-  // Guarantees readability on any background colour without relying on
-  // ctx.shadow* (unreliable with ctx.scale on iOS Safari).
-  ctx.fillStyle = 'rgba(0,0,0,0.7)';
-  for (const [dx, dy] of [[1,0],[-1,0],[0,1],[0,-1]]) {
-    for (let i = 0; i < lines.length; i++) {
-      const y = baseY - (lines.length - 1 - i) * lineHeight;
-      ctx.fillText(lines[i], x + dx, y + dy);
-    }
-  }
-  ctx.fillStyle = '#ffffff';
-  for (let i = 0; i < lines.length; i++) {
-    const y = baseY - (lines.length - 1 - i) * lineHeight;
-    ctx.fillText(lines[i], x, y);
-  }
-  ctx.restore();
-}
 
 // ── Draw: Slingshot ghost pull hint ───────────────────────────────────────
 function _smoothstep(t) { return t * t * (3 - 2 * t); }
@@ -1884,7 +1833,6 @@ function loop(timestamp) {
   drawFlyingBird();
   drawParticles();
   drawFloatingTexts();
-  drawFirstShotHint();
   requestAnimationFrame(loop);
 }
 
