@@ -1708,44 +1708,6 @@ function drawFirstShotHint() {
 
   const lineHeight = size * 1.3;
   const baseY      = GROUND_Y - marginY;
-
-  // Measure widest line to find text left edge
-  let maxLineW = 0;
-  for (const line of lines) maxLineW = Math.max(maxLineW, ctx.measureText(line).width);
-  const textCenterY = baseY - ((lines.length - 1) * lineHeight) / 2 - size * 0.3;
-  const arrowStartX = x - maxLineW - 18;
-  const arrowStartY = textCenterY;
-  const arrowEndX   = SLING_X + 110;
-  const arrowEndY   = SLING_Y;
-  const ctrlX       = (arrowStartX + arrowEndX) / 2;
-  const ctrlY       = GROUND_Y - 18;
-
-  // Arrowhead tangent: direction from ctrl→end at t=1
-  const atdx = arrowEndX - ctrlX, atdy = arrowEndY - ctrlY;
-  const atLen = Math.hypot(atdx, atdy);
-  const atx = atdx / atLen, aty = atdy / atLen;
-  const anx = -aty, any = atx;
-  const aLen = 11, aWid = 5;
-
-  function strokeCurvedArrow(color, lw) {
-    ctx.strokeStyle = color;
-    ctx.lineWidth   = lw;
-    ctx.lineCap     = 'round';
-    ctx.lineJoin    = 'round';
-    ctx.beginPath();
-    ctx.moveTo(arrowStartX, arrowStartY);
-    ctx.quadraticCurveTo(ctrlX, ctrlY, arrowEndX, arrowEndY);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(arrowEndX, arrowEndY);
-    ctx.lineTo(arrowEndX - aLen * atx + aWid * anx, arrowEndY - aLen * aty + aWid * any);
-    ctx.moveTo(arrowEndX, arrowEndY);
-    ctx.lineTo(arrowEndX - aLen * atx - aWid * anx, arrowEndY - aLen * aty - aWid * any);
-    ctx.stroke();
-  }
-  strokeCurvedArrow('rgba(0,0,0,0.7)', 4);
-  strokeCurvedArrow('#ffffff', 2.5);
-
   // 4-direction outline: draw dark text at ±1px offsets then white on top.
   // Guarantees readability on any background colour without relying on
   // ctx.shadow* (unreliable with ctx.scale on iOS Safari).
