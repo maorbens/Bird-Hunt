@@ -1722,18 +1722,12 @@ function drawSlingshotGhostHint() {
     trajAlpha  = 0.65;
     trajFromX  = pullX; trajFromY = pullY;
   } else if (t < 2.05) {
-    // Release: stone vanishes, trajectory + bands linger briefly
+    // Release: everything fades out together
     const p = (t - 1.65) / 0.40;
     gx = null; gy = null;
     stoneAlpha = 0;
     bandsAlpha = Math.max(0, (1 - p) * 0.35);
-    trajAlpha  = 0.65 * (1 - p * 0.5);
-    trajFromX  = pullX; trajFromY = pullY;
-  } else if (t < 2.65) {
-    // Trajectory fades out
-    gx = null; gy = null;
-    stoneAlpha = 0; bandsAlpha = 0;
-    trajAlpha  = t < 2.40 ? 0.325 : 0.325 * (2.65 - t) / 0.25;
+    trajAlpha  = 0.65 * (1 - p);
     trajFromX  = pullX; trajFromY = pullY;
   }
   // 2.65 → 3.2: gap (all alpha 0, implicit)
