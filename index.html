@@ -1731,9 +1731,9 @@ function _smoothstep(t) { return t * t * (3 - 2 * t); }
 function drawSlingshotGhostHint() {
   if (!firstShot || phase !== 'aim' || drag) return;
 
-  // Pull target: lower-left → launches upper-right toward where birds fly
-  const pullX = SLING_X - 68;
-  const pullY = SLING_Y + 52;
+  // Pull target: toward center of screen (right + slightly down from slingshot)
+  const pullX = SLING_X + 85;
+  const pullY = SLING_Y + 45;
 
   // Slingshot fork tips (same coords as drawSlingshotBody/Bands)
   const tx = SLING_X, ty = SLING_Y - 10;
@@ -1750,34 +1750,34 @@ function drawSlingshotGhostHint() {
   if (t < 0.35) {
     // Fade in at rest
     const p = t / 0.35;
-    stoneAlpha = p * 0.75;
-    bandsAlpha = p * 0.70;
+    stoneAlpha = p * 0.50;
+    bandsAlpha = p * 0.45;
   } else if (t < 1.25) {
     // Pull back (slow, deliberate)
     const p = _smoothstep((t - 0.35) / 0.90);
     gx = SLING_X + (pullX - SLING_X) * p;
     gy = SLING_Y + (pullY - SLING_Y) * p;
-    stoneAlpha = 0.75;
-    bandsAlpha = 0.70 + 0.15 * p;
+    stoneAlpha = 0.50;
+    bandsAlpha = 0.45 + 0.10 * p;
   } else if (t < 1.65) {
     // Hold at full pull – gentle pulse
     gx = pullX; gy = pullY;
-    stoneAlpha = 0.75 + 0.15 * Math.abs(Math.sin((t - 1.25) / 0.40 * Math.PI));
-    bandsAlpha = 0.85;
+    stoneAlpha = 0.50 + 0.10 * Math.abs(Math.sin((t - 1.25) / 0.40 * Math.PI));
+    bandsAlpha = 0.55;
   } else if (t < 2.05) {
     // Release: stone vanishes, trajectory emerges
     const p = (t - 1.65) / 0.40;
     gx = null; gy = null;
     stoneAlpha = 0;
-    bandsAlpha = Math.max(0, (1 - p) * 0.50);
+    bandsAlpha = Math.max(0, (1 - p) * 0.35);
     showTrajectory = true;
-    trajAlpha = Math.min(1, p * 4) * 0.90;
+    trajAlpha = Math.min(1, p * 4) * 0.65;
   } else if (t < 2.65) {
     // Trajectory lingers then fades
     gx = null; gy = null;
     stoneAlpha = 0; bandsAlpha = 0;
     showTrajectory = true;
-    trajAlpha = t < 2.40 ? 0.90 : 0.90 * (2.65 - t) / 0.25;
+    trajAlpha = t < 2.40 ? 0.65 : 0.65 * (2.65 - t) / 0.25;
   }
   // 2.65 → 3.2: gap (all alpha 0, implicit)
 
