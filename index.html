@@ -1787,8 +1787,8 @@ function drawSlingshotGhostHint() {
   // Ghost bands
   if (gx !== null && bandsAlpha > 0) {
     ctx.globalAlpha = bandsAlpha;
-    ctx.strokeStyle = '#FFFFFF';
-    ctx.lineWidth = PP * 1.5;
+    ctx.strokeStyle = '#C8A046';
+    ctx.lineWidth = PP;
     ctx.lineCap = 'square';
     ctx.setLineDash([PP * 2, PP]);
     ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(gx, gy); ctx.stroke();
