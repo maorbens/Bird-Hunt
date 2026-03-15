@@ -1512,11 +1512,17 @@ function drawSlingshotBands() {
     ex = bandSnapAnim.fromX + (SLING_X - bandSnapAnim.fromX) * e;
     ey = bandSnapAnim.fromY + (SLING_Y - bandSnapAnim.fromY) * e;
   } else {
-    ex = SLING_X; ey = SLING_Y;
+    ex = SLING_X; ey = SLING_Y - 4;
   }
-  // Stone-landing: rubber band vertex tracks the stone's Y position
+  // Stone-landing: band dips DOWN elastically when stone arrives (no upward tracking)
   if (!drag && stoneDropAnim.active) {
-    ey = stoneDropAnimY();
+    const IMPACT_T = 0.60;
+    if (stoneDropAnim.t < IMPACT_T) {
+      ey = SLING_Y - 4; // stay at shortened rest until impact
+    } else {
+      const ti = (stoneDropAnim.t - IMPACT_T) / (1 - IMPACT_T);
+      ey = SLING_Y + 14 * Math.exp(-8 * ti) * Math.sin(ti * 14);
+    }
   }
   ctx.save();
   ctx.scale(SCALE, SCALE);
