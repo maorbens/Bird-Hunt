@@ -1219,7 +1219,7 @@ function onHit(bx, by) {
 function onMiss() {
   consecutiveHits = 0;
   missCount++;
-  playSfx('fail');
+  if (missCount < MISS_LIMIT) playSfx('fail');
 
   if (isFireStone) {
     // Fire miss: cancel fire, no shrink
