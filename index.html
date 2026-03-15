@@ -1723,16 +1723,36 @@ function drawSlingshotGhostHint() {
     bandsAlpha = 0.55;
     trajAlpha  = 0.65;
     trajFromX  = pullX; trajFromY = pullY;
-  } else if (t < 2.05) {
-    // Release: everything fades out together
-    const p = (t - 1.65) / 0.40;
-    gx = null; gy = null;
+  } else if (t < 1.80) {
+    // Snap: bands spring back to rest, stone already released
+    const p = _smoothstep((t - 1.65) / 0.15);
+    gx = pullX + (SLING_X - pullX) * p;
+    gy = pullY + (SLING_Y - 7 - pullY) * p;
     stoneAlpha = 0;
-    bandsAlpha = Math.max(0, (1 - p) * 0.35);
-    trajAlpha  = 0.65 * (1 - p);
-    trajFromX  = pullX; trajFromY = pullY;
+    bandsAlpha = (1 - p) * 0.55;
+    trajAlpha  = 0;
+  } else if (t < 2.70) {
+    // Stone flies along arc (simulate physics from launch point)
+    const flyElapsed = t - 1.80;
+    let px = SLING_X, py = SLING_Y;
+    let pvx = (SLING_X - pullX) * 0.22;
+    let pvy = (SLING_Y - pullY) * 0.22;
+    const steps = Math.round(flyElapsed * 60);
+    let hitGround = false;
+    for (let i = 0; i < steps; i++) {
+      pvy += GRAVITY; px += pvx; py += pvy;
+      if (py >= GROUND_Y) { hitGround = true; break; }
+    }
+    if (hitGround) {
+      gx = null; gy = null; stoneAlpha = 0;
+    } else {
+      gx = px; gy = py;
+      const flyFrac = flyElapsed / 0.90;
+      stoneAlpha = flyFrac < 0.80 ? 0.50 : 0.50 * (1 - (flyFrac - 0.80) / 0.20);
+    }
+    bandsAlpha = 0; trajAlpha = 0;
   }
-  // 2.65 → 3.2: gap (all alpha 0, implicit)
+  // t >= 2.70 → 3.2: gap (all alpha 0, implicit)
 
   ctx.save();
   ctx.scale(SCALE, SCALE);
