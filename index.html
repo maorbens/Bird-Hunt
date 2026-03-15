@@ -579,6 +579,7 @@ const FIRE_COMBO       = 3;   // consecutive hits to activate fire stone
 const TIME_BONUS_COMBO = 5;   // consecutive hits to add time
 const TIME_BONUS       = 10;  // seconds added
 const CP               = 8;   // pixel size of one "canvas pixel" (pixel-art grid)
+const BAND_REST_OFFSET = 18;  // how many px above SLING_Y the band rests when no stone
 
 // ── State ─────────────────────────────────────────────────────────────────
 let score, consecutiveHits, missCount;
@@ -1510,13 +1511,13 @@ function drawSlingshotBands() {
   } else if (bandSnapAnim.active) {
     const e = Math.min(bandSnapEase(bandSnapAnim.t), 1.15);
     ex = bandSnapAnim.fromX + (SLING_X - bandSnapAnim.fromX) * e;
-    ey = bandSnapAnim.fromY + (SLING_Y - bandSnapAnim.fromY) * e;
+    ey = bandSnapAnim.fromY + (SLING_Y - BAND_REST_OFFSET - bandSnapAnim.fromY) * e;
   } else {
-    ex = SLING_X; ey = SLING_Y;
+    ex = SLING_X; ey = SLING_Y - BAND_REST_OFFSET;
   }
-  // Stone-landing: rubber band vertex tracks the stone's Y position
+  // Stone-landing: band stretches down elastically under stone weight
   if (!drag && stoneDropAnim.active) {
-    ey = stoneDropAnimY();
+    ey = stoneDropBandY();
   }
   ctx.save();
   ctx.scale(SCALE, SCALE);
@@ -1548,6 +1549,24 @@ function stoneDropAnimY() {
   } else {
     const p = (t - 0.85) / 0.15;
     offset = -4 + 4 * p;         // settle: -4 → 0
+  }
+  return SLING_Y + offset;
+}
+
+// Rubber band vertex Y during stone landing – animates from rest down to loaded position
+function stoneDropBandY() {
+  const t = stoneDropAnim.t;
+  const REST = -BAND_REST_OFFSET; // e.g. -18
+  let offset;
+  if (t <= 0.55) {
+    const p = t / 0.55;
+    offset = REST + (10 - REST) * p * p; // REST → +10 (stone pulls band down, overshoot)
+  } else if (t <= 0.75) {
+    const p = (t - 0.55) / 0.20;
+    offset = 10 - 15 * p;               // +10 → -5
+  } else {
+    const p = (t - 0.75) / 0.25;
+    offset = -5 + 5 * p;                // -5 → 0 (settle at SLING_Y)
   }
   return SLING_Y + offset;
 }
