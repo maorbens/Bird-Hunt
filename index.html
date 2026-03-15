@@ -1527,14 +1527,17 @@ function drawSlingshotBands() {
   ctx.scale(SCALE, SCALE);
   ctx.lineCap = 'round'; ctx.lineJoin = 'round';
   ctx.strokeStyle = '#C8A046'; ctx.lineWidth = PP;
-  // Left band – arc bowing outward
-  const lmx = (lx + evx) / 2, lmy = (ly + evy) / 2;
-  const lcpx = lmx + (lmx - SLING_X) * 0.4, lcpy = lmy;
-  ctx.beginPath(); ctx.moveTo(lx, ly); ctx.quadraticCurveTo(lcpx, lcpy, evx, evy); ctx.stroke();
-  // Right band – arc bowing outward
-  const rmx = (rx + evx) / 2, rmy = (ry + evy) / 2;
-  const rcpx = rmx + (rmx - SLING_X) * 0.4, rcpy = rmy;
-  ctx.beginPath(); ctx.moveTo(rx, ry); ctx.quadraticCurveTo(rcpx, rcpy, evx, evy); ctx.stroke();
+  const BOW = 10; // perpendicular bow in px
+  // Left band: control point perpendicular to band direction, bowing outward (left)
+  { const dx = evx - lx, dy = evy - ly, len = Math.hypot(dx, dy);
+    const mx = (lx + evx) / 2, my = (ly + evy) / 2;
+    const cpx = mx + (-dy / len) * BOW, cpy = my + (dx / len) * BOW;
+    ctx.beginPath(); ctx.moveTo(lx, ly); ctx.quadraticCurveTo(cpx, cpy, evx, evy); ctx.stroke(); }
+  // Right band: control point perpendicular to band direction, bowing outward (right)
+  { const dx = evx - rx, dy = evy - ry, len = Math.hypot(dx, dy);
+    const mx = (rx + evx) / 2, my = (ry + evy) / 2;
+    const cpx = mx + (dy / len) * BOW, cpy = my + (-dx / len) * BOW;
+    ctx.beginPath(); ctx.moveTo(rx, ry); ctx.quadraticCurveTo(cpx, cpy, evx, evy); ctx.stroke(); }
   ctx.restore();
 }
 
