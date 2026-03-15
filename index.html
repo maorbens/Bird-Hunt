@@ -590,6 +590,8 @@ let isFireStone, stoneScale;
 let timeLeft, timerRunning, lastTimestamp, timerExpired;
 let flyingBird, projectile, ghostProjectile, particles, floatingTexts, phase, drag;
 let firstShot = true;
+let _hintShown = false;
+try { _hintShown = !!localStorage.getItem('birdHuntHinted'); } catch(e) {}
 let ghostPullAnim = { t: 0 };
 const GHOST_CYCLE = 3.2; // seconds per loop
 let stoneDropAnim = { active: false, t: 0 };
@@ -698,7 +700,7 @@ function initGame() {
   stoneDropAnim   = { active: false, t: 0 };
   bandSnapAnim    = { active: false, t: 0, fromX: 0, fromY: 0 };
   ghostProjectile = null;
-  firstShot       = true;
+  firstShot       = !_hintShown;
   ghostPullAnim   = { t: 0 };
   projectile      = newProjectile();
   flyingBird      = newFlyingBird();
@@ -1068,7 +1070,7 @@ function startDrag(lx, ly) {
   if (stoneDropAnim.active) return;
   if (Math.hypot(lx - SLING_X, ly - SLING_Y) < 50) {
     drag = { x: lx, y: ly };
-    firstShot = false;
+    if (firstShot) { firstShot = false; _hintShown = true; try { localStorage.setItem('birdHuntHinted', '1'); } catch(e) {} }
     _stretchLastDist = 0;
     startStretchSound();
   }
@@ -1107,7 +1109,7 @@ function endDrag() {
   bandSnapAnim = { active: true, t: 0, fromX: drag.x, fromY: drag.y };
   playSfx('throw', 1, 0.5 + 1.5 * Math.min(Math.hypot(projectile.vx, projectile.vy) / (MAX_PULL * 0.22), 1));
   phase = 'flying'; drag = null;
-  firstShot = false;
+  if (firstShot) { firstShot = false; _hintShown = true; try { localStorage.setItem('birdHuntHinted', '1'); } catch(e) {} }
 }
 
 canvas.addEventListener('mousedown',  e => { const p = toLogical(e.clientX, e.clientY); startDrag(p.x, p.y); });
