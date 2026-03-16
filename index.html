@@ -1007,10 +1007,10 @@ function initIntroStars() {
     { left: 2,  top: 20, w: 11, layer: 'back'     }, // top-left, title in front
     { left: 8,  top: 39, w: 14, layer: 'front'    }, // center-left, overlaps title
     { left: 48, top: 16, w: 10, layer: 'back'     }, // top-center, title in front
-    { left: 62, top: 42, w: 12, layer: 'ls-front', dx: 50 }, // lower-right, front in landscape
+    { left: 62, top: 42, w: 12, layer: 'ls-front', dx: 50, dy: 5 }, // lower-right, front in landscape
     { left: 84, top: 28, w:  9, layer: 'front'    }, // right, overlaps title edge
   ];
-  cloudData.forEach(({ left, top, w, layer, dx = 0 }, i) => {
+  cloudData.forEach(({ left, top, w, layer, dx = 0, dy = 0 }, i) => {
     const target = layer === 'front' && front   ? front
                  : layer === 'ls-front' && lsFront ? lsFront
                  : back;
@@ -1022,7 +1022,7 @@ function initIntroStars() {
     body.style.cssText = [
       'position:absolute',
       `left:calc(${left}% + ${dx}px)`,
-      `top:calc(${top}% + ${CP}px)`,
+      `top:calc(${top}% + ${CP + dy}px)`,
       `width:${w * CP}px`,
       `height:${3 * CP}px`,
       'background:#fff',
@@ -1034,7 +1034,7 @@ function initIntroStars() {
     puff.style.cssText = [
       'position:absolute',
       `left:calc(${left}% + ${dx + CP}px)`,
-      `top:${top}%`,
+      `top:calc(${top}% + ${dy}px)`,
       `width:${(w - 2) * CP}px`,
       `height:${CP + 4}px`,
       'background:#fff',
