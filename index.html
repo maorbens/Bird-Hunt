@@ -678,7 +678,7 @@
   <div id="profile-overlay">
     <div id="profile-popup">
       <div id="profile-title">יצירת פרופיל</div>
-      <div id="profile-subtitle">בחרו ציפור ושם — הצמד שלכם לצייד!</div>
+      <div id="profile-subtitle">בחרו ציידן ושם — הצמד שלכם לצייד!</div>
       <div id="avatar-grid"></div>
       <div id="name-label">שם משתמש</div>
       <input id="name-input" type="text" maxlength="16"
@@ -809,35 +809,135 @@ try { highScore = parseInt(localStorage.getItem('birdHuntHS') || '0') || 0; } ca
 // ── Profile System ────────────────────────────────────────────────────────
 const PROFILE_KEY = 'birdHuntProfile';
 
-// 8 bird color palettes  [body, dark-outline]
-const AVATAR_COLORS = [
-  ['#F5D800','#886600'],  // 0 Yellow
-  ['#FF4444','#AA1100'],  // 1 Red
-  ['#4488FF','#1144BB'],  // 2 Blue
-  ['#44CC44','#227722'],  // 3 Green
-  ['#FF8800','#AA4400'],  // 4 Orange
-  ['#AA66FF','#6622BB'],  // 5 Purple
-  ['#FF66AA','#BB2266'],  // 6 Pink
-  ['#44DDCC','#118877'],  // 7 Teal
+// 8 distinct hunter characters — each has a unique sprite + palette
+// Palette: pal[0..N], indexed as code-1 in sprite (1-based codes)
+// pal[0]=skin, rest vary per character
+// 2 female hunters: index 6 (warrior) and 7 (explorer)
+const HUNTERS = [
+  // ── 0: Cowboy ── wide hat, thick mustache, red shirt
+  { name: 'קאובוי',
+    pal: ['#F4C484','#8B4010','#5B2000','#111111','#FFFFFF','#6B2A00','#CC2200'],
+    sprite: [
+      [0,0,2,2,2,2,2,0,0],  // hat crown (narrow top)
+      [0,2,2,2,2,2,2,2,0],  // hat body
+      [2,3,3,3,3,3,3,3,2],  // wide brim
+      [0,1,1,1,1,1,1,1,0],  // forehead
+      [0,1,4,1,1,1,4,1,0],  // eyes
+      [0,1,1,1,1,1,1,1,0],  // cheeks
+      [0,6,6,6,6,6,6,6,0],  // thick mustache (full row)
+      [0,1,1,5,5,5,1,1,0],  // teeth / grin
+      [0,0,7,7,7,7,7,0,0],  // red shirt collar
+    ]},
+
+  // ── 1: Army Ranger ── helmet, stone-faced, uniform
+  { name: "ריינג'ר",
+    pal: ['#C8A870','#4A6030','#2A4010','#111111','#FFFFFF','#888844','#3A5010'],
+    sprite: [
+      [2,2,2,2,2,2,2,2,2],  // helmet — full width
+      [3,2,2,2,2,2,2,2,3],  // helmet with strap edges
+      [0,3,1,1,1,1,1,3,0],  // strap padding + face skin
+      [0,1,1,1,1,1,1,1,0],  // forehead
+      [0,4,4,1,1,1,4,4,0],  // heavy brows (at outer edges — stern)
+      [0,1,4,1,1,1,4,1,0],  // eyes
+      [0,1,1,1,4,1,1,1,0],  // nose area
+      [0,1,1,4,4,4,1,1,0],  // tight pressed lips
+      [0,0,7,7,7,7,7,0,0],  // military collar
+    ]},
+
+  // ── 2: Grumpy Old Hunter ── orange cap, grey full beard, angry brows
+  { name: 'זקן כועס',
+    pal: ['#F0D0A8','#CC5500','#883300','#111111','#FFFFFF','#AAAAAA','#FF6600'],
+    sprite: [
+      [0,2,2,2,2,2,2,2,0],  // blaze-orange hunting cap
+      [2,3,3,3,3,3,3,3,2],  // cap brim
+      [0,1,1,1,1,1,1,1,0],  // forehead
+      [0,4,4,1,1,1,4,4,0],  // angry bushy brows (outer corners)
+      [0,1,4,1,1,1,4,1,0],  // squinting eyes
+      [0,6,6,1,1,1,6,6,0],  // grey beard creeping up sides
+      [0,6,6,6,4,6,6,6,0],  // beard + downturned frown
+      [0,6,6,6,6,6,6,6,0],  // dense full beard covering chin
+      [0,0,7,7,7,7,7,0,0],  // orange hunting vest
+    ]},
+
+  // ── 3: Young Sporty ── backwards cap, big friendly smile, whites of eyes
+  { name: 'ספורטאי',
+    pal: ['#E8A870','#2244CC','#1133AA','#111111','#FFFFFF','#FF6600','#EEEEEE'],
+    sprite: [
+      [0,2,2,2,2,2,2,2,0],  // cap dome (backwards, no brim front)
+      [3,3,3,3,3,3,3,3,3],  // cap edge/back brim wraps around
+      [0,1,1,1,1,1,1,1,0],  // forehead
+      [0,1,1,1,1,1,1,1,0],  // open forehead (no brim in face)
+      [0,1,4,5,1,5,4,1,0],  // eyes with white glints (happy, wide open)
+      [0,1,1,1,5,1,1,1,0],  // nose highlight
+      [0,1,5,5,5,5,5,1,0],  // BIG teeth smile
+      [0,1,1,1,1,1,1,1,0],  // round chin
+      [0,0,7,7,7,7,7,0,0],  // white tee collar
+    ]},
+
+  // ── 4: Rugged Beanie ── grey beanie, mono-brow, heavy stubble / dark skin
+  { name: 'מחוספס',
+    pal: ['#A86830','#667788','#445566','#111111','#FFFFFF','#5A2E10','#223344'],
+    sprite: [
+      [2,2,2,2,2,2,2,2,2],  // beanie top (full width)
+      [0,2,2,2,2,2,2,2,0],  // beanie body
+      [0,3,3,3,3,3,3,3,0],  // beanie fold/cuff
+      [0,1,1,1,1,1,1,1,0],  // forehead
+      [0,1,4,4,4,4,4,1,0],  // UNI-BROW (fused angry brow)
+      [0,1,4,1,1,1,4,1,0],  // eyes under uni-brow
+      [0,6,6,6,4,6,6,6,0],  // heavy stubble + downward mouth
+      [0,6,6,6,6,6,6,6,0],  // dense stubble / short beard
+      [0,0,7,7,7,7,7,0,0],  // dark jacket collar
+    ]},
+
+  // ── 5: Professor ── parted hair, round glasses 2 rows, bow-tie
+  { name: "פרופ'",
+    pal: ['#FDDCB0','#443322','#886644','#111111','#FFFFFF','#BB8822','#553388'],
+    sprite: [
+      [0,2,2,2,2,2,2,2,0],  // neat dark hair across top
+      [2,3,1,1,1,1,1,3,2],  // parted: hair at sides, skin center
+      [0,1,1,1,1,1,1,1,0],  // high forehead
+      [0,1,1,1,1,1,1,1,0],  // more forehead
+      [0,6,6,6,4,6,6,6,0],  // round glasses — top frame + nose bridge
+      [0,4,4,4,1,4,4,4,0],  // pupils inside lenses + skin nose bridge
+      [0,1,1,1,1,1,1,1,0],  // cheeks below glasses
+      [0,1,1,5,4,5,1,1,0],  // gentle smile
+      [0,0,7,7,7,7,7,0,0],  // purple bow-tie / collar
+    ]},
+
+  // ── 6: Warrior Woman (female) ── dark hair, red war-paint streaks
+  { name: 'לוחמת',
+    pal: ['#C87840','#221100','#330800','#111111','#FFFFFF','#CC2200','#2244AA'],
+    sprite: [
+      [0,2,2,2,4,2,2,2,0],  // dark hair, centre parting
+      [2,2,1,1,1,1,1,2,2],  // hair framing face (wider)
+      [0,1,1,1,1,1,1,1,0],  // forehead
+      [0,6,1,1,1,1,1,6,0],  // WAR PAINT — red streaks at cheek edges (col 1,7)
+      [0,1,4,1,1,1,4,1,0],  // strong, determined eyes
+      [0,6,1,1,1,1,1,6,0],  // war paint second stripe
+      [0,1,1,1,4,1,1,1,0],  // set lips — tiny dot mouth
+      [0,1,1,1,1,1,1,1,0],  // defined chin
+      [0,0,7,7,7,7,7,0,0],  // blue tribal clothing
+    ]},
+
+  // ── 7: Explorer Woman (female) ── wide safari hat, sunglasses, bright smile
+  { name: 'חוקרת',
+    pal: ['#F8D4A0','#8B6020','#C89040','#111111','#FFFFFF','#226688','#CC8800'],
+    sprite: [
+      [0,0,2,2,2,2,2,0,0],  // explorer hat crown (narrow top)
+      [0,2,3,3,3,3,3,2,0],  // hat body
+      [2,3,3,3,3,3,3,3,2],  // wide safari brim (full 9 cols)
+      [0,1,1,1,1,1,1,1,0],  // forehead below hat
+      [0,6,6,6,6,6,6,6,0],  // sunglasses frame (full-width)
+      [0,6,4,4,4,4,4,6,0],  // dark lenses + side frames
+      [0,1,1,1,1,1,1,1,0],  // cheeks below shades
+      [0,1,5,5,4,5,5,1,0],  // confident smile with teeth
+      [0,0,7,7,7,7,7,0,0],  // khaki collar
+    ]},
 ];
 
-// Front-facing bird face: 9 wide × 8 tall
-// 1=body  2=dark-outline  3=white-glint  4=black-pupil  5=beak-orange
-const AVATAR_SPRITE = [
-  [0,0,2,0,2,0,2,0,0],  // crown — three dark spikes
-  [0,2,1,1,1,1,1,2,0],  // head top
-  [2,1,1,4,3,4,3,1,2],  // eyes: [dark,white-glint] × 2
-  [2,1,1,1,1,1,1,1,2],  // cheeks
-  [2,1,1,1,5,1,1,1,2],  // above beak
-  [0,2,1,5,5,5,1,2,0],  // beak
-  [0,0,2,1,1,1,2,0,0],  // chin
-  [0,0,0,2,2,2,0,0,0],  // neck
-];
-
-function _drawAvatarOnCtx(targetCtx, ox, oy, ppSize, avatarIndex) {
-  const [body, dark] = AVATAR_COLORS[avatarIndex];
-  const pal = [body, dark, '#FFFFFF', '#111111', '#FF9900'];
-  AVATAR_SPRITE.forEach((row, r) => {
+function _drawHunterOnCtx(targetCtx, ox, oy, ppSize, index) {
+  const { pal, sprite } = HUNTERS[index];
+  sprite.forEach((row, r) => {
     row.forEach((code, c) => {
       if (!code) return;
       targetCtx.fillStyle = pal[code - 1];
@@ -851,12 +951,13 @@ function _drawAvatarOnCtx(targetCtx, ox, oy, ppSize, avatarIndex) {
   });
 }
 
-// Draw avatar face centred at (cx, cy), total width = displaySize
-function drawAvatarFace(targetCtx, cx, cy, avatarIndex, displaySize) {
-  const ppSize = displaySize / 9;
+// Draw hunter face centred at (cx, cy), total width = displaySize
+function drawAvatarFace(targetCtx, cx, cy, index, displaySize) {
+  const cols = 9, rows = HUNTERS[index].sprite.length;
+  const ppSize = displaySize / cols;
   const ox = cx - displaySize / 2;
-  const oy = cy - (8 * ppSize) / 2;
-  _drawAvatarOnCtx(targetCtx, ox, oy, ppSize, avatarIndex);
+  const oy = cy - (rows * ppSize) / 2;
+  _drawHunterOnCtx(targetCtx, ox, oy, ppSize, index);
 }
 
 // ── Profile CRUD ──────────────────────────────────────────────────────────
@@ -889,9 +990,10 @@ let _pickedAvatar = 0;
 function _buildAvatarGrid() {
   const grid = document.getElementById('avatar-grid');
   grid.innerHTML = '';
-  AVATAR_COLORS.forEach((_, i) => {
+  HUNTERS.forEach((hunter, i) => {
     const cell = document.createElement('div');
     cell.className = 'avatar-cell' + (i === _pickedAvatar ? ' selected' : '');
+    cell.title = hunter.name;
     const c = document.createElement('canvas');
     c.width = 72; c.height = 72;
     c.getContext('2d').imageSmoothingEnabled = false;
