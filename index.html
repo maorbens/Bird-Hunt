@@ -572,6 +572,28 @@
     }
 
     /* ── Profile bar – full-width floating pixel-art panel ───────────────── */
+    #info-btn {
+      display: none;
+      position: absolute;
+      top: max(8px, env(safe-area-inset-top));
+      left: 16px;
+      z-index: 10;
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background: #fff;
+      border: 3px solid #000;
+      box-shadow: 3px 3px 0 #000, inset 2px 2px 0 #fff, inset -2px -2px 0 #aaa;
+      cursor: pointer;
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(16px, 3.5vmin, 24px);
+      color: #111;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.07s, box-shadow 0.07s;
+    }
+    #info-btn:hover { background: #f2f2f2; box-shadow: 3px 3px 0 #000, inset 2px 2px 0 #fff, inset -2px -2px 0 #999; }
+    #info-btn:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 #000; }
     #profile-chip {
       display: none;
       position: absolute;
@@ -721,9 +743,11 @@
     <div id="intro-hud">
       <div style="display:flex;flex-direction:column;gap:inherit">
         <button id="start-btn" onclick="playSfx('button');startGame()">PLAY</button>
-        <button id="howto-btn">INSTRUCTIONS</button>
+        <button id="howto-btn">TOP 100</button>
       </div>
     </div>
+    <!-- Info button -->
+    <button id="info-btn">i</button>
     <!-- Profile bar: full-width floating pixel panel, click to edit -->
     <div id="profile-chip" onclick="playSfx('button');showProfileModal('edit')">
       <span id="profile-chip-hs"></span>
@@ -918,6 +942,7 @@ function _updateProfileChip() {
   if (!userProfile) return;
   const chip = document.getElementById('profile-chip');
   chip.style.display = 'flex';
+  document.getElementById('info-btn').style.display = 'flex';
   const hs = userProfile.stats.highScore;
   document.getElementById('profile-chip-hs').textContent = String(hs);
   document.getElementById('profile-chip-img').src = _svgSrc(userProfile.avatarIndex);
@@ -2389,7 +2414,7 @@ initProfile();
 requestAnimationFrame(loop);
 preloadSfx();
 
-document.getElementById('howto-btn').addEventListener('click', () => {
+document.getElementById('info-btn').addEventListener('click', () => {
   playSfx('button');
   document.getElementById('howto-overlay').classList.add('visible');
 });
