@@ -729,7 +729,7 @@
     </div>
     <!-- Profile chip: avatar + name, click to edit -->
     <div id="profile-chip" onclick="playSfx('button');showProfileModal('edit')">
-      <canvas id="profile-chip-canvas" width="54" height="54"></canvas>
+      <canvas id="profile-chip-canvas" width="68" height="68"></canvas>
       <div id="profile-chip-info">
         <span id="profile-chip-name"></span>
         <span id="profile-chip-hs"></span>
@@ -814,124 +814,163 @@ const PROFILE_KEY = 'birdHuntProfile';
 // pal[0]=skin, rest vary per character
 // 2 female hunters: index 6 (warrior) and 7 (explorer)
 const HUNTERS = [
-  // ── 0: Cowboy ── wide hat, thick mustache, red shirt
+  // ── 0: COWBOY ── tall 4-row hat, handlebar mustache sticking PAST face edges
   { name: 'קאובוי',
-    pal: ['#F4C484','#8B4010','#5B2000','#111111','#FFFFFF','#6B2A00','#CC2200'],
+    pal: ['#F4C080','#7B3C00','#A05010','#111111','#FFFFFF','#5A2A00','#CC2200'],
+    //    1=skin    2=hat-dk  3=hat-lt  4=dark    5=teeth   6=mstch   7=shirt
     sprite: [
-      [0,0,2,2,2,2,2,0,0],  // hat crown (narrow top)
-      [0,2,2,2,2,2,2,2,0],  // hat body
-      [2,3,3,3,3,3,3,3,2],  // wide brim
-      [0,1,1,1,1,1,1,1,0],  // forehead
-      [0,1,4,1,1,1,4,1,0],  // eyes
-      [0,1,1,1,1,1,1,1,0],  // cheeks
-      [0,6,6,6,6,6,6,6,0],  // thick mustache (full row)
-      [0,1,1,5,5,5,1,1,0],  // teeth / grin
-      [0,0,7,7,7,7,7,0,0],  // red shirt collar
+      [0,0,0,0,3,3,3,3,3,0,0,0],  // hat crown tip (narrow)
+      [0,0,0,2,2,2,2,2,2,2,0,0],  // hat body
+      [0,0,0,2,2,2,2,2,2,2,0,0],  // hat body
+      [0,0,2,2,2,2,2,2,2,2,2,0],  // hat body (widens)
+      [2,2,3,3,3,3,3,3,3,3,3,2],  // brim wider than face
+      [0,1,1,1,1,1,1,1,1,1,1,0],  // forehead
+      [0,1,1,4,1,1,1,1,4,1,1,0],  // eyes (col 3 & 8)
+      [0,1,1,1,1,1,1,1,1,1,1,0],  // nose/cheeks
+      [6,6,1,6,6,6,6,6,6,1,6,6],  // HANDLEBAR — curls stick out at col 0-1 & 10-11
+      [0,1,1,1,5,5,5,5,1,1,1,0],  // grin with teeth
+      [0,1,1,1,1,1,1,1,1,1,1,0],  // chin
+      [0,0,7,7,7,7,7,7,7,7,0,0],  // red shirt
+      [0,0,0,7,7,7,7,7,7,0,0,0],
     ]},
 
-  // ── 1: Army Ranger ── helmet, stone-faced, uniform
+  // ── 1: ARMY RANGER ── helmet spans full 12px wide, 3px brows each side
   { name: "ריינג'ר",
-    pal: ['#C8A870','#4A6030','#2A4010','#111111','#FFFFFF','#888844','#3A5010'],
+    pal: ['#C8A060','#3A5C20','#2A4010','#111111','#FFFFFF','#888044','#3A5010'],
     sprite: [
-      [2,2,2,2,2,2,2,2,2],  // helmet — full width
-      [3,2,2,2,2,2,2,2,3],  // helmet with strap edges
-      [0,3,1,1,1,1,1,3,0],  // strap padding + face skin
-      [0,1,1,1,1,1,1,1,0],  // forehead
-      [0,4,4,1,1,1,4,4,0],  // heavy brows (at outer edges — stern)
-      [0,1,4,1,1,1,4,1,0],  // eyes
-      [0,1,1,1,4,1,1,1,0],  // nose area
-      [0,1,1,4,4,4,1,1,0],  // tight pressed lips
-      [0,0,7,7,7,7,7,0,0],  // military collar
+      [2,2,2,2,2,2,2,2,2,2,2,2],  // helmet full width
+      [2,2,2,2,2,2,2,2,2,2,2,2],  // helmet
+      [0,2,2,2,2,2,2,2,2,2,2,0],  // helmet lower edge
+      [3,3,1,1,1,1,1,1,1,1,3,3],  // chin strap + face skin
+      [0,1,1,1,1,1,1,1,1,1,1,0],  // forehead
+      [0,4,4,4,1,1,1,1,4,4,4,0],  // 3px HEAVY BROWS each side
+      [0,1,1,4,1,1,1,1,4,1,1,0],  // eyes (col 3 & 8)
+      [0,1,1,1,1,4,4,1,1,1,1,0],  // nose shadow
+      [0,1,1,1,4,4,4,4,1,1,1,0],  // tight pressed lips
+      [0,1,1,1,1,1,1,1,1,1,1,0],  // square jaw
+      [0,1,1,1,1,1,1,1,1,1,1,0],  // chin
+      [0,0,7,7,7,7,7,7,7,7,0,0],  // military uniform
+      [0,0,0,7,7,7,7,7,7,0,0,0],
     ]},
 
-  // ── 2: Grumpy Old Hunter ── orange cap, grey full beard, angry brows
+  // ── 2: GRUMPY OLD HUNTER ── orange cap, massive grey beard covering 5 rows
   { name: 'זקן כועס',
-    pal: ['#F0D0A8','#CC5500','#883300','#111111','#FFFFFF','#AAAAAA','#FF6600'],
+    pal: ['#EECAA0','#CC5500','#884400','#111111','#FFFFFF','#CCCCCC','#FF6600'],
+    //    1=skin    2=cap     3=visor   4=dark    5=white   6=beard   7=vest
     sprite: [
-      [0,2,2,2,2,2,2,2,0],  // blaze-orange hunting cap
-      [2,3,3,3,3,3,3,3,2],  // cap brim
-      [0,1,1,1,1,1,1,1,0],  // forehead
-      [0,4,4,1,1,1,4,4,0],  // angry bushy brows (outer corners)
-      [0,1,4,1,1,1,4,1,0],  // squinting eyes
-      [0,6,6,1,1,1,6,6,0],  // grey beard creeping up sides
-      [0,6,6,6,4,6,6,6,0],  // beard + downturned frown
-      [0,6,6,6,6,6,6,6,0],  // dense full beard covering chin
-      [0,0,7,7,7,7,7,0,0],  // orange hunting vest
+      [0,0,2,2,2,2,2,2,2,2,0,0],  // orange hunting cap
+      [0,2,2,2,2,2,2,2,2,2,2,0],
+      [2,3,3,3,3,3,3,3,3,3,3,2],  // visor brim
+      [0,1,1,1,1,1,1,1,1,1,1,0],  // forehead
+      [0,4,4,1,1,1,1,1,1,4,4,0],  // thick angry brows (2px per side)
+      [0,1,1,4,1,1,1,1,4,1,1,0],  // beady eyes (col 3 & 8)
+      [0,6,6,6,1,1,1,6,6,6,6,0],  // beard creeping up to eye level
+      [0,6,6,6,6,4,6,6,6,6,6,0],  // beard with frown center
+      [0,6,6,6,6,6,6,6,6,6,6,0],  // massive beard row 1
+      [0,6,6,6,6,6,6,6,6,6,6,0],  // massive beard row 2
+      [0,6,6,6,6,6,6,6,6,6,6,0],  // massive beard row 3
+      [0,0,7,7,7,7,7,7,7,7,0,0],  // orange vest
+      [0,0,0,7,7,7,7,7,7,0,0,0],
     ]},
 
-  // ── 3: Young Sporty ── backwards cap, big friendly smile, whites of eyes
+  // ── 3: YOUNG SPORTY ── backwards cap, freckles on cheeks, teeth fill full row
   { name: 'ספורטאי',
-    pal: ['#E8A870','#2244CC','#1133AA','#111111','#FFFFFF','#FF6600','#EEEEEE'],
+    pal: ['#E8A060','#1A44CC','#0E2EA8','#111111','#FFFFFF','#CC5500','#EEEEEE'],
+    //    1=skin    2=cap     3=brim    4=dark    5=teeth   6=freckle 7=tee
     sprite: [
-      [0,2,2,2,2,2,2,2,0],  // cap dome (backwards, no brim front)
-      [3,3,3,3,3,3,3,3,3],  // cap edge/back brim wraps around
-      [0,1,1,1,1,1,1,1,0],  // forehead
-      [0,1,1,1,1,1,1,1,0],  // open forehead (no brim in face)
-      [0,1,4,5,1,5,4,1,0],  // eyes with white glints (happy, wide open)
-      [0,1,1,1,5,1,1,1,0],  // nose highlight
-      [0,1,5,5,5,5,5,1,0],  // BIG teeth smile
-      [0,1,1,1,1,1,1,1,0],  // round chin
-      [0,0,7,7,7,7,7,0,0],  // white tee collar
+      [0,0,2,2,2,2,2,2,2,2,0,0],  // cap dome
+      [0,2,2,2,2,2,2,2,2,2,2,0],
+      [3,3,3,3,3,3,3,3,3,3,3,3],  // backwards brim wraps all around
+      [0,1,1,1,1,1,1,1,1,1,1,0],  // forehead
+      [0,1,1,1,1,1,1,1,1,1,1,0],  // open forehead (youthful)
+      [0,1,4,5,1,1,1,1,5,4,1,0],  // friendly eyes + white glints
+      [0,1,6,1,1,1,1,1,1,6,1,0],  // FRECKLE DOTS on cheeks (col 2 & 9)
+      [0,1,1,1,1,1,1,1,1,1,1,0],
+      [0,1,5,5,5,5,5,5,5,5,1,0],  // MEGA SMILE — full row of teeth
+      [0,1,4,1,1,1,1,1,1,4,1,0],  // smile corners
+      [0,1,1,1,1,1,1,1,1,1,1,0],  // round chin
+      [0,0,7,7,7,7,7,7,7,7,0,0],
+      [0,0,0,7,7,7,7,7,7,0,0,0],
     ]},
 
-  // ── 4: Rugged Beanie ── grey beanie, mono-brow, heavy stubble / dark skin
+  // ── 4: RUGGED BEANIE ── dark skin, full-width beanie, uni-brow full face width
   { name: 'מחוספס',
-    pal: ['#A86830','#667788','#445566','#111111','#FFFFFF','#5A2E10','#223344'],
+    pal: ['#8A5020','#556677','#3D4D5A','#111111','#FFFFFF','#3D1500','#223344'],
+    //    1=skin    2=beanie  3=cuff    4=dark    5=white   6=stubble 7=jacket
     sprite: [
-      [2,2,2,2,2,2,2,2,2],  // beanie top (full width)
-      [0,2,2,2,2,2,2,2,0],  // beanie body
-      [0,3,3,3,3,3,3,3,0],  // beanie fold/cuff
-      [0,1,1,1,1,1,1,1,0],  // forehead
-      [0,1,4,4,4,4,4,1,0],  // UNI-BROW (fused angry brow)
-      [0,1,4,1,1,1,4,1,0],  // eyes under uni-brow
-      [0,6,6,6,4,6,6,6,0],  // heavy stubble + downward mouth
-      [0,6,6,6,6,6,6,6,0],  // dense stubble / short beard
-      [0,0,7,7,7,7,7,0,0],  // dark jacket collar
+      [2,2,2,2,2,2,2,2,2,2,2,2],  // beanie full-width
+      [0,2,2,2,2,2,2,2,2,2,2,0],
+      [0,3,3,3,3,3,3,3,3,3,3,0],  // beanie cuff fold
+      [0,1,1,1,1,1,1,1,1,1,1,0],  // forehead
+      [0,1,4,4,4,4,4,4,4,4,1,0],  // UNI-BROW spans full face (cols 2–9)
+      [0,1,4,1,1,1,1,1,1,4,1,0],  // eyes (col 2 & 9)
+      [0,6,6,6,1,1,1,1,6,6,6,0],  // stubble up the sides
+      [0,6,6,6,6,4,4,6,6,6,6,0],  // heavy stubble + downturned mouth
+      [0,6,6,6,6,6,6,6,6,6,6,0],  // dense stubble
+      [0,6,6,6,6,6,6,6,6,6,6,0],  // chin stubble
+      [0,1,1,6,6,6,6,6,6,1,1,0],  // jawline skin still visible
+      [0,0,7,7,7,7,7,7,7,7,0,0],
+      [0,0,0,7,7,7,7,7,7,0,0,0],
     ]},
 
-  // ── 5: Professor ── parted hair, round glasses 2 rows, bow-tie
+  // ── 5: PROFESSOR ── parted hair, 3-row round glasses, bow-tie
   { name: "פרופ'",
-    pal: ['#FDDCB0','#443322','#886644','#111111','#FFFFFF','#BB8822','#553388'],
+    pal: ['#FFE4C0','#332211','#886644','#111111','#FFFFFF','#BB8822','#553388'],
+    //    1=skin    2=hair-dk  3=hair-lt  4=dark   5=teeth   6=glasses 7=bowtie
     sprite: [
-      [0,2,2,2,2,2,2,2,0],  // neat dark hair across top
-      [2,3,1,1,1,1,1,3,2],  // parted: hair at sides, skin center
-      [0,1,1,1,1,1,1,1,0],  // high forehead
-      [0,1,1,1,1,1,1,1,0],  // more forehead
-      [0,6,6,6,4,6,6,6,0],  // round glasses — top frame + nose bridge
-      [0,4,4,4,1,4,4,4,0],  // pupils inside lenses + skin nose bridge
-      [0,1,1,1,1,1,1,1,0],  // cheeks below glasses
-      [0,1,1,5,4,5,1,1,0],  // gentle smile
-      [0,0,7,7,7,7,7,0,0],  // purple bow-tie / collar
+      [0,0,2,2,2,2,2,2,2,2,0,0],  // neat dark hair
+      [2,3,3,1,1,1,1,1,1,3,3,2],  // parted: dark sides, skin center
+      [0,1,1,1,1,1,1,1,1,1,1,0],  // high forehead
+      [0,1,1,1,1,1,1,1,1,1,1,0],  // forehead
+      [0,0,6,6,6,4,4,6,6,6,0,0],  // glasses top frame + nose bridge
+      [0,0,6,4,6,1,1,6,4,6,0,0],  // pupils (4) inside lenses, skin bridge
+      [0,0,6,6,6,4,4,6,6,6,0,0],  // glasses bottom frame
+      [0,1,1,1,1,1,1,1,1,1,1,0],  // cheeks below glasses
+      [0,1,1,1,5,4,5,1,1,1,1,0],  // gentle smile
+      [0,1,1,1,1,1,1,1,1,1,1,0],  // chin
+      [0,7,7,4,7,7,7,7,4,7,7,0],  // BOW-TIE: wings(7) + knot-edge(4)
+      [0,0,0,7,7,7,7,7,7,0,0,0],  // collar
+      [0,0,0,7,7,7,7,7,7,0,0,0],
     ]},
 
-  // ── 6: Warrior Woman (female) ── dark hair, red war-paint streaks
+  // ── 6: WARRIOR WOMAN (female) ── 2px thick dark-hair frame, double 2px war-paint
   { name: 'לוחמת',
-    pal: ['#C87840','#221100','#330800','#111111','#FFFFFF','#CC2200','#2244AA'],
+    pal: ['#C07040','#1A0A00','#380E00','#111111','#FFFFFF','#CC2200','#224488'],
+    //    1=skin    2=hair-dk  3=hair    4=dark    5=white   6=warpaint 7=clothing
     sprite: [
-      [0,2,2,2,4,2,2,2,0],  // dark hair, centre parting
-      [2,2,1,1,1,1,1,2,2],  // hair framing face (wider)
-      [0,1,1,1,1,1,1,1,0],  // forehead
-      [0,6,1,1,1,1,1,6,0],  // WAR PAINT — red streaks at cheek edges (col 1,7)
-      [0,1,4,1,1,1,4,1,0],  // strong, determined eyes
-      [0,6,1,1,1,1,1,6,0],  // war paint second stripe
-      [0,1,1,1,4,1,1,1,0],  // set lips — tiny dot mouth
-      [0,1,1,1,1,1,1,1,0],  // defined chin
-      [0,0,7,7,7,7,7,0,0],  // blue tribal clothing
+      [0,2,2,2,2,2,2,2,2,2,2,0],  // dark hair top
+      [2,2,2,1,1,1,1,1,1,2,2,2],  // hair frame 2px wide each side
+      [2,2,1,1,1,1,1,1,1,1,2,2],  // hair frame narrowing
+      [0,1,1,1,1,1,1,1,1,1,1,0],  // forehead
+      [0,6,6,1,1,1,1,1,1,6,6,0],  // WAR PAINT stripe 1 (2px thick each cheek)
+      [0,1,1,1,4,1,1,4,1,1,1,0],  // strong eyes (col 4 & 7)
+      [0,6,6,1,1,1,1,1,1,6,6,0],  // WAR PAINT stripe 2
+      [0,1,1,1,1,1,1,1,1,1,1,0],  // cheeks
+      [0,1,1,6,6,1,1,6,6,1,1,0],  // chevron dots lower cheeks
+      [0,1,1,1,1,4,1,1,1,1,1,0],  // pressed lips
+      [0,1,1,1,1,1,1,1,1,1,1,0],  // chin
+      [0,0,7,7,7,7,7,7,7,7,0,0],
+      [0,0,0,7,7,7,7,7,7,0,0,0],
     ]},
 
-  // ── 7: Explorer Woman (female) ── wide safari hat, sunglasses, bright smile
+  // ── 7: EXPLORER WOMAN (female) ── full-12 safari brim, wraparound sunglasses
   { name: 'חוקרת',
-    pal: ['#F8D4A0','#8B6020','#C89040','#111111','#FFFFFF','#226688','#CC8800'],
+    pal: ['#F8D090','#7B5010','#C09040','#111111','#FFFFFF','#1A6688','#CC8800'],
+    //    1=skin    2=hat-dk  3=hat-lt   4=dark   5=teeth   6=sunglass 7=khaki
     sprite: [
-      [0,0,2,2,2,2,2,0,0],  // explorer hat crown (narrow top)
-      [0,2,3,3,3,3,3,2,0],  // hat body
-      [2,3,3,3,3,3,3,3,2],  // wide safari brim (full 9 cols)
-      [0,1,1,1,1,1,1,1,0],  // forehead below hat
-      [0,6,6,6,6,6,6,6,0],  // sunglasses frame (full-width)
-      [0,6,4,4,4,4,4,6,0],  // dark lenses + side frames
-      [0,1,1,1,1,1,1,1,0],  // cheeks below shades
-      [0,1,5,5,4,5,5,1,0],  // confident smile with teeth
-      [0,0,7,7,7,7,7,0,0],  // khaki collar
+      [0,0,0,3,3,3,3,3,3,0,0,0],  // hat crown tip
+      [0,0,2,3,3,3,3,3,3,2,0,0],  // hat body
+      [2,2,3,3,3,3,3,3,3,3,2,2],  // WIDE brim — full 12 cols
+      [0,0,1,1,1,1,1,1,1,1,0,0],  // forehead
+      [0,0,1,1,1,1,1,1,1,1,0,0],  // forehead
+      [0,0,6,6,6,6,6,6,6,6,0,0],  // sunglasses frame
+      [0,0,6,4,4,4,4,4,4,6,0,0],  // dark lenses + side frame
+      [0,0,1,1,1,1,1,1,1,1,0,0],  // cheeks
+      [0,0,1,1,1,1,1,1,1,1,0,0],
+      [0,0,1,5,5,5,4,5,5,1,0,0],  // confident smile
+      [0,0,1,1,1,1,1,1,1,1,0,0],  // chin
+      [0,0,7,7,7,7,7,7,7,7,0,0],
+      [0,0,0,7,7,7,7,7,7,0,0,0],
     ]},
 ];
 
@@ -953,7 +992,8 @@ function _drawHunterOnCtx(targetCtx, ox, oy, ppSize, index) {
 
 // Draw hunter face centred at (cx, cy), total width = displaySize
 function drawAvatarFace(targetCtx, cx, cy, index, displaySize) {
-  const cols = 9, rows = HUNTERS[index].sprite.length;
+  const cols = HUNTERS[index].sprite[0].length;
+  const rows = HUNTERS[index].sprite.length;
   const ppSize = displaySize / cols;
   const ox = cx - displaySize / 2;
   const oy = cy - (rows * ppSize) / 2;
@@ -995,9 +1035,9 @@ function _buildAvatarGrid() {
     cell.className = 'avatar-cell' + (i === _pickedAvatar ? ' selected' : '');
     cell.title = hunter.name;
     const c = document.createElement('canvas');
-    c.width = 72; c.height = 72;
+    c.width = 96; c.height = 96;
     c.getContext('2d').imageSmoothingEnabled = false;
-    drawAvatarFace(c.getContext('2d'), 36, 36, i, 58);
+    drawAvatarFace(c.getContext('2d'), 48, 48, i, 78);
     cell.appendChild(c);
     cell.addEventListener('click', () => {
       playSfx('button');
