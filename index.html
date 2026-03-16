@@ -346,13 +346,11 @@
       #howto-btn { order: -1; margin-top: 0; }
       #start-btn { margin-top: 5px; }
     }
-    #intro-hud > div { width: calc(100% - 100px); }
+    #intro-hud > div { width: calc(100% - 150px); }
     #intro-hud #start-btn,
-    #intro-hud #howto-btn { width: 100%; box-sizing: border-box; }
+    #intro-hud #howto-btn { width: 100%; padding-left: 0; padding-right: 0; box-sizing: border-box; }
     @media (orientation: landscape) {
       #intro-hud { flex-direction: row; justify-content: center; gap: calc(clamp(6px, 1.6vmin, 14px) + 10px); }
-      #intro-hud > div { width: calc(100% - 150px); }
-      #intro-hud #start-btn, #intro-hud #howto-btn { width: 100%; padding-left: 0; padding-right: 0; }
       #howto-btn { margin-top: 0; }
       #game-over-popup {
         max-height: calc(100dvh - 40px);
