@@ -575,7 +575,7 @@
       display: none;
       position: absolute;
       top: max(8px, env(safe-area-inset-top));
-      left: 16px; right: 16px;
+      right: 16px;
       z-index: 10;
       flex-direction: row;
       align-items: center;
@@ -723,7 +723,6 @@
     </div>
     <!-- Profile bar: full-width floating pixel panel, click to edit -->
     <div id="profile-chip" onclick="playSfx('button');showProfileModal('edit')">
-      <span style="flex:1"></span>
       <span id="profile-chip-hs"></span>
       <img id="profile-chip-img" src="" alt=""/>
     </div>
