@@ -444,6 +444,193 @@
       font-size: clamp(20px, 4.5vmin, 36px);
       letter-spacing: 0.02em;
     }
+
+    /* ── Profile Modal ──────────────────────────────────────────────────── */
+    #profile-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.88);
+      z-index: 50;
+      align-items: center;
+      justify-content: center;
+    }
+    #profile-overlay.visible { display: flex; }
+    #profile-popup {
+      background: #1a1a2e;
+      border: 4px solid #FFD700;
+      box-shadow: 6px 6px 0 #000, inset 0 0 0 2px #000;
+      padding: clamp(24px, 4vmin, 48px) clamp(24px, 5.5vmin, 56px);
+      text-align: center;
+      direction: rtl;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: clamp(14px, 2.8vmin, 26px);
+      width: min(460px, 92vw);
+      max-height: 95dvh;
+      overflow-y: auto;
+    }
+    #profile-title {
+      color: #FFD700;
+      font-family: system-ui, -apple-system, sans-serif;
+      font-weight: 700;
+      font-size: clamp(20px, 4.4vmin, 34px);
+      text-shadow: 2px 2px 0 #000;
+    }
+    #profile-subtitle {
+      color: rgba(255,255,255,0.72);
+      font-family: system-ui, -apple-system, sans-serif;
+      font-weight: 600;
+      font-size: clamp(12px, 2.3vmin, 17px);
+      margin-top: -8px;
+    }
+    #avatar-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: clamp(8px, 1.8vmin, 16px);
+      width: 100%;
+    }
+    .avatar-cell {
+      aspect-ratio: 1;
+      cursor: pointer;
+      border: 3px solid #334;
+      box-shadow: 3px 3px 0 #000;
+      background: #0d1b2e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.07s, border-color 0.1s;
+      position: relative;
+      overflow: hidden;
+    }
+    .avatar-cell canvas {
+      width: 78%;
+      height: 78%;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+    .avatar-cell.selected {
+      border-color: #FFD700;
+      box-shadow: 3px 3px 0 #000, 0 0 0 2px rgba(255,215,0,0.4);
+      background: #1c2e44;
+    }
+    .avatar-cell:not(.selected):hover { border-color: #667; }
+    .avatar-cell:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 #000; }
+    #name-label {
+      color: rgba(255,255,255,0.82);
+      font-family: system-ui, -apple-system, sans-serif;
+      font-weight: 700;
+      font-size: clamp(12px, 2.4vmin, 18px);
+      align-self: flex-end;
+      margin-bottom: -6px;
+    }
+    #name-input {
+      width: 100%;
+      background: #0d1b2e;
+      border: 3px solid #445;
+      color: #fff;
+      font-family: system-ui, -apple-system, sans-serif;
+      font-weight: 700;
+      font-size: clamp(15px, 3vmin, 22px);
+      padding: clamp(10px, 2vmin, 16px) clamp(12px, 2.5vmin, 18px);
+      text-align: right;
+      direction: rtl;
+      outline: none;
+      box-shadow: 3px 3px 0 #000;
+      transition: border-color 0.15s;
+    }
+    #name-input:focus { border-color: #FFD700; }
+    #name-input.input-error { border-color: #FF4444; animation: inputShake 0.32s; }
+    #profile-save-btn {
+      width: 100%;
+      padding: clamp(12px, 2.5vmin, 20px);
+      background: #e94560;
+      color: #fff;
+      border: 4px solid #000;
+      box-shadow: 4px 4px 0 #000;
+      font-family: system-ui, -apple-system, sans-serif;
+      font-weight: 700;
+      font-size: clamp(15px, 3.2vmin, 24px);
+      cursor: pointer;
+      direction: rtl;
+      transition: transform 0.07s, box-shadow 0.07s;
+      margin-top: 4px;
+    }
+    #profile-save-btn:active { transform: translate(3px,3px); box-shadow: 1px 1px 0 #000; }
+    #profile-cancel-btn {
+      background: transparent;
+      border: none;
+      color: rgba(255,255,255,0.42);
+      font-family: system-ui, -apple-system, sans-serif;
+      font-weight: 600;
+      font-size: clamp(12px, 2.2vmin, 16px);
+      cursor: pointer;
+      padding: 4px 8px;
+      text-decoration: underline;
+      direction: rtl;
+      margin-top: -8px;
+    }
+    #profile-cancel-btn:hover { color: rgba(255,255,255,0.68); }
+    @keyframes inputShake {
+      0%,100% { transform: translateX(0); }
+      20%,60%  { transform: translateX(-7px); }
+      40%,80%  { transform: translateX(7px); }
+    }
+
+    /* ── Profile chip on intro screen ───────────────────────────────────── */
+    #profile-chip {
+      display: none;
+      position: absolute;
+      bottom: calc(clamp(80px,17vh,155px) + 16px);
+      left: clamp(10px, 2.5vw, 22px);
+      z-index: 6;
+      align-items: center;
+      gap: 8px;
+      direction: rtl;
+      cursor: pointer;
+      padding: 7px 12px 7px 10px;
+      background: rgba(0,0,0,0.50);
+      border: 2px solid rgba(255,255,255,0.28);
+      box-shadow: 3px 3px 0 rgba(0,0,0,0.6);
+      transition: background 0.15s, border-color 0.15s;
+    }
+    #profile-chip:hover { background: rgba(0,0,0,0.68); border-color: rgba(255,255,255,0.52); }
+    #profile-chip:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 rgba(0,0,0,0.6); }
+    #profile-chip-canvas {
+      width: 34px;
+      height: 34px;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      flex-shrink: 0;
+    }
+    #profile-chip-info {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 2px;
+    }
+    #profile-chip-name {
+      color: #fff;
+      font-family: system-ui, -apple-system, sans-serif;
+      font-weight: 700;
+      font-size: clamp(11px, 2.2vmin, 15px);
+      text-shadow: 1px 1px 0 #000;
+      max-width: min(110px, 20vw);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    #profile-chip-hs {
+      color: #FFD700;
+      font-family: system-ui, -apple-system, sans-serif;
+      font-weight: 700;
+      font-size: clamp(9px, 1.8vmin, 12px);
+      text-shadow: 1px 1px 0 #000;
+    }
+    @media (orientation: landscape) {
+      #profile-chip { bottom: calc(clamp(80px,17vh,155px) + 12px); }
+    }
   </style>
 </head>
 <body>
@@ -487,6 +674,21 @@
     </div>
   </div>
 
+  <!-- Profile modal (create / edit) -->
+  <div id="profile-overlay">
+    <div id="profile-popup">
+      <div id="profile-title">יצירת פרופיל</div>
+      <div id="profile-subtitle">בחרו ציפור ושם — הצמד שלכם לצייד!</div>
+      <div id="avatar-grid"></div>
+      <div id="name-label">שם משתמש</div>
+      <input id="name-input" type="text" maxlength="16"
+             placeholder="הכניסו שם..." autocomplete="off"
+             autocorrect="off" spellcheck="false" />
+      <button id="profile-save-btn">קדימה לצייד!</button>
+      <button id="profile-cancel-btn" style="display:none">ביטול</button>
+    </div>
+  </div>
+
   <!-- Full-screen Intro -->
   <div id="intro-screen">
     <div id="intro-clouds"></div>
@@ -524,6 +726,14 @@
     <div id="intro-hud">
       <button id="start-btn" onclick="playSfx('button');startGame()">התחל משחק</button>
       <button id="howto-btn">איך משחקים?</button>
+    </div>
+    <!-- Profile chip: avatar + name, click to edit -->
+    <div id="profile-chip" onclick="playSfx('button');showProfileModal('edit')">
+      <canvas id="profile-chip-canvas" width="54" height="54"></canvas>
+      <div id="profile-chip-info">
+        <span id="profile-chip-name"></span>
+        <span id="profile-chip-hs"></span>
+      </div>
     </div>
   </div>
 
@@ -596,6 +806,193 @@ const BAND_SNAP_DUR = 350;
 let highScore = 0;
 try { highScore = parseInt(localStorage.getItem('birdHuntHS') || '0') || 0; } catch(e) {}
 
+// ── Profile System ────────────────────────────────────────────────────────
+const PROFILE_KEY = 'birdHuntProfile';
+
+// 8 bird color palettes  [body, dark-outline]
+const AVATAR_COLORS = [
+  ['#F5D800','#886600'],  // 0 Yellow
+  ['#FF4444','#AA1100'],  // 1 Red
+  ['#4488FF','#1144BB'],  // 2 Blue
+  ['#44CC44','#227722'],  // 3 Green
+  ['#FF8800','#AA4400'],  // 4 Orange
+  ['#AA66FF','#6622BB'],  // 5 Purple
+  ['#FF66AA','#BB2266'],  // 6 Pink
+  ['#44DDCC','#118877'],  // 7 Teal
+];
+
+// Front-facing bird face: 9 wide × 8 tall
+// 1=body  2=dark-outline  3=white-glint  4=black-pupil  5=beak-orange
+const AVATAR_SPRITE = [
+  [0,0,2,0,2,0,2,0,0],  // crown — three dark spikes
+  [0,2,1,1,1,1,1,2,0],  // head top
+  [2,1,1,4,3,4,3,1,2],  // eyes: [dark,white-glint] × 2
+  [2,1,1,1,1,1,1,1,2],  // cheeks
+  [2,1,1,1,5,1,1,1,2],  // above beak
+  [0,2,1,5,5,5,1,2,0],  // beak
+  [0,0,2,1,1,1,2,0,0],  // chin
+  [0,0,0,2,2,2,0,0,0],  // neck
+];
+
+function _drawAvatarOnCtx(targetCtx, ox, oy, ppSize, avatarIndex) {
+  const [body, dark] = AVATAR_COLORS[avatarIndex];
+  const pal = [body, dark, '#FFFFFF', '#111111', '#FF9900'];
+  AVATAR_SPRITE.forEach((row, r) => {
+    row.forEach((code, c) => {
+      if (!code) return;
+      targetCtx.fillStyle = pal[code - 1];
+      targetCtx.fillRect(
+        Math.round(ox + c * ppSize),
+        Math.round(oy + r * ppSize),
+        Math.ceil(ppSize),
+        Math.ceil(ppSize)
+      );
+    });
+  });
+}
+
+// Draw avatar face centred at (cx, cy), total width = displaySize
+function drawAvatarFace(targetCtx, cx, cy, avatarIndex, displaySize) {
+  const ppSize = displaySize / 9;
+  const ox = cx - displaySize / 2;
+  const oy = cy - (8 * ppSize) / 2;
+  _drawAvatarOnCtx(targetCtx, ox, oy, ppSize, avatarIndex);
+}
+
+// ── Profile CRUD ──────────────────────────────────────────────────────────
+let userProfile = null;
+
+function _getStoredProfile() {
+  try { return JSON.parse(localStorage.getItem(PROFILE_KEY) || 'null'); } catch(e) { return null; }
+}
+
+function _persistProfile(p) {
+  try { localStorage.setItem(PROFILE_KEY, JSON.stringify(p)); } catch(e) {}
+  userProfile = p;
+}
+
+function _makeProfile(displayName, avatarIndex) {
+  return {
+    uid: 'local_' + Math.random().toString(36).substr(2, 9),
+    displayName,
+    avatarIndex,
+    provider: 'local',
+    createdAt: new Date().toISOString(),
+    stats: { highScore: 0, gamesPlayed: 0 },
+  };
+}
+
+// ── Modal logic ───────────────────────────────────────────────────────────
+let _profileMode = 'create';
+let _pickedAvatar = 0;
+
+function _buildAvatarGrid() {
+  const grid = document.getElementById('avatar-grid');
+  grid.innerHTML = '';
+  AVATAR_COLORS.forEach((_, i) => {
+    const cell = document.createElement('div');
+    cell.className = 'avatar-cell' + (i === _pickedAvatar ? ' selected' : '');
+    const c = document.createElement('canvas');
+    c.width = 72; c.height = 72;
+    c.getContext('2d').imageSmoothingEnabled = false;
+    drawAvatarFace(c.getContext('2d'), 36, 36, i, 58);
+    cell.appendChild(c);
+    cell.addEventListener('click', () => {
+      playSfx('button');
+      _pickedAvatar = i;
+      grid.querySelectorAll('.avatar-cell').forEach(el => el.classList.remove('selected'));
+      cell.classList.add('selected');
+    });
+    grid.appendChild(cell);
+  });
+}
+
+function showProfileModal(mode) {
+  _profileMode = mode || 'create';
+  _pickedAvatar = userProfile ? userProfile.avatarIndex : 0;
+  document.getElementById('profile-title').textContent =
+    _profileMode === 'create' ? 'יצירת פרופיל' : 'עריכת פרופיל';
+  document.getElementById('profile-subtitle').style.display =
+    _profileMode === 'create' ? '' : 'none';
+  document.getElementById('profile-cancel-btn').style.display =
+    _profileMode === 'edit' ? '' : 'none';
+  document.getElementById('name-input').value =
+    (_profileMode === 'edit' && userProfile) ? userProfile.displayName : '';
+  _buildAvatarGrid();
+  document.getElementById('profile-overlay').classList.add('visible');
+  setTimeout(() => document.getElementById('name-input').focus(), 120);
+}
+
+function _hideProfileModal() {
+  document.getElementById('profile-overlay').classList.remove('visible');
+}
+
+function _saveProfileFromModal() {
+  const name = document.getElementById('name-input').value.trim();
+  if (!name) {
+    const inp = document.getElementById('name-input');
+    inp.classList.add('input-error');
+    inp.focus();
+    setTimeout(() => inp.classList.remove('input-error'), 400);
+    return;
+  }
+  if (_profileMode === 'create') {
+    userProfile = _makeProfile(name, _pickedAvatar);
+    // carry over any high score from old localStorage key
+    if (highScore > 0) userProfile.stats.highScore = highScore;
+  } else {
+    userProfile.displayName = name;
+    userProfile.avatarIndex = _pickedAvatar;
+  }
+  _persistProfile(userProfile);
+  _hideProfileModal();
+  _updateProfileChip();
+}
+
+// ── Profile chip render ───────────────────────────────────────────────────
+function _updateProfileChip() {
+  if (!userProfile) return;
+  const chip = document.getElementById('profile-chip');
+  chip.style.display = 'flex';
+  document.getElementById('profile-chip-name').textContent = userProfile.displayName;
+  const hs = userProfile.stats.highScore;
+  document.getElementById('profile-chip-hs').textContent = hs > 0 ? 'שיא: ' + hs : '';
+  const c = document.getElementById('profile-chip-canvas');
+  const cctx = c.getContext('2d');
+  cctx.clearRect(0, 0, c.width, c.height);
+  cctx.imageSmoothingEnabled = false;
+  drawAvatarFace(cctx, c.width / 2, c.height / 2, userProfile.avatarIndex, c.width * 0.86);
+}
+
+// ── First-launch init ─────────────────────────────────────────────────────
+function initProfile() {
+  userProfile = _getStoredProfile();
+  if (!userProfile) {
+    showProfileModal('create');
+  } else {
+    // Merge old high-score key if needed
+    if (highScore > userProfile.stats.highScore) {
+      userProfile.stats.highScore = highScore;
+      _persistProfile(userProfile);
+    }
+    highScore = userProfile.stats.highScore;
+    _updateProfileChip();
+  }
+}
+
+// ── Wire up modal buttons ─────────────────────────────────────────────────
+document.getElementById('profile-save-btn').addEventListener('click', () => {
+  playSfx('button');
+  _saveProfileFromModal();
+});
+document.getElementById('profile-cancel-btn').addEventListener('click', () => {
+  playSfx('button');
+  _hideProfileModal();
+});
+document.getElementById('name-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); _saveProfileFromModal(); }
+});
+
 // ── Intro Screen ──────────────────────────────────────────────────────────
 function initIntroStars() {
   const back    = document.getElementById('intro-clouds');
@@ -659,6 +1056,7 @@ function showIntro() {
   document.getElementById('game-over-overlay').classList.remove('visible');
   document.getElementById('intro-screen').classList.remove('hidden');
   startIntroBirdAnim();
+  if (userProfile) _updateProfileChip();
 }
 
 function startGame() {
@@ -1259,6 +1657,11 @@ function endGame() {
   if (isNew) {
     highScore = score;
     try { localStorage.setItem('birdHuntHS', highScore); } catch(e) {}
+  }
+  if (userProfile) {
+    userProfile.stats.gamesPlayed = (userProfile.stats.gamesPlayed || 0) + 1;
+    if (isNew) userProfile.stats.highScore = highScore;
+    _persistProfile(userProfile);
   }
   const EX  = '<span class="ex">!</span>';
   const COL = '<span class="ex">:</span>';
@@ -2023,6 +2426,7 @@ if (navigator.audioSession) navigator.audioSession.type = 'ambient';
 setupIdleState();
 initIntroStars();
 showIntro();
+initProfile();
 requestAnimationFrame(loop);
 preloadSfx();
 
