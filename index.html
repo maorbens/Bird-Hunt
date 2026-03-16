@@ -989,11 +989,11 @@ function initIntroStars() {
   // layer: 'front'    → in front of title text (z-index 4)
   // layer: 'ls-front' → behind in portrait, in front in landscape (z-index 4)
   const cloudData = [
-    { left: 2,  top: 14, w: 11, layer: 'back'     }, // top-left, title in front
-    { left: 8,  top: 33, w: 14, layer: 'front'    }, // center-left, overlaps title
-    { left: 48, top: 10, w: 10, layer: 'back'     }, // top-center, title in front
-    { left: 62, top: 36, w: 12, layer: 'ls-front', dx: 50 }, // lower-right, front in landscape
-    { left: 84, top: 22, w:  9, layer: 'front'    }, // right, overlaps title edge
+    { left: 2,  top: 20, w: 11, layer: 'back'     }, // top-left, title in front
+    { left: 8,  top: 39, w: 14, layer: 'front'    }, // center-left, overlaps title
+    { left: 48, top: 16, w: 10, layer: 'back'     }, // top-center, title in front
+    { left: 62, top: 42, w: 12, layer: 'ls-front', dx: 50 }, // lower-right, front in landscape
+    { left: 84, top: 28, w:  9, layer: 'front'    }, // right, overlaps title edge
   ];
   cloudData.forEach(({ left, top, w, layer, dx = 0 }, i) => {
     const target = layer === 'front' && front   ? front
