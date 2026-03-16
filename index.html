@@ -248,10 +248,10 @@
         #DED895 17px
       );
     }
-    /* Logo — bare text floating in clouds */
+    /* Logo — pushed below the profile bar */
     #intro-logo {
       position: absolute;
-      top: max(calc(env(safe-area-inset-top) + 12px), 8%);
+      top: max(calc(env(safe-area-inset-top) + 86px), 18%);
       left: 50%;
       transform: translateX(calc(-50% + 5px));
       z-index: 3;
@@ -578,97 +578,76 @@
       40%,80%  { transform: translateX(7px); }
     }
 
-    /* ── Profile bar – top-right HUD ─────────────────────────────────────── */
+    /* ── Profile bar – full-width floating pixel-art panel ───────────────── */
     #profile-chip {
       display: none;
       position: absolute;
-      top: 0; right: 0;
+      top: max(8px, env(safe-area-inset-top));
+      left: 8px; right: 8px;
       z-index: 10;
       flex-direction: row;
       align-items: center;
-      gap: 11px;
-      padding: 10px 14px 14px 26px;
+      gap: 10px;
+      padding: 7px 10px;
       cursor: pointer;
       user-select: none;
-      /* Dark gradient fading left – blends into the game sky */
-      background: linear-gradient(
-        to left,
-        rgba(6,3,1,0.92) 0%,
-        rgba(10,5,1,0.80) 42%,
-        rgba(5,3,1,0.42) 76%,
-        transparent 100%
-      );
-      /* Gold accent – bottom + left borders only (top/right are screen edge) */
-      border-bottom: 1.5px solid rgba(255,185,30,0.52);
-      border-left:   1.5px solid rgba(255,185,30,0.30);
-      border-radius: 0 0 0 22px;
+      /* Pixel panel – dark wood/earthy background matching game palette */
+      background: #1a0e02;
+      border: 3px solid #000;
       box-shadow:
-        0 4px 26px rgba(255,155,0,0.13),
-        inset 0 1px 0 rgba(255,255,255,0.04);
-      transition: box-shadow 0.22s, border-color 0.22s;
+        3px 3px 0 #000,
+        inset 2px 2px 0 #3d2208,
+        inset -2px -2px 0 rgba(0,0,0,0.55);
     }
     #profile-chip:hover {
-      border-bottom-color: rgba(255,215,60,0.82);
-      border-left-color:   rgba(255,215,60,0.50);
+      background: #261403;
       box-shadow:
-        0 4px 32px rgba(255,180,0,0.28),
-        0 0 55px rgba(255,148,0,0.09),
-        inset 0 1px 0 rgba(255,255,255,0.07);
+        3px 3px 0 #000,
+        inset 2px 2px 0 #583010,
+        inset -2px -2px 0 rgba(0,0,0,0.55);
     }
-    #profile-chip:active { opacity: 0.78; }
-
-    /* Avatar circle */
-    #profile-chip-img {
-      width: 44px; height: 44px;
-      border-radius: 50%;
-      border: 2.5px solid rgba(255,200,50,0.92);
-      box-shadow:
-        0 0 9px  rgba(255,178,0,0.68),
-        0 0 22px rgba(255,138,0,0.30);
+    #profile-chip:active {
+      transform: translate(2px,2px);
+      box-shadow: 1px 1px 0 #000;
+    }
+    /* Score – takes all remaining space, left-aligned */
+    #profile-chip-hs {
+      flex: 1;
+      color: #FFD700;
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(7px, 1.6vmin, 10px);
+      text-shadow: 1px 1px 0 #7B4000, 2px 2px 0 #000;
+      text-align: left;
+      white-space: nowrap;
+    }
+    /* Thin pixel divider between score and name */
+    #profile-chip-div {
+      width: 2px;
+      height: 28px;
+      background: #3d2208;
+      box-shadow: 1px 0 0 #000;
       flex-shrink: 0;
-      display: block;
     }
-    /* Subtle pulse on the avatar glow */
-    @keyframes avatar-pulse {
-      0%,100% { box-shadow: 0 0 9px rgba(255,178,0,0.68), 0 0 22px rgba(255,138,0,0.30); }
-      50%      { box-shadow: 0 0 14px rgba(255,190,0,0.90), 0 0 32px rgba(255,150,0,0.46); }
-    }
-    #profile-chip:not(:hover) #profile-chip-img {
-      animation: avatar-pulse 3s ease-in-out infinite;
-    }
-
-    /* Text column: name (right-aligned) above score (left-aligned) */
-    #profile-chip-info {
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
-      gap: 2px;
-    }
+    /* Name – right-aligned, next to avatar */
     #profile-chip-name {
       color: #fff;
-      font-family: system-ui, -apple-system, sans-serif;
-      font-weight: 800;
-      font-size: clamp(11px, 2.3vmin, 15px);
-      letter-spacing: 0.3px;
-      text-shadow: 0 1px 6px rgba(0,0,0,0.95);
-      max-width: min(130px, 22vw);
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(7px, 1.6vmin, 10px);
+      text-shadow: 2px 2px 0 #000;
+      max-width: min(150px, 28vw);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      text-align: right;
-      direction: rtl;
+      flex-shrink: 0;
     }
-    #profile-chip-hs {
-      color: #FFD02F;
-      font-family: system-ui, -apple-system, sans-serif;
-      font-weight: 700;
-      font-size: clamp(10px, 1.9vmin, 13px);
-      letter-spacing: 0.4px;
-      text-shadow:
-        0 0 10px rgba(255,205,0,0.58),
-        0 1px 4px rgba(0,0,0,0.95);
-      text-align: left;
-      white-space: nowrap;
+    /* Avatar circle with gold pixel border */
+    #profile-chip-img {
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      border: 3px solid #FFD700;
+      box-shadow: 2px 2px 0 #7B5000, inset 0 0 0 1px #000;
+      flex-shrink: 0;
+      display: block;
     }
   </style>
 </head>
@@ -766,12 +745,11 @@
       <button id="start-btn" onclick="playSfx('button');startGame()">התחל משחק</button>
       <button id="howto-btn">איך משחקים?</button>
     </div>
-    <!-- Profile bar: top-right HUD strip, click to edit -->
+    <!-- Profile bar: full-width floating pixel panel, click to edit -->
     <div id="profile-chip" onclick="playSfx('button');showProfileModal('edit')">
-      <div id="profile-chip-info">
-        <span id="profile-chip-name"></span>
-        <span id="profile-chip-hs"></span>
-      </div>
+      <span id="profile-chip-hs"></span>
+      <div id="profile-chip-div"></div>
+      <span id="profile-chip-name"></span>
       <img id="profile-chip-img" src="" alt=""/>
     </div>
   </div>
