@@ -89,7 +89,7 @@
       box-shadow: 6px 6px 0 #000, inset 0 0 0 2px #000;
       padding: clamp(36px, 7.5vmin, 84px) clamp(36px, 9vw, 96px);
       text-align: center;
-      direction: rtl;
+      direction: ltr;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -102,9 +102,9 @@
     }
     #game-over-reason {
       color: #FF6B6B;
-      font-family: system-ui, -apple-system, sans-serif;
+      font-family: 'Press Start 2P', monospace;
       font-weight: 700;
-      font-size: clamp(24px, 5.25vmin, 42px);
+      font-size: clamp(18px, 4vmin, 32px);
       text-align: center;
       width: 100%;
     }
@@ -112,9 +112,9 @@
       display: flex;
       align-items: baseline;
       gap: clamp(8px, 1.5vmin, 14px);
-      font-family: system-ui, -apple-system, sans-serif;
+      font-family: 'Press Start 2P', monospace;
       font-weight: 700;
-      font-size: clamp(16px, 3.5vmin, 28px);
+      font-size: clamp(13px, 2.8vmin, 22px);
     }
     #game-over-score { color: #FFD700; }
     #game-over-hs    { color: #aaffaa; margin-top: -12px; }
@@ -678,11 +678,11 @@
   <div id="game-over-overlay">
     <div id="game-over-popup">
       <div id="game-over-reason"></div>
-      <div id="game-over-score"><span>ניקוד<span class="ex">:</span></span><span id="score-val"></span></div>
+      <div id="game-over-score"><span>Score:</span><span id="score-val"></span></div>
       <div id="game-over-hs"><span id="hs-label"></span><span id="hs-val"></span></div>
       <div id="game-over-btns">
-        <button id="restart-btn" onclick="playSfx('button');initGame()">שחק שוב</button>
-        <button id="home-btn-go" onclick="playSfx('button');showIntro()">ראשי</button>
+        <button id="restart-btn" onclick="playSfx('button');initGame()">Play Again</button>
+        <button id="home-btn-go" onclick="playSfx('button');showIntro()">Menu</button>
       </div>
     </div>
   </div>
@@ -1660,15 +1660,14 @@ function endGame() {
     _persistProfile(userProfile);
   }
   const EX  = '<span class="ex">!</span>';
-  const COL = '<span class="ex">:</span>';
-  const reasonText = timeLeft <= 0 ? `נגמר הזמן${EX}` : `<span class="ex">${MISS_LIMIT}</span> פספוסים${EX}`;
+  const reasonText = timeLeft <= 0 ? `Time's Up!` : `${MISS_LIMIT} Misses!`;
   document.getElementById('game-over-reason').innerHTML = reasonText;
   document.getElementById('score-val').textContent = score;
   if (isNew) {
-    document.getElementById('hs-label').innerHTML = `★ שיא חדש${EX} ★`;
+    document.getElementById('hs-label').innerHTML = `★ New Record! ★`;
     document.getElementById('hs-val').textContent = '';
   } else {
-    document.getElementById('hs-label').innerHTML = `שיא${COL}`;
+    document.getElementById('hs-label').innerHTML = `Best:`;
     document.getElementById('hs-val').textContent = highScore;
   }
   document.getElementById('game-over-overlay').classList.add('visible');
