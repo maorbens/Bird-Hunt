@@ -119,6 +119,7 @@
     }
     #game-over-score { color: #FFD700; }
     #game-over-hs    { color: #aaffaa; margin-top: calc(clamp(18px, 3.5vmin, 32px) * 0.2 - 7.2px); }
+    #game-over-hs.new-record { width: 100%; justify-content: center; font-size: clamp(18px, 4vmin, 32px); }
     /* ── Shared pixel buttons ────────────────────────────────────────────── */
     #game-over-btns {
       display: flex;
@@ -1664,12 +1665,15 @@ function endGame() {
   const reasonText = timeLeft <= 0 ? `Time's Up!` : `${MISS_LIMIT} Misses!`;
   document.getElementById('game-over-reason').innerHTML = reasonText;
   document.getElementById('score-val').textContent = score;
+  const hsEl = document.getElementById('game-over-hs');
   if (isNew) {
     document.getElementById('hs-label').innerHTML = `★ New Record! ★`;
     document.getElementById('hs-val').textContent = '';
+    hsEl.classList.add('new-record');
   } else {
     document.getElementById('hs-label').innerHTML = `Best:`;
     document.getElementById('hs-val').textContent = highScore;
+    hsEl.classList.remove('new-record');
   }
   document.getElementById('game-over-overlay').classList.add('visible');
 }
