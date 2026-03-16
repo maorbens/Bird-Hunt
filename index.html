@@ -38,7 +38,7 @@
       font-size: clamp(16px, 4vmin, 28px);
       z-index: 10;
       pointer-events: none;
-      text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+      text-shadow: 0 1px 1px rgba(0,0,0,0.9);
     }
     #ui-left {
       flex: 1;
@@ -47,8 +47,8 @@
       gap: clamp(8px, 1.5vw, 16px);
     }
     #score-display { color: #FFD700; }
-    #timer-display { color: #FF6B6B; transition: color 0.1s; flex: 1; text-align: center; }
-    #miss-display  { color: #FF6B6B; font-size: clamp(22px, 5.5vmin, 40px); flex: 1; text-align: right; }
+    #timer-display { color: #FF6B6B; transition: color 0.1s; flex: 1; text-align: center; white-space: nowrap; }
+    #miss-display  { color: #FF6B6B; font-size: clamp(22px, 5.5vmin, 40px); flex: 1; text-align: right; min-height: 1.2em; }
     @keyframes heartDisappear {
       0%   { opacity: 1; }
       30%  { opacity: 0; }
@@ -66,6 +66,7 @@
       height: 0.70em;
       vertical-align: 0.1em;
       margin-right: 4px;
+      filter: drop-shadow(0 1px 0px rgba(0,0,0,0.9));
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 7' shape-rendering='crispEdges'%3E%3Crect x='1' y='0' width='2' height='1' fill='%23FF2222'/%3E%3Crect x='4' y='0' width='2' height='1' fill='%23FF2222'/%3E%3Crect x='0' y='1' width='7' height='3' fill='%23FF2222'/%3E%3Crect x='1' y='4' width='5' height='1' fill='%23FF2222'/%3E%3Crect x='2' y='5' width='3' height='1' fill='%23FF2222'/%3E%3Crect x='3' y='6' width='1' height='1' fill='%23FF2222'/%3E%3C/svg%3E");
       background-size: 100% 100%;
     }
@@ -84,7 +85,7 @@
       background: #1a1a2e;
       border: 4px solid #fff;
       box-shadow: 6px 6px 0 #000, inset 0 0 0 2px #000;
-      padding: clamp(44px, 5vmin, 68px) calc(clamp(38px, 8.4vmin, 77px) + 20px) calc(clamp(44px, 5vmin, 68px) + 10px);
+      padding: clamp(34px, 5vmin, 58px) calc(clamp(38px, 8.4vmin, 77px) + 20px) clamp(34px, 5vmin, 58px);
       text-align: center;
       direction: rtl;
       display: flex;
@@ -116,7 +117,7 @@
       font-size: clamp(16px, 3.5vmin, 28px);
     }
     #game-over-score { color: #FFD700; }
-    #game-over-hs    { color: #aaffaa; }
+    #game-over-hs    { color: #aaffaa; margin-top: -12px; }
     /* ── Shared pixel buttons ────────────────────────────────────────────── */
     #game-over-btns {
       display: flex;
@@ -353,12 +354,8 @@
       #intro-hud { flex-direction: row; justify-content: center; gap: calc(clamp(6px, 1.6vmin, 14px) + 10px); }
       #howto-btn { margin-top: 0; }
       #game-over-popup {
-        gap: clamp(10px, 2.4vmin, 20px);
-        padding-top: clamp(28px, 3.8vmin, 48px);
-        padding-bottom: clamp(28px, 3.8vmin, 48px);
-        transform: translateY(-3px);
+        max-height: calc(100dvh - 40px);
       }
-      #game-over-btns { margin-top: 6px; }
       #howto-popup {
         gap: clamp(10px, 2.4vmin, 20px);
         padding-top: clamp(28px, 3.8vmin, 48px);
@@ -468,8 +465,8 @@
       <div id="game-over-score"><span>ניקוד<span class="ex">:</span></span><span id="score-val"></span></div>
       <div id="game-over-hs"><span id="hs-label"></span><span id="hs-val"></span></div>
       <div id="game-over-btns">
-        <button id="restart-btn" onclick="initGame()">שחק שוב</button>
-        <button id="home-btn-go" onclick="showIntro()">ראשי</button>
+        <button id="restart-btn" onclick="playSfx('button');initGame()">שחק שוב</button>
+        <button id="home-btn-go" onclick="playSfx('button');showIntro()">ראשי</button>
       </div>
     </div>
   </div>
@@ -525,7 +522,7 @@
     <canvas id="intro-bird-canvas"></canvas>
     <div id="intro-ground"></div>
     <div id="intro-hud">
-      <button id="start-btn" onclick="startGame()">התחל משחק</button>
+      <button id="start-btn" onclick="playSfx('button');startGame()">התחל משחק</button>
       <button id="howto-btn">איך משחקים?</button>
     </div>
   </div>
@@ -581,12 +578,16 @@ const TIMER_START      = 60;
 const FIRE_COMBO       = 3;   // consecutive hits to activate fire stone
 const TIME_BONUS_COMBO = 5;   // consecutive hits to add time
 const TIME_BONUS       = 10;  // seconds added
+const CP               = 8;   // pixel size of one "canvas pixel" (pixel-art grid)
 
 // ── State ─────────────────────────────────────────────────────────────────
 let score, consecutiveHits, missCount;
 let isFireStone, stoneScale;
 let timeLeft, timerRunning, lastTimestamp, timerExpired;
-let flyingBird, projectile, ghostProjectile, particles, floatingTexts, phase, drag, launched;
+let flyingBird, projectile, ghostProjectile, particles, floatingTexts, phase, drag;
+let firstShot = true;
+let ghostPullAnim = { t: 0 };
+const GHOST_CYCLE = 3.2; // seconds per loop
 let stoneDropAnim = { active: false, t: 0 };
 const STONE_DROP_DUR = 380;
 let bandSnapAnim = { active: false, t: 0, fromX: 0, fromY: 0 };
@@ -608,7 +609,6 @@ function initIntroStars() {
   // layer: 'back'     → behind title text (z-index 1)
   // layer: 'front'    → in front of title text (z-index 4)
   // layer: 'ls-front' → behind in portrait, in front in landscape (z-index 4)
-  const CP = 8;
   const cloudData = [
     { left: 2,  top: 10, w: 11, layer: 'back'     }, // top-left, title in front
     { left: 8,  top: 29, w: 14, layer: 'front'    }, // center-left, overlaps title
@@ -664,6 +664,7 @@ function showIntro() {
 function startGame() {
   stopIntroBirdAnim();
   document.getElementById('intro-screen').classList.add('hidden');
+  preloadSfx();
   initGame();
 }
 
@@ -675,6 +676,7 @@ function gameTimeout(fn, delay) {
 }
 
 function initGame() {
+  _stopTicking();
   gameTimers.forEach(clearTimeout); gameTimers = [];
   score           = 0;
   consecutiveHits = 0;
@@ -687,12 +689,13 @@ function initGame() {
   timerExpired    = false;
   phase           = 'aim';
   drag            = null;
-  launched        = false;
   particles       = [];
   floatingTexts   = [];
   stoneDropAnim   = { active: false, t: 0 };
   bandSnapAnim    = { active: false, t: 0, fromX: 0, fromY: 0 };
   ghostProjectile = null;
+  firstShot       = true;
+  ghostPullAnim   = { t: 0 };
   projectile      = newProjectile();
   flyingBird      = newFlyingBird();
   updateUI();
@@ -711,11 +714,11 @@ function setupIdleState() {
   timerExpired    = false;
   phase           = 'aim';
   drag            = null;
-  launched        = false;
   particles       = [];
   floatingTexts   = [];
   gameTimers      = [];
   ghostProjectile = null;
+  firstShot       = false;
   projectile      = newProjectile();
   flyingBird      = newFlyingBird();
   updateUI();
@@ -723,7 +726,7 @@ function setupIdleState() {
 
 function newProjectile() {
   const r = Math.max(5, Math.round(BASE_RADIUS * stoneScale));
-  return { x: SLING_X, y: SLING_Y, vx: 0, vy: 0, r, active: false };
+  return { x: SLING_X, y: SLING_Y, vx: 0, vy: 0, r, active: false, bounces: 0 };
 }
 
 function updateUI(animateMiss = false) {
@@ -817,7 +820,7 @@ const STONE_SPR = [
 function newFlyingBird(avoidY = null) {
   const fromLeft = Math.random() < 0.5;
   const speed    = 3.5 + Math.random() * 2.5;
-  const minY = H * 0.08, maxY = GROUND_Y - H * 0.18;
+  const minY = UI_TOP_H, maxY = GROUND_Y - H * 0.18;
   const range = maxY - minY;
   let y;
   if (avoidY !== null) {
@@ -838,7 +841,7 @@ function newFlyingBird(avoidY = null) {
     y,
     vx: fromLeft ? speed : -speed,
     vy: (Math.random() - 0.5) * vyRange,
-    r: 28, alive: true, dirTimer: 0, flap: 0,
+    r: 28, alive: true, dirTimer: 0, flap: 0, tweetTimer: 20 + Math.random() * 40,
   };
 }
 
@@ -852,30 +855,63 @@ function toLogical(cx, cy) {
 }
 // ── Slingshot audio ───────────────────────────────────────────────────────
 let _audioCtx = null;
+let _keepAliveOsc = null;
 let _stretchNodes = null;
 let _stretchRawBuf = null;   // raw ArrayBuffer from fetch
 let _stretchBuffer = null;   // decoded AudioBuffer
-
+let _stretchDecodePromise = null;
 function _getAudioCtx() {
-  if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (!_audioCtx || _audioCtx.state === 'closed') {
+    _audioCtx = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'interactive' });
+    // Auto-resume in foreground only (e.g. after a phone call interruption).
+    // Do NOT resume while hidden — let iOS keep the context suspended in
+    // background so the 'ambient' audio session is released and we don't
+    // appear in Control Center or conflict with other apps.
+    _audioCtx.addEventListener('statechange', () => {
+      if (_audioCtx && _audioCtx.state !== 'running' && !document.hidden) _audioCtx.resume().catch(() => {});
+    });
+    // Keep-alive oscillator: gain=1e-37 is technically non-zero so WebKit's
+    // isPlayingAudio() stays true and the context isn't suspended mid-game.
+    // Inaudible in practice. Safe with 'ambient' session — won't appear in
+    // Control Center (that only happens with 'playback'/'play-and-record').
+    _keepAliveOsc = _audioCtx.createOscillator();
+    const _keepAliveGain = _audioCtx.createGain();
+    _keepAliveGain.gain.value = 1e-37;
+    _keepAliveOsc.connect(_keepAliveGain);
+    _keepAliveGain.connect(_audioCtx.destination);
+    _keepAliveOsc.start();
+  }
   if (_audioCtx.state === 'suspended') _audioCtx.resume();
   return _audioCtx;
 }
 
-// Preload raw bytes (decode happens on first drag, after user gesture)
+function _ensureStretchDecoded(ctx) {
+  if (_stretchBuffer || _stretchDecodePromise || !_stretchRawBuf) return;
+  _stretchDecodePromise = ctx.decodeAudioData(_stretchRawBuf.slice(0))
+    .then(buf => { _stretchBuffer = buf; })
+    .catch(() => {})
+    .finally(() => { _stretchDecodePromise = null; });
+}
+
+// Preload raw bytes; decode immediately if AudioContext already exists
 fetch('631739__walllable__looped-rubber-y-stretch.wav')
   .then(r => r.arrayBuffer())
-  .then(buf => { _stretchRawBuf = buf; })
+  .then(buf => {
+    _stretchRawBuf = buf;
+    if (_audioCtx) _ensureStretchDecoded(_audioCtx);
+  })
   .catch(() => {});
 
 async function startStretchSound() {
   try {
     stopStretchSound();
     const ctx = _getAudioCtx();
-    if (!_stretchBuffer && _stretchRawBuf) {
-      _stretchBuffer = await ctx.decodeAudioData(_stretchRawBuf.slice(0));
+    if (ctx.state !== 'running') await ctx.resume();
+    if (!_stretchBuffer) {
+      _ensureStretchDecoded(ctx);
+      if (_stretchDecodePromise) await _stretchDecodePromise;
     }
-    if (!_stretchBuffer) return;
+    if (!_stretchBuffer || !drag) return;
 
     const source = ctx.createBufferSource();
     source.buffer = _stretchBuffer;
@@ -920,6 +956,100 @@ function stopStretchSound() {
   } catch(e) {}
 }
 
+// ── One-shot SFX ──────────────────────────────────────────────────────────
+const _sfx = {
+  throw:  { raw: null, buf: null },
+  ground: { raw: null, buf: null },
+  fire:   { raw: null, buf: null },
+  extra:  { raw: null, buf: null },
+  button:    { raw: null, buf: null },
+  game_over: { raw: null, buf: null },
+  tweet:     { raw: null, buf: null },
+  ticking:   { raw: null, buf: null },
+  fail:      { raw: null, buf: null },
+};
+[['throw','throw.wav'],['ground','hit_to_ground.wav'],['fire','fire_rock.wav'],['extra','extra_10_seconds.wav'],['button','button.wav'],['game_over','game_over.wav'],['tweet','tweet.wav'],['ticking','last_10_seconds.wav'],['fail','fail.wav']]
+  .forEach(([key, file]) => {
+    fetch(file).then(r => r.arrayBuffer()).then(buf => { _sfx[key].raw = buf; }).catch(() => {});
+  });
+
+function _calcTrimOffset(buf, threshold = 0.01) {
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < data.length; i++) {
+    if (Math.abs(data[i]) > threshold) return i / buf.sampleRate;
+  }
+  return 0;
+}
+
+function _playSfxBuf(ctx, buf, offset, gain = 1, rate = 1) {
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  src.playbackRate.value = rate;
+  if (gain !== 1) {
+    const g = ctx.createGain();
+    g.gain.value = gain;
+    src.connect(g);
+    g.connect(ctx.destination);
+  } else {
+    src.connect(ctx.destination);
+  }
+  src.start(ctx.currentTime, offset);
+}
+
+// Decode s.raw if needed, then call onReady(buf, trim). Caches result on s.
+function _decodeAndPlay(ctx, s, onReady) {
+  if (s.buf) { onReady(s.buf, s.trim); return; }
+  if (s.raw) ctx.decodeAudioData(s.raw.slice(0)).then(buf => { s.buf = buf; s.trim = _calcTrimOffset(buf); onReady(buf, s.trim); }).catch(() => {});
+}
+// Call fn immediately if ctx is running, otherwise resume first.
+function _resumeAndFire(ctx, fn) {
+  if (ctx.state === 'running') { fn(); return; }
+  ctx.resume().then(fn).catch(() => {});
+}
+
+function playSfx(key, gain = 1, rate = 1) {
+  try {
+    const ctx = _getAudioCtx();
+    const play = (buf, trim) => { if (ctx.state === 'running') _playSfxBuf(ctx, buf, trim, gain, rate); };
+    _resumeAndFire(ctx, () => _decodeAndPlay(ctx, _sfx[key], play));
+  } catch(e) {}
+}
+
+function preloadSfx() {
+  try {
+    const ctx = _getAudioCtx();
+    Object.values(_sfx).forEach(s => {
+      if (!s.buf && s.raw) ctx.decodeAudioData(s.raw.slice(0)).then(buf => { s.buf = buf; s.trim = _calcTrimOffset(buf); }).catch(() => {});
+    });
+    _ensureStretchDecoded(ctx);
+  } catch(e) {}
+}
+
+// ── Ticking audio (last 10 seconds) — Web Audio API to avoid iOS media session ──
+let _tickingSource = null;
+function _startTicking() {
+  if (_tickingSource) return;
+  try {
+    const ctx = _getAudioCtx();
+    const s = _sfx.ticking;
+    const play = (buf) => {
+      if (_tickingSource) return;
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      src.loop = true;
+      src.connect(ctx.destination);
+      src.start(0, s.trim || 0);
+      _tickingSource = src;
+    };
+    _resumeAndFire(ctx, () => _decodeAndPlay(ctx, s, play));
+  } catch(e) {}
+}
+function _stopTicking() {
+  if (!_tickingSource) return;
+  try { _tickingSource.stop(); } catch(e) {}
+  _tickingSource = null;
+}
+
 // ── Drag ──────────────────────────────────────────────────────────────────
 let _stretchIdleTimer = null;
 let _stretchLastDist  = 0;
@@ -934,6 +1064,7 @@ function startDrag(lx, ly) {
   if (stoneDropAnim.active) return;
   if (Math.hypot(lx - SLING_X, ly - SLING_Y) < 50) {
     drag = { x: lx, y: ly };
+    firstShot = false;
     _stretchLastDist = 0;
     startStretchSound();
   }
@@ -969,9 +1100,10 @@ function endDrag() {
   projectile.vx = (SLING_X - drag.x) * power;
   projectile.vy = (SLING_Y - drag.y) * power;
   projectile.x = SLING_X; projectile.y = SLING_Y;
-  projectile.active = true;
   bandSnapAnim = { active: true, t: 0, fromX: drag.x, fromY: drag.y };
-  phase = 'flying'; drag = null; launched = true;
+  playSfx('throw', 1, 0.5 + 1.5 * Math.min(Math.hypot(projectile.vx, projectile.vy) / (MAX_PULL * 0.22), 1));
+  phase = 'flying'; drag = null;
+  firstShot = false;
 }
 
 canvas.addEventListener('mousedown',  e => { const p = toLogical(e.clientX, e.clientY); startDrag(p.x, p.y); });
@@ -1000,9 +1132,10 @@ function spawnParticles(x, y, isFire = false) {
 }
 
 // ── Hit sound ─────────────────────────────────────────────────────────────
-function playHitSound() {
+async function playHitSound() {
   try {
     const ctx = _getAudioCtx();
+    if (ctx.state !== 'running') await ctx.resume();
     const now = ctx.currentTime;
 
     // Thud: short noise burst through low bandpass
@@ -1044,56 +1177,20 @@ function playHitSound() {
   } catch(e) {}
 }
 
-// ── Success (combo) sound ─────────────────────────────────────────────────
-function playSuccessSound() {
-  try {
-    const ctx = _getAudioCtx();
-    const now = ctx.currentTime;
-    // Ascending three-note fanfare: C5 → E5 → G5
-    const notes = [523.25, 659.25, 783.99];
-    notes.forEach((freq, i) => {
-      const t = now + i * 0.13;
-      const osc = ctx.createOscillator();
-      osc.type = 'square';
-      osc.frequency.setValueAtTime(freq, t);
-
-      // Small vibrato at end of each note
-      const vib = ctx.createOscillator();
-      vib.frequency.value = 6;
-      const vibAmt = ctx.createGain();
-      vibAmt.gain.value = 8;
-      vib.connect(vibAmt);
-      vibAmt.connect(osc.frequency);
-
-      const g = ctx.createGain();
-      g.gain.setValueAtTime(0, t);
-      g.gain.linearRampToValueAtTime(0.22, t + 0.02);
-      g.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
-
-      osc.connect(g);
-      g.connect(ctx.destination);
-      osc.start(t);
-      osc.stop(t + 0.22);
-      vib.start(t);
-      vib.stop(t + 0.22);
-    });
-  } catch(e) {}
-}
 
 // ── Hit / Miss logic ──────────────────────────────────────────────────────
 function onHit(bx, by) {
   playHitSound();
   consecutiveHits++;
-  const prevStoneScale = stoneScale;
   stoneScale = 1; // restore stone size on any hit
-
-
   const pts = isFireStone ? 300 : 100;
   score += pts;
 
   // +10s bonus every 5 consecutive hits (added first so it appears above score)
   if (consecutiveHits % TIME_BONUS_COMBO === 0) {
     timeLeft = Math.min(timeLeft + TIME_BONUS, 99);
+    if (timeLeft > 10) _stopTicking();
+    playSfx('extra');
     addFloatingText('+10 שניות', bx, by - 56, '#44FF88', 18);
   }
 
@@ -1103,7 +1200,7 @@ function onHit(bx, by) {
   // Activate fire stone at 3 consecutive hits
   if (!isFireStone && consecutiveHits >= FIRE_COMBO) {
     isFireStone = true;
-    playSuccessSound();
+    playSfx('fire');
     addFloatingText('אבן אש!', SLING_X + 70, SLING_Y - 50, '#FF4400', 18);
   }
 
@@ -1119,13 +1216,14 @@ function onHit(bx, by) {
   const prevBirdY = flyingBird ? flyingBird.y : null;
   flyingBird = newFlyingBird(prevBirdY);
   projectile = newProjectile();
-  phase = 'aim'; launched = false;
+  phase = 'aim';
   stoneDropAnim = { active: true, t: 0 };
 }
 
 function onMiss() {
   consecutiveHits = 0;
   missCount++;
+  if (missCount < MISS_LIMIT) playSfx('fail');
 
   if (isFireStone) {
     // Fire miss: cancel fire, no shrink
@@ -1144,15 +1242,17 @@ function onMiss() {
     phase = 'ending';
     timerRunning = false;
     drag = null;
-    gameTimeout(() => endGame(), 400);
+    endGame();
     return;
   }
   projectile = newProjectile();
-  phase = 'aim'; launched = false;
+  phase = 'aim';
   stoneDropAnim = { active: true, t: 0 };
 }
 
 function endGame() {
+  _stopTicking();
+  playSfx('game_over');
   timerRunning = false;
   phase = 'result';
   const isNew = score > highScore;
@@ -1177,6 +1277,11 @@ function endGame() {
 
 // ── Update ────────────────────────────────────────────────────────────────
 function update(dt) {
+  // Ghost pull animation (first-shot demo)
+  if (firstShot && phase === 'aim' && !drag) {
+    ghostPullAnim.t = (ghostPullAnim.t + dt / 60) % GHOST_CYCLE;
+  }
+
   // Stone drop animation
   if (stoneDropAnim.active) {
     stoneDropAnim.t = Math.min(1, stoneDropAnim.t + dt * (1000/60) / STONE_DROP_DUR);
@@ -1227,9 +1332,14 @@ function update(dt) {
       fb.vy = Math.max(-vyMax, Math.min(vyMax, fb.vy + (Math.random() - 0.5) * vyNudge));
       fb.dirTimer = 0;
     }
+    fb.tweetTimer -= dt;
+    if (fb.tweetTimer <= 0 && phase !== 'ending' && phase !== 'result') {
+      playSfx('tweet', 0.05, 0.8 + Math.random() * 0.5);
+      fb.tweetTimer = Math.random() < 0.3 ? 15 + Math.random() * 20 : 60 + Math.random() * 90;
+    }
     if (fb.x - fb.r < 0)             { fb.x = fb.r;                 fb.vx =  Math.abs(fb.vx); }
     if (fb.x + fb.r > VW)            { fb.x = VW - fb.r;            fb.vx = -Math.abs(fb.vx); }
-    if (fb.y - fb.r < 20)            { fb.y = 20 + fb.r;            fb.vy =  Math.abs(fb.vy); }
+    if (fb.y - fb.r < UI_TOP_H)       { fb.y = UI_TOP_H + fb.r;      fb.vy =  Math.abs(fb.vy); }
     if (fb.y + fb.r > GROUND_Y - 20) { fb.y = GROUND_Y - 20 - fb.r; fb.vy = -Math.abs(fb.vy); }
     if (window.innerWidth <= window.innerHeight) { // portrait only
       const slingFloor = SLING_Y - 110;
@@ -1242,6 +1352,7 @@ function update(dt) {
     const gp = ghostProjectile;
     gp.vy += GRAVITY * dt; gp.x += gp.vx * dt; gp.y += gp.vy * dt;
     if (gp.y + gp.r >= GROUND_Y) {
+      if (gp.vy > 0 && gp.x >= 0 && gp.x <= VW && (phase === 'flying' || phase === 'aim' || gp.bounces === 0)) { playSfx('ground', Math.pow(0.55, gp.bounces)); gp.bounces++; }
       gp.y = GROUND_Y - gp.r; gp.vy *= -0.4; gp.vx *= 0.7;
       if (Math.abs(gp.vy) < 1) { gp.vy = 0; gp.vx = 0; }
     }
@@ -1256,6 +1367,14 @@ function update(dt) {
   pr.vy += GRAVITY * dt; pr.x += pr.vx * dt; pr.y += pr.vy * dt;
 
   if (pr.y + pr.r >= GROUND_Y) {
+    if (pr.vy > 0) {
+      const offScreen = pr.x < 0 || pr.x > VW;
+      const isLastShot = timerExpired || missCount >= MISS_LIMIT - 1;
+      if (!offScreen && (!isLastShot || pr.bounces === 0)) {
+        playSfx('ground', Math.pow(0.55, pr.bounces));
+      }
+      pr.bounces++;
+    }
     pr.y = GROUND_Y - pr.r; pr.vy *= -0.4; pr.vx *= 0.7;
     if (Math.abs(pr.vy) < 1) { pr.vy = 0; pr.vx = 0; }
   }
@@ -1270,7 +1389,7 @@ function update(dt) {
 
     // Early miss: stone passed its peak AND is 200px below the bird
     if (pr.vy > 0 && pr.y - fb.y > 200) {
-      ghostProjectile = { x: pr.x, y: pr.y, vx: pr.vx, vy: pr.vy, r: pr.r, isFire: isFireStone, scale: stoneScale };
+      ghostProjectile = { x: pr.x, y: pr.y, vx: pr.vx, vy: pr.vy, r: pr.r, isFire: isFireStone, scale: stoneScale, bounces: pr.bounces };
       if (timerExpired) {
         phase = 'ending';
         drag = null;
@@ -1312,7 +1431,6 @@ const gameClouds = [
   { fx: 0.78, fy: 0.29, w:  9, speed: 0.13, x: null },
 ];
 function updateClouds(dt) {
-  const CP = 8;
   gameClouds.forEach(c => {
     if (c.x === null) c.x = VW * c.fx; // lazy init
     c.x -= c.speed * dt;
@@ -1323,7 +1441,6 @@ function drawClouds() {
   ctx.save();
   ctx.scale(SCALE, SCALE);
   ctx.fillStyle = '#FFFFFF';
-  const CP = 8;
   const minCloudY = 75;
   gameClouds.forEach(({ x, fy, w }) => {
     const ox = Math.round(x);
@@ -1393,16 +1510,18 @@ function drawSlingshotBands() {
   } else if (bandSnapAnim.active) {
     const e = Math.min(bandSnapEase(bandSnapAnim.t), 1.15);
     ex = bandSnapAnim.fromX + (SLING_X - bandSnapAnim.fromX) * e;
-    ey = bandSnapAnim.fromY + (SLING_Y - bandSnapAnim.fromY) * e;
+    ey = bandSnapAnim.fromY + (SLING_Y - 7 - bandSnapAnim.fromY) * e;
   } else {
-    ex = SLING_X; ey = SLING_Y;
+    ex = SLING_X; ey = SLING_Y - 7;
   }
-  // Stone-landing jolt: additive on top of whatever position
+  // Stone-landing: band dips DOWN elastically when stone arrives (no upward tracking)
   if (!drag && stoneDropAnim.active) {
-    const t = stoneDropAnim.t;
-    if (t >= 0.55) {
-      const st = (t - 0.55) / 0.45;
-      ey += 14 * Math.exp(-7 * st) * Math.cos(13 * st);
+    const IMPACT_T = 0.60;
+    if (stoneDropAnim.t < IMPACT_T) {
+      ey = SLING_Y - 7; // stay at shortened rest until impact
+    } else {
+      const ti = (stoneDropAnim.t - IMPACT_T) / (1 - IMPACT_T);
+      ey = (SLING_Y - 7) + 18 * Math.exp(-5 * ti) * Math.sin(ti * 12);
     }
   }
   ctx.save();
@@ -1453,7 +1572,7 @@ function drawProjectile() {
 
   // Shadow fades with height
   const shadowAlpha = Math.max(0, 0.3 * (1 - (GROUND_Y - py) / 300));
-  if (shadowAlpha > 0) {
+  if (shadowAlpha > 0 && py < GROUND_Y) {
     ctx.globalAlpha = shadowAlpha;
     ctx.fillStyle = '#000';
     const sw = Math.round(24 * stoneScale);
@@ -1559,6 +1678,121 @@ function drawTrajectoryHint() {
   ctx.restore();
 }
 
+
+// ── Draw: Slingshot ghost pull hint ───────────────────────────────────────
+function _smoothstep(t) { return t * t * (3 - 2 * t); }
+
+function drawSlingshotGhostHint() {
+  if (!firstShot || phase !== 'aim' || drag) return;
+
+  // Pull target differs by orientation so the ghost trajectory arcs toward screen center
+  const isLandscape = canvas.width > canvas.height;
+  const pullX = isLandscape ? SLING_X - 54 : SLING_X - 10;
+  const pullY = isLandscape ? SLING_Y + 36  : SLING_Y + 75;
+
+  // Slingshot fork tips (same coords as drawSlingshotBody/Bands)
+  const tx = SLING_X, ty = SLING_Y - 10;
+  const lx = tx - 20, ly = ty - 30;
+  const rx = tx + 20, ry = ty - 30;
+
+  // t in seconds within [0, GHOST_CYCLE]
+  const t = ghostPullAnim.t;
+
+  let gx = SLING_X, gy = SLING_Y;
+  let stoneAlpha = 0, bandsAlpha = 0;
+  let trajAlpha = 0, trajFromX = SLING_X, trajFromY = SLING_Y;
+
+  if (t < 0.35) {
+    // Fade in at rest
+    const p = t / 0.35;
+    stoneAlpha = p * 0.50;
+    bandsAlpha = p * 0.45;
+  } else if (t < 1.25) {
+    // Pull back: trajectory grows as stone is pulled (mirrors real drag behaviour)
+    const p = _smoothstep((t - 0.35) / 0.90);
+    gx = SLING_X + (pullX - SLING_X) * p;
+    gy = SLING_Y + (pullY - SLING_Y) * p;
+    stoneAlpha = 0.50;
+    bandsAlpha = 0.45 + 0.10 * p;
+    trajAlpha  = p * 0.65;
+    trajFromX  = gx; trajFromY = gy;
+  } else if (t < 1.65) {
+    // Hold at full pull – gentle pulse on stone, trajectory fully visible
+    gx = pullX; gy = pullY;
+    stoneAlpha = 0.50 + 0.10 * Math.abs(Math.sin((t - 1.25) / 0.40 * Math.PI));
+    bandsAlpha = 0.55;
+    trajAlpha  = 0.65;
+    trajFromX  = pullX; trajFromY = pullY;
+  } else if (t < 1.80) {
+    // Snap: bands spring back to rest, stone already released
+    const p = _smoothstep((t - 1.65) / 0.15);
+    gx = pullX + (SLING_X - pullX) * p;
+    gy = pullY + (SLING_Y - 7 - pullY) * p;
+    stoneAlpha = 0;
+    bandsAlpha = (1 - p) * 0.55;
+    trajAlpha  = 0;
+  } else if (t < 2.70) {
+    // Stone flies along arc (simulate physics from launch point)
+    const flyElapsed = t - 1.80;
+    let px = SLING_X, py = SLING_Y;
+    let pvx = (SLING_X - pullX) * 0.22;
+    let pvy = (SLING_Y - pullY) * 0.22;
+    const steps = Math.round(flyElapsed * 60);
+    let hitGround = false;
+    for (let i = 0; i < steps; i++) {
+      pvy += GRAVITY; px += pvx; py += pvy;
+      if (py >= GROUND_Y) { hitGround = true; break; }
+    }
+    if (hitGround) {
+      gx = null; gy = null; stoneAlpha = 0;
+    } else {
+      gx = px; gy = py;
+      const flyFrac = flyElapsed / 0.90;
+      stoneAlpha = flyFrac < 0.80 ? 0.50 : 0.50 * (1 - (flyFrac - 0.80) / 0.20);
+    }
+    bandsAlpha = 0; trajAlpha = 0;
+  }
+  // t >= 2.70 → 3.2: gap (all alpha 0, implicit)
+
+  ctx.save();
+  ctx.scale(SCALE, SCALE);
+
+  // Ghost trajectory dots – drawn first so they appear behind bands/stone (mirrors real game)
+  if (trajAlpha > 0) {
+    let px = SLING_X, py = SLING_Y;
+    let pvx = (SLING_X - trajFromX) * 0.22;
+    let pvy = (SLING_Y - trajFromY) * 0.22;
+    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+    ctx.globalAlpha = trajAlpha;
+    for (let i = 0; i < 30; i++) {
+      pvy += GRAVITY; px += pvx; py += pvy;
+      if (py > GROUND_Y || px > VW) break;
+      if (i % 3 === 0) ctx.fillRect(Math.round(px / PP) * PP, Math.round(py / PP) * PP, PP, PP);
+    }
+  }
+
+  // Ghost bands
+  if (gx !== null && bandsAlpha > 0) {
+    ctx.globalAlpha = bandsAlpha;
+    ctx.strokeStyle = '#C8A046';
+    ctx.lineWidth = PP;
+    ctx.lineCap = 'square';
+    ctx.setLineDash([PP * 2, PP]);
+    ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(gx, gy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(rx, ry); ctx.lineTo(gx, gy); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // Ghost stone
+  if (gx !== null && stoneAlpha > 0) {
+    ctx.globalAlpha = stoneAlpha;
+    drawSprite(STONE_SPR, STONE_PAL, gx, gy, false, stoneScale);
+  }
+
+  ctx.globalAlpha = 1;
+  ctx.restore();
+}
+
 // ── Game loop ─────────────────────────────────────────────────────────────
 function loop(timestamp) {
   // Timer
@@ -1584,15 +1818,21 @@ function loop(timestamp) {
   }
   lastTimestamp = timestamp;
 
-  if (timerRunning) {
+  {
     // Update timer DOM
-    const t = Math.ceil(timeLeft);
     const timerEl = document.getElementById('timer-display');
-    timerEl.textContent = t + 's';
-    if (t <= 10) {
-      timerEl.style.color = Math.floor(timestamp / 400) % 2 === 0 ? '#FF0000' : '#FF9999';
-    } else {
-      timerEl.style.color = '#FF6B6B';
+    if (timerExpired || timeLeft <= 0 || phase === 'result') {
+      timerEl.textContent = 'Game Over';
+      timerEl.style.color = '#FF0000';
+    } else if (timerRunning) {
+      const t = Math.ceil(timeLeft);
+      timerEl.textContent = t + 's';
+      if (t <= 10) {
+        timerEl.style.color = Math.floor(timestamp / 400) % 2 === 0 ? '#FF0000' : '#FF9999';
+        _startTicking();
+      } else {
+        timerEl.style.color = '#FF6B6B';
+      }
     }
   }
 
@@ -1602,6 +1842,7 @@ function loop(timestamp) {
   drawClouds();
   drawSlingshotBody();
   drawGround();
+  drawSlingshotGhostHint();
   drawTrajectoryHint();
   drawSlingshotBands();
   drawProjectile();
@@ -1637,7 +1878,7 @@ function newIntroBird() {
     y: 60 + Math.random() * (GROUND_Y - 160),
     vx: fromLeft ? speed : -speed,
     vy: (Math.random() - 0.5) * 3,
-    r: 28, dirTimer: 0, flap: 0,
+    r: 28, dirTimer: 0, flap: 0, tweetTimer: 20 + Math.random() * 40,
   };
 }
 
@@ -1677,6 +1918,11 @@ function introLoopBirds(timestamp) {
       fb.vy = Math.max(-4, Math.min(4, fb.vy + (Math.random() - 0.5) * 3));
       fb.dirTimer = 0;
     }
+    fb.tweetTimer -= dt;
+    if (fb.tweetTimer <= 0 && !document.getElementById('howto-overlay').classList.contains('visible')) {
+      playSfx('tweet', 0.05, 0.8 + Math.random() * 0.5);
+      fb.tweetTimer = Math.random() < 0.3 ? 15 + Math.random() * 20 : 60 + Math.random() * 90;
+    }
     if (fb.x - fb.r < 0)             { fb.x = fb.r;                fb.vx =  Math.abs(fb.vx); }
     if (fb.x + fb.r > VW)            { fb.x = VW - fb.r;           fb.vx = -Math.abs(fb.vx); }
     if (fb.y - fb.r < 20)            { fb.y = 20 + fb.r;           fb.vy =  Math.abs(fb.vy); }
@@ -1715,27 +1961,77 @@ function stopIntroBirdAnim() {
 
 window.addEventListener('resize', () => { if (introBirdAnimId) { resizeIntroBirdCanvas(); positionIntroHud(); } });
 
-function _resumeAudio() {
-  if (_audioCtx && _audioCtx.state !== 'running') _audioCtx.resume();
-}
+let _audioWasBackgrounded = false;
+let _zombieCheckTimeout = null;
 
 document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) _resumeAudio();
+  if (document.hidden) {
+    _stopTicking();
+    stopStretchSound();
+    _audioWasBackgrounded = true;
+    clearTimeout(_zombieCheckTimeout);
+  } else {
+    // Unconditional resume — covers suspended + iOS's non-standard 'interrupted'.
+    if (_audioCtx) _audioCtx.resume().catch(() => {});
+
+    // Stuck/zombie detection: iOS can leave the context either:
+    //  (a) state='running' but currentTime frozen (zombie), or
+    //  (b) state!='running' because resume() silently never resolves ('interrupted').
+    // Sample t0 now; after 2 s destroy if still frozen or still not running.
+    clearTimeout(_zombieCheckTimeout);
+    const _zombieT0 = _audioCtx ? _audioCtx.currentTime : -1;
+    _zombieCheckTimeout = setTimeout(() => {
+      if (!_audioCtx) return;
+      const zombie = _audioCtx.state === 'running' && _audioCtx.currentTime === _zombieT0;
+      const stuck  = _audioCtx.state !== 'running';
+      if (zombie || stuck) {
+        // Destroy so _ensureAudioRunning recreates on next gesture.
+        _audioCtx.close().catch(() => {});
+        _audioCtx = null;
+        _audioWasBackgrounded = true;
+      }
+    }, 500);
+  }
 });
 
-// iOS reports 'running' but silences audio after backgrounding — always call resume() on touch
-document.addEventListener('touchstart', () => { if (_audioCtx) _audioCtx.resume(); }, { passive: true, capture: true });
-document.addEventListener('mousedown',  _resumeAudio, { passive: true, capture: true });
+// On every user interaction: resume AudioContext.
+// iOS can leave the context in an 'interrupted' state where resume() never
+// resolves. Detect that on the first gesture after backgrounding and destroy
+// the stuck context so _getAudioCtx() creates a fresh one for the next playSfx.
+function _ensureAudioRunning() {
+  if (_audioWasBackgrounded && _audioCtx && _audioCtx.state !== 'running') {
+    // Context stuck (e.g. iOS 'interrupted' where resume() silently fails).
+    // Destroy it — a fresh context is created on the next playSfx call.
+    _audioCtx.close().catch(() => {});
+    _audioCtx = null;
+    _keepAliveOsc = null;
+  }
+  _audioWasBackgrounded = false;
+  if (!_audioCtx || _audioCtx.state === 'closed') { preloadSfx(); return; }
+  if (_audioCtx.state !== 'running') _audioCtx.resume().catch(() => {});
+}
+document.addEventListener('touchstart', _ensureAudioRunning, { passive: true, capture: true });
+document.addEventListener('mousedown',  _ensureAudioRunning, { passive: true, capture: true });
+
+// Use 'ambient' audio session: does NOT appear in Control Center / Now Playing,
+// mixes with other apps (Telegram video won't be interrupted), and is the
+// correct category for games per Apple's own HIG.
+// The context will be suspended in background — _ensureAudioRunning on the
+// next user touch recreates / resumes it.
+if (navigator.audioSession) navigator.audioSession.type = 'ambient';
 
 setupIdleState();
 initIntroStars();
 showIntro();
 requestAnimationFrame(loop);
+preloadSfx();
 
 document.getElementById('howto-btn').addEventListener('click', () => {
+  playSfx('button');
   document.getElementById('howto-overlay').classList.add('visible');
 });
 document.getElementById('howto-got-it').addEventListener('click', () => {
+  playSfx('button');
   document.getElementById('howto-overlay').classList.remove('visible');
 });
 </script>
