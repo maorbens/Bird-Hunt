@@ -2327,9 +2327,10 @@ function introLoopBirds(timestamp) {
 }
 
 function positionIntroHud() {
-  const hud      = document.getElementById('intro-hud');
+  const hud        = document.getElementById('intro-hud');
   const logoBottom = document.getElementById('intro-logo').getBoundingClientRect().bottom;
-  const midY     = (logoBottom + window.innerHeight) / 2;
+  const grassTop   = document.getElementById('intro-ground').getBoundingClientRect().top;
+  const midY       = (logoBottom + grassTop) / 2;
   hud.style.top       = midY + 'px';
   hud.style.transform = 'translateY(-50%)';
 }
