@@ -230,7 +230,7 @@
     /* Ground — exact match to drawGround() */
     #intro-ground {
       position: absolute;
-      bottom: 0; left: 0; right: 0;
+      bottom: -10px; left: 0; right: 0;
       height: clamp(80px, 17vh, 155px);
       z-index: 1;
       background: linear-gradient(
@@ -303,7 +303,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      bottom: clamp(72px, 15vh, 145px);
+      bottom: calc(clamp(72px, 15vh, 145px) - 10px);
     }
     .intro-tree-l { left: clamp(-14px, -1.5vw, 0px); }
     .intro-tree-r { right: clamp(-14px, -1.5vw, 0px); }
