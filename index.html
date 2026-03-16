@@ -6,7 +6,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>Bird Hunt</title>
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:wght@400;600&display=swap" rel="stylesheet">
   <link href="https://fonts.bunny.net/css?family=press-start-2p:400" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -390,19 +390,19 @@
     }
     #howto-title {
       color: #FFD700;
-      font-family: system-ui, -apple-system, sans-serif;
+      font-family: 'Press Start 2P', monospace;
       font-weight: 700;
-      font-size: clamp(22px, 5vmin, 40px);
+      font-size: clamp(16px, 3.6vmin, 28px);
       text-shadow: 2px 2px 0 #000;
     }
     #howto-body {
       color: rgba(255,255,255,0.88);
-      font-family: system-ui, -apple-system, sans-serif;
+      font-family: 'Roboto', sans-serif;
       font-weight: 600;
       font-size: clamp(13px, 2.6vmin, 20px);
       text-shadow: 1px 1px 0 #000;
       line-height: 1.85;
-      text-align: right;
+      text-align: left;
     }
     #howto-body .rule-line { display: flex; align-items: flex-start; gap: 0.5em; margin-bottom: 0.25em; }
     #howto-body .rule-icon { flex-shrink: 0; }
@@ -412,11 +412,11 @@
       color: #fff;
       border: 4px solid #000;
       box-shadow: 4px 4px 0 #000;
-      font-family: system-ui, -apple-system, sans-serif;
+      font-family: 'Press Start 2P', monospace;
       font-weight: 700;
       font-size: clamp(16px, 3.6vmin, 28px);
       text-align: center;
-      direction: rtl;
+      direction: ltr;
       cursor: pointer;
       white-space: nowrap;
       transition: transform 0.07s, box-shadow 0.07s;
@@ -684,16 +684,16 @@
   <!-- How-to overlay -->
   <div id="howto-overlay">
     <div id="howto-popup">
-      <div id="howto-title">איך משחקים?</div>
+      <div id="howto-title">HOW TO PLAY?</div>
       <div id="howto-body">
-        <div class="rule-line"><span class="rule-icon">🎯</span><span>משכו את האבן ברוגטקה ושחררו כדי לירות לעבר הציפור</span></div>
-        <div class="rule-line"><span class="rule-icon">⏱️</span><span>יש לכם 60 שניות — פגעו בכמה שיותר ציפורים</span></div>
-        <div class="rule-line"><span class="rule-icon">🔥</span><span>3 פגיעות ברצף מעניקות אבן אש</span></div>
-        <div class="rule-line"><span class="rule-icon">💥</span><span>פגיעה: 100 נקודות. פגיעה עם אבן אש: 300 נקודות</span></div>
-        <div class="rule-line"><span class="rule-icon">⏰</span><span>כל 5 פגיעות ברצף מוסיפות 10 שניות לשעון</span></div>
-        <div class="rule-line"><span class="rule-icon">❌</span><span>פספוס מאפס את רצף הפגיעות</span></div>
+        <div class="rule-line"><span class="rule-icon">🎯</span><span>Pull the slingstone and release to shoot at the bird</span></div>
+        <div class="rule-line"><span class="rule-icon">⏱️</span><span>You have 60 seconds — hit as many birds as you can</span></div>
+        <div class="rule-line"><span class="rule-icon">🔥</span><span>3 hits in a row grant you a firestone</span></div>
+        <div class="rule-line"><span class="rule-icon">💥</span><span>Hit: 100 pts. Hit with firestone: 300 pts</span></div>
+        <div class="rule-line"><span class="rule-icon">⏰</span><span>Every 5 hits in a row add 10 seconds to the clock</span></div>
+        <div class="rule-line"><span class="rule-icon">❌</span><span>A miss resets your hit streak</span></div>
       </div>
-      <button id="howto-got-it">הבנתי!</button>
+      <button id="howto-got-it">Got it!</button>
     </div>
   </div>
 
