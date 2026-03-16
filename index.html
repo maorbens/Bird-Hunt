@@ -119,7 +119,8 @@
     }
     #game-over-score { color: #FFD700; }
     #game-over-hs    { color: #aaffaa; margin-top: calc(clamp(18px, 3.5vmin, 32px) * 0.2 - 7.2px); }
-    #game-over-hs.new-record { width: 100%; justify-content: center; font-size: clamp(18px, 4vmin, 32px); }
+    #game-over-hs.new-record { width: 100%; justify-content: center; gap: 0; }
+    #game-over-hs.new-record .nr-star { font-size: clamp(20px, 4.5vmin, 36px); line-height: 1; }
     /* ── Shared pixel buttons ────────────────────────────────────────────── */
     #game-over-btns {
       display: flex;
@@ -1667,7 +1668,7 @@ function endGame() {
   document.getElementById('score-val').textContent = score;
   const hsEl = document.getElementById('game-over-hs');
   if (isNew) {
-    document.getElementById('hs-label').innerHTML = `★ New Record! ★`;
+    document.getElementById('hs-label').innerHTML = `<span class="nr-star">★</span>New Record!<span class="nr-star">★</span>`;
     document.getElementById('hs-val').textContent = '';
     hsEl.classList.add('new-record');
   } else {
