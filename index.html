@@ -602,33 +602,12 @@
       transform: translate(2px,2px);
       box-shadow: 1px 1px 0 #000;
     }
-    /* Score – takes all remaining space, left-aligned */
+    /* Score – next to avatar */
     #profile-chip-hs {
-      flex: 1;
-      color: #CC8800;
-      font-family: 'Press Start 2P', monospace;
-      font-size: clamp(9px, 2vmin, 13px);
-      text-shadow: 1px 1px 0 #000;
-      text-align: left;
-      white-space: nowrap;
-    }
-    /* Thin pixel divider between score and name */
-    #profile-chip-div {
-      width: 2px;
-      height: 28px;
-      background: #ccc;
-      box-shadow: 1px 0 0 #888;
-      flex-shrink: 0;
-    }
-    /* Name – right-aligned, next to avatar */
-    #profile-chip-name {
       color: #111;
       font-family: 'Press Start 2P', monospace;
       font-size: clamp(9px, 2vmin, 13px);
       text-shadow: none;
-      max-width: min(160px, 30vw);
-      overflow: hidden;
-      text-overflow: ellipsis;
       white-space: nowrap;
       flex-shrink: 0;
     }
@@ -740,8 +719,6 @@
     <!-- Profile bar: full-width floating pixel panel, click to edit -->
     <div id="profile-chip" onclick="playSfx('button');showProfileModal('edit')">
       <span id="profile-chip-hs"></span>
-      <div id="profile-chip-div"></div>
-      <span id="profile-chip-name"></span>
       <img id="profile-chip-img" src="" alt=""/>
     </div>
   </div>
@@ -933,7 +910,6 @@ function _updateProfileChip() {
   if (!userProfile) return;
   const chip = document.getElementById('profile-chip');
   chip.style.display = 'flex';
-  document.getElementById('profile-chip-name').textContent = userProfile.displayName;
   const hs = userProfile.stats.highScore;
   document.getElementById('profile-chip-hs').textContent = hs > 0 ? String(hs) : '';
   document.getElementById('profile-chip-img').src = _svgSrc(userProfile.avatarIndex);
