@@ -150,11 +150,10 @@
     #start-btn {
       padding: clamp(14px, 3vmin, 28px) clamp(36px, 10vmin, 88px);
       font-size: clamp(16px, 3.6vmin, 28px);
-      width: 100%;
+      align-self: stretch;
     }
     #howto-btn {
       margin-top: 5px;
-      width: 100%;
       padding: clamp(14px, 3vmin, 28px) clamp(36px, 10vmin, 88px);
       font-size: clamp(16px, 3.6vmin, 28px);
       background: #1a3a6b;
@@ -720,8 +719,10 @@
     <canvas id="intro-bird-canvas"></canvas>
     <div id="intro-ground"></div>
     <div id="intro-hud">
-      <button id="start-btn" onclick="playSfx('button');startGame()">התחל משחק</button>
-      <button id="howto-btn">איך משחקים?</button>
+      <div style="display:flex;flex-direction:column;gap:inherit">
+        <button id="start-btn" onclick="playSfx('button');startGame()">התחל משחק</button>
+        <button id="howto-btn">איך משחקים?</button>
+      </div>
     </div>
     <!-- Profile bar: full-width floating pixel panel, click to edit -->
     <div id="profile-chip" onclick="playSfx('button');showProfileModal('edit')">
