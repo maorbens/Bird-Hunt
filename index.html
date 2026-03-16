@@ -251,7 +251,7 @@
     /* Logo — pushed below the profile bar */
     #intro-logo {
       position: absolute;
-      top: max(calc(env(safe-area-inset-top) + 86px), 18%);
+      top: max(calc(env(safe-area-inset-top) + 116px), 22%);
       left: 50%;
       transform: translateX(calc(-50% + 5px));
       z-index: 3;
@@ -583,28 +583,27 @@
       display: none;
       position: absolute;
       top: max(8px, env(safe-area-inset-top));
-      left: 8px; right: 8px;
+      left: 16px; right: 16px;
       z-index: 10;
       flex-direction: row;
       align-items: center;
-      gap: 10px;
-      padding: 7px 10px;
+      gap: 12px;
+      padding: 8px 12px;
       cursor: pointer;
       user-select: none;
-      /* Pixel panel – dark wood/earthy background matching game palette */
-      background: #1a0e02;
+      background: #fff;
       border: 3px solid #000;
       box-shadow:
         3px 3px 0 #000,
-        inset 2px 2px 0 #3d2208,
-        inset -2px -2px 0 rgba(0,0,0,0.55);
+        inset 2px 2px 0 #fff,
+        inset -2px -2px 0 #aaa;
     }
     #profile-chip:hover {
-      background: #261403;
+      background: #f2f2f2;
       box-shadow:
         3px 3px 0 #000,
-        inset 2px 2px 0 #583010,
-        inset -2px -2px 0 rgba(0,0,0,0.55);
+        inset 2px 2px 0 #fff,
+        inset -2px -2px 0 #999;
     }
     #profile-chip:active {
       transform: translate(2px,2px);
@@ -613,10 +612,10 @@
     /* Score – takes all remaining space, left-aligned */
     #profile-chip-hs {
       flex: 1;
-      color: #FFD700;
+      color: #CC8800;
       font-family: 'Press Start 2P', monospace;
-      font-size: clamp(7px, 1.6vmin, 10px);
-      text-shadow: 1px 1px 0 #7B4000, 2px 2px 0 #000;
+      font-size: clamp(9px, 2vmin, 13px);
+      text-shadow: 1px 1px 0 #000;
       text-align: left;
       white-space: nowrap;
     }
@@ -624,17 +623,17 @@
     #profile-chip-div {
       width: 2px;
       height: 28px;
-      background: #3d2208;
-      box-shadow: 1px 0 0 #000;
+      background: #ccc;
+      box-shadow: 1px 0 0 #888;
       flex-shrink: 0;
     }
     /* Name – right-aligned, next to avatar */
     #profile-chip-name {
-      color: #fff;
+      color: #111;
       font-family: 'Press Start 2P', monospace;
-      font-size: clamp(7px, 1.6vmin, 10px);
-      text-shadow: 2px 2px 0 #000;
-      max-width: min(150px, 28vw);
+      font-size: clamp(9px, 2vmin, 13px);
+      text-shadow: none;
+      max-width: min(160px, 30vw);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -943,7 +942,7 @@ function _updateProfileChip() {
   chip.style.display = 'flex';
   document.getElementById('profile-chip-name').textContent = userProfile.displayName;
   const hs = userProfile.stats.highScore;
-  document.getElementById('profile-chip-hs').textContent = hs > 0 ? '★  ' + hs : '';
+  document.getElementById('profile-chip-hs').textContent = hs > 0 ? String(hs) : '';
   document.getElementById('profile-chip-img').src = _svgSrc(userProfile.avatarIndex);
 }
 
