@@ -916,7 +916,7 @@ function _updateProfileChip() {
   const chip = document.getElementById('profile-chip');
   chip.style.display = 'flex';
   const hs = userProfile.stats.highScore;
-  document.getElementById('profile-chip-hs').textContent = hs > 0 ? String(hs) : '';
+  document.getElementById('profile-chip-hs').textContent = String(hs);
   document.getElementById('profile-chip-img').src = _svgSrc(userProfile.avatarIndex);
 }
 
