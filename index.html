@@ -148,13 +148,14 @@
     #game-over-btns #restart-btn { padding: clamp(14px, 3vmin, 28px) clamp(36px, 10vmin, 88px); font-size: clamp(16px, 3.6vmin, 28px); }
     #restart-btn:active, #start-btn:active { transform: translate(3px,3px); box-shadow: 1px 1px 0 #000; }
     #start-btn {
-      padding: clamp(14px, 3vmin, 28px) clamp(56px, 10vmin, 108px);
+      padding: clamp(14px, 3vmin, 28px) 75px;
       font-size: clamp(16px, 3.6vmin, 28px);
       align-self: stretch;
+      box-sizing: border-box;
     }
     #howto-btn {
       margin-top: 5px;
-      padding: clamp(14px, 3vmin, 28px) clamp(56px, 10vmin, 108px);
+      padding: clamp(14px, 3vmin, 28px) 75px;
       font-size: clamp(16px, 3.6vmin, 28px);
       background: #1a3a6b;
       color: #fff;
@@ -167,6 +168,7 @@
       cursor: pointer;
       white-space: nowrap;
       word-spacing: -0.3em;
+      box-sizing: border-box;
       transition: transform 0.07s, box-shadow 0.07s;
     }
     #howto-btn:active { transform: translate(3px,3px); box-shadow: 1px 1px 0 #000; }
