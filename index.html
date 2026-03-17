@@ -943,7 +943,7 @@ function _buildAvatarGrid() {
     const cell = document.createElement('div');
     cell.className = 'avatar-cell' + (i === _pickedAvatar ? ' selected' : '');
     cell.title = hunter.name;
-    cell.tabIndex = 0;
+    cell.tabIndex = -1;
     const img = document.createElement('img');
     img.src = HUNTER_IMGS[i];
     img.alt = hunter.name;
