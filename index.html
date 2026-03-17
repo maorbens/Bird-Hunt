@@ -103,7 +103,7 @@
     #game-over-reason {
       color: #FF6B6B;
       font-family: 'Press Start 2P', monospace;
-      font-weight: 700;
+      font-weight: 500;
       font-size: clamp(18px, 4vmin, 32px);
       text-align: center;
       width: 100%;
@@ -114,7 +114,7 @@
       align-items: baseline;
       gap: clamp(8px, 1.5vmin, 14px);
       font-family: 'Press Start 2P', monospace;
-      font-weight: 700;
+      font-weight: 500;
       font-size: clamp(13px, 2.8vmin, 22px);
     }
     #game-over-score { color: #FFD700; }
@@ -145,7 +145,7 @@
       border: 4px solid #000;
       box-shadow: 4px 4px 0 #000;
       font-family: 'Press Start 2P', monospace;
-      font-weight: 700;
+      font-weight: 500;
       font-size: clamp(15px, 3.2vmin, 24px);
       text-align: center;
       direction: ltr;
@@ -170,7 +170,7 @@
       border: 4px solid #000;
       box-shadow: 4px 4px 0 #000;
       font-family: 'Press Start 2P', monospace;
-      font-weight: 700;
+      font-weight: 500;
       text-align: center;
       direction: ltr;
       cursor: pointer;
@@ -188,7 +188,7 @@
       border: 4px solid #556;
       box-shadow: 4px 4px 0 #000;
       font-family: 'Press Start 2P', monospace;
-      font-weight: 700;
+      font-weight: 500;
       font-size: clamp(16px, 3.6vmin, 28px);
       text-align: center;
       direction: ltr;
@@ -402,14 +402,14 @@
     #howto-title {
       color: #FFD700;
       font-family: 'Press Start 2P', monospace;
-      font-weight: 700;
+      font-weight: 500;
       font-size: clamp(18px, 4vmin, 32px);
     }
     #howto-body {
       margin-top: 6px;
       color: rgba(255,255,255,0.88);
       font-family: 'Roboto', sans-serif;
-      font-weight: 600;
+      font-weight: 500;
       font-size: clamp(14px, 2.6vmin, 20px);
       text-shadow: none;
       line-height: 1.85;
@@ -426,7 +426,7 @@
       border: 4px solid #000;
       box-shadow: 4px 4px 0 #000;
       font-family: 'Press Start 2P', monospace;
-      font-weight: 700;
+      font-weight: 500;
       font-size: clamp(16px, 3.6vmin, 28px);
       text-align: center;
       direction: ltr;
@@ -440,7 +440,7 @@
     #intro-desc {
       color: rgba(255,255,255,0.84);
       font-family: system-ui, -apple-system, sans-serif;
-      font-weight: 600;
+      font-weight: 500;
       font-size: clamp(11px, 2.2vmin, 17px);
       text-shadow: 1px 1px 0 #000;
       line-height: 1.7;
@@ -452,7 +452,7 @@
     .ex { font-family: system-ui, -apple-system, Arial, sans-serif; }
     #score-val, #hs-val {
       font-family: 'Press Start 2P', monospace;
-      font-weight: 700;
+      font-weight: 500;
       font-size: clamp(16px, 3.4vmin, 26px);
       letter-spacing: 0.02em;
     }
@@ -489,13 +489,13 @@
     #profile-title {
       color: #FFD700;
       font-family: 'Press Start 2P', monospace;
-      font-weight: 700;
+      font-weight: 500;
       font-size: clamp(18px, 4vmin, 32px);
     }
     #profile-subtitle {
       color: rgba(255,255,255,0.88);
       font-family: 'Roboto', sans-serif;
-      font-weight: 600;
+      font-weight: 500;
       font-size: clamp(14px, 2.6vmin, 20px);
       line-height: 1.85;
       margin-top: -8px;
@@ -554,7 +554,7 @@
     #name-label {
       color: rgba(255,255,255,0.82);
       font-family: 'Roboto', sans-serif;
-      font-weight: 700;
+      font-weight: 500;
       font-size: clamp(14px, 2.6vmin, 20px);
       align-self: flex-start;
       margin-bottom: -6px;
@@ -565,7 +565,7 @@
       border: 3px solid #445;
       color: #fff;
       font-family: 'Roboto', sans-serif;
-      font-weight: 700;
+      font-weight: 500;
       font-size: clamp(15px, 3vmin, 22px);
       padding: clamp(10px, 2vmin, 16px) clamp(12px, 2.5vmin, 18px);
       text-align: left;
@@ -584,7 +584,7 @@
       border: 4px solid #000;
       box-shadow: 4px 4px 0 #000;
       font-family: 'Press Start 2P', monospace;
-      font-weight: 700;
+      font-weight: 500;
       font-size: clamp(16px, 3.6vmin, 28px);
       text-align: center;
       direction: ltr;
@@ -602,7 +602,7 @@
       border: 4px solid #556;
       box-shadow: 4px 4px 0 #000;
       font-family: 'Press Start 2P', monospace;
-      font-weight: 700;
+      font-weight: 500;
       font-size: clamp(16px, 3.6vmin, 28px);
       text-align: center;
       direction: ltr;
@@ -2105,7 +2105,7 @@ function drawFloatingTexts() {
   floatingTexts.forEach(ft => {
     if (ft.y < UI_TOP_H) return;
     const isHebrew = ft.forceSystemFont || /[\u0590-\u05FF]/.test(ft.text);
-    ctx.font = `bold ${ft.size}px ${isHebrew ? 'system-ui, -apple-system, sans-serif' : '"Press Start 2P", monospace'}`;
+    ctx.font = `500 ${ft.size}px ${isHebrew ? 'system-ui, -apple-system, sans-serif' : '"Press Start 2P", monospace'}`;
     ctx.direction = isHebrew ? 'rtl' : 'ltr';
     ctx.globalAlpha = Math.min(1, ft.life * 1.5);
     const halfW = ctx.measureText(ft.text).width / 2;
