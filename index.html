@@ -936,13 +936,13 @@ function _buildAvatarGrid() {
       _pickedAvatar = i;
       track.querySelectorAll('.avatar-cell').forEach(el => el.classList.remove('selected'));
       cell.classList.add('selected');
-      cell.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      track.scrollTo({ left: cell.offsetLeft - (track.offsetWidth - cell.offsetWidth) / 2, behavior: 'smooth' });
     });
     track.appendChild(cell);
   });
   requestAnimationFrame(() => {
     const sel = track.querySelector('.avatar-cell.selected');
-    if (sel) sel.scrollIntoView({ behavior: 'instant', block: 'nearest', inline: 'center' });
+    if (sel) track.scrollTo({ left: sel.offsetLeft - (track.offsetWidth - sel.offsetWidth) / 2, behavior: 'instant' });
   });
 }
 
