@@ -943,7 +943,6 @@ function _buildAvatarGrid() {
     const cell = document.createElement('div');
     cell.className = 'avatar-cell' + (i === _pickedAvatar ? ' selected' : '');
     cell.title = hunter.name;
-    cell.tabIndex = -1;
     const img = document.createElement('img');
     img.src = HUNTER_IMGS[i];
     img.alt = hunter.name;
@@ -954,6 +953,7 @@ function _buildAvatarGrid() {
       track.querySelectorAll('.avatar-cell').forEach(el => el.classList.remove('selected'));
       cell.classList.add('selected');
       track.scrollTo({ left: cell.offsetLeft - (track.offsetWidth - cell.offsetWidth) / 2, behavior: 'smooth' });
+      if (document.activeElement) document.activeElement.blur();
     });
     track.appendChild(cell);
   });
