@@ -466,35 +466,38 @@
       z-index: 50;
       align-items: center;
       justify-content: center;
+      padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+      box-sizing: border-box;
     }
     #profile-overlay.visible { display: flex; }
     #profile-popup {
       background: #1a1a2e;
       border: 4px solid #FFD700;
       box-shadow: 6px 6px 0 #000, inset 0 0 0 2px #000;
-      padding: clamp(24px, 4vmin, 48px) clamp(24px, 5.5vmin, 56px);
+      padding: clamp(36px, 7.5vmin, 84px) clamp(36px, 9vw, 96px);
       text-align: center;
-      direction: rtl;
+      direction: ltr;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: clamp(14px, 2.8vmin, 26px);
-      width: min(460px, 92vw);
-      max-height: 95dvh;
+      gap: clamp(14px, 3vmin, 28px);
+      width: min(520px, 100%);
+      max-height: 100%;
       overflow-y: auto;
+      box-sizing: border-box;
     }
     #profile-title {
       color: #FFD700;
-      font-family: system-ui, -apple-system, sans-serif;
+      font-family: 'Press Start 2P', monospace;
       font-weight: 700;
-      font-size: clamp(20px, 4.4vmin, 34px);
-      text-shadow: 2px 2px 0 #000;
+      font-size: clamp(18px, 4vmin, 32px);
     }
     #profile-subtitle {
-      color: rgba(255,255,255,0.72);
-      font-family: system-ui, -apple-system, sans-serif;
+      color: rgba(255,255,255,0.88);
+      font-family: 'Roboto', sans-serif;
       font-weight: 600;
-      font-size: clamp(12px, 2.3vmin, 17px);
+      font-size: clamp(14px, 2.6vmin, 20px);
+      line-height: 1.85;
       margin-top: -8px;
     }
     #avatar-grid {
@@ -531,10 +534,10 @@
     .avatar-cell:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 #000; }
     #name-label {
       color: rgba(255,255,255,0.82);
-      font-family: system-ui, -apple-system, sans-serif;
+      font-family: 'Roboto', sans-serif;
       font-weight: 700;
-      font-size: clamp(12px, 2.4vmin, 18px);
-      align-self: flex-end;
+      font-size: clamp(14px, 2.6vmin, 20px);
+      align-self: flex-start;
       margin-bottom: -6px;
     }
     #name-input {
@@ -542,12 +545,12 @@
       background: #0d1b2e;
       border: 3px solid #445;
       color: #fff;
-      font-family: system-ui, -apple-system, sans-serif;
+      font-family: 'Roboto', sans-serif;
       font-weight: 700;
       font-size: clamp(15px, 3vmin, 22px);
       padding: clamp(10px, 2vmin, 16px) clamp(12px, 2.5vmin, 18px);
-      text-align: right;
-      direction: rtl;
+      text-align: left;
+      direction: ltr;
       outline: none;
       box-shadow: 3px 3px 0 #000;
       transition: border-color 0.15s;
@@ -556,31 +559,33 @@
     #name-input.input-error { border-color: #FF4444; animation: inputShake 0.32s; }
     #profile-save-btn {
       width: 100%;
-      padding: clamp(12px, 2.5vmin, 20px);
+      padding: clamp(14px, 3vmin, 28px) 0;
       background: #e94560;
       color: #fff;
       border: 4px solid #000;
       box-shadow: 4px 4px 0 #000;
-      font-family: system-ui, -apple-system, sans-serif;
+      font-family: 'Press Start 2P', monospace;
       font-weight: 700;
-      font-size: clamp(15px, 3.2vmin, 24px);
+      font-size: clamp(16px, 3.6vmin, 28px);
+      text-align: center;
+      direction: ltr;
       cursor: pointer;
-      direction: rtl;
+      white-space: nowrap;
       transition: transform 0.07s, box-shadow 0.07s;
-      margin-top: 4px;
+      margin-top: 6px;
     }
     #profile-save-btn:active { transform: translate(3px,3px); box-shadow: 1px 1px 0 #000; }
     #profile-cancel-btn {
       background: transparent;
       border: none;
       color: rgba(255,255,255,0.42);
-      font-family: system-ui, -apple-system, sans-serif;
+      font-family: 'Roboto', sans-serif;
       font-weight: 600;
       font-size: clamp(12px, 2.2vmin, 16px);
       cursor: pointer;
       padding: 4px 8px;
       text-decoration: underline;
-      direction: rtl;
+      direction: ltr;
       margin-top: -8px;
     }
     #profile-cancel-btn:hover { color: rgba(255,255,255,0.68); }
@@ -713,15 +718,15 @@
   <!-- Profile modal (create / edit) -->
   <div id="profile-overlay">
     <div id="profile-popup">
-      <div id="profile-title">יצירת פרופיל</div>
-      <div id="profile-subtitle">בחרו ציידן ושם — הצמד שלכם לצייד!</div>
+      <div id="profile-title">Create Profile</div>
+      <div id="profile-subtitle">Pick a hunter &amp; name — your duo for the hunt!</div>
       <div id="avatar-grid"></div>
-      <div id="name-label">שם משתמש</div>
+      <div id="name-label">Username</div>
       <input id="name-input" type="text" maxlength="16"
-             placeholder="הכניסו שם..." autocomplete="off"
+             placeholder="Enter name..." autocomplete="off"
              autocorrect="off" spellcheck="false" />
-      <button id="profile-save-btn">קדימה לצייד!</button>
-      <button id="profile-cancel-btn" style="display:none">ביטול</button>
+      <button id="profile-save-btn">Let's Hunt!</button>
+      <button id="profile-cancel-btn" style="display:none">Cancel</button>
     </div>
   </div>
 
@@ -918,7 +923,7 @@ function showProfileModal(mode) {
   _profileMode = mode || 'create';
   _pickedAvatar = userProfile ? userProfile.avatarIndex : 0;
   document.getElementById('profile-title').textContent =
-    _profileMode === 'create' ? 'יצירת פרופיל' : 'עריכת פרופיל';
+    _profileMode === 'create' ? 'Create Profile' : 'Edit Profile';
   document.getElementById('profile-subtitle').style.display =
     _profileMode === 'create' ? '' : 'none';
   document.getElementById('profile-cancel-btn').style.display =
