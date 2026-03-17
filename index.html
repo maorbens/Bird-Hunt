@@ -514,7 +514,6 @@
       scrollbar-width: none;
       padding: 10px clamp(36px, 9vw, 96px);
       outline: none;
-      -webkit-tap-highlight-color: transparent;
     }
     #avatar-track::-webkit-scrollbar { display: none; }
     .avatar-cell {
@@ -530,26 +529,20 @@
       transition: transform 0.1s, border-color 0.1s, box-shadow 0.1s;
       box-shadow: 3px 3px 0 #000;
       outline: none;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .avatar-cell:focus, .avatar-cell:focus-visible {
-      outline: none;
-      box-shadow: 3px 3px 0 #000;
     }
     .avatar-cell.selected:focus, .avatar-cell.selected:focus-visible {
       box-shadow: 3px 3px 0 #000, 0 0 0 3px rgba(255,215,0,0.45);
     }
     #avatar-track:focus, #avatar-track:focus-visible,
     #profile-popup:focus, #profile-popup:focus-visible {
-      outline: none !important;
-      box-shadow: none !important;
+      outline: none;
+      box-shadow: none;
     }
     .avatar-cell img {
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: block;
-      -webkit-tap-highlight-color: transparent;
       pointer-events: none;
     }
     .avatar-cell.selected {
@@ -953,7 +946,7 @@ function _buildAvatarGrid() {
       track.querySelectorAll('.avatar-cell').forEach(el => el.classList.remove('selected'));
       cell.classList.add('selected');
       track.scrollTo({ left: cell.offsetLeft - (track.offsetWidth - cell.offsetWidth) / 2, behavior: 'smooth' });
-      if (document.activeElement) document.activeElement.blur();
+      document.activeElement.blur();
     });
     track.appendChild(cell);
   });
