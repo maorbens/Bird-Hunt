@@ -1817,6 +1817,13 @@ function update(dt) {
     const go = gp.x > VW + 60 || gp.x < -60 || gp.y > H + 60;
     const gs = Math.abs(gp.vx) < 0.3 && Math.abs(gp.vy) < 0.3 && gp.y + gp.r >= GROUND_Y - 2;
     if (go || gs) ghostProjectile = null;
+    // Fire ambient trail for ghost
+    if (ghostProjectile && gp.isFire && Math.random() < 0.5) {
+      const colors = ['#FF6600','#FF4400','#FFCC00','#FF8800'];
+      particles.push({ x: gp.x + (Math.random()-0.5)*gp.r, y: gp.y + (Math.random()-0.5)*gp.r,
+        vx: (Math.random()-0.5)*1.5, vy: -1.5 - Math.random()*2,
+        life: 1, color: colors[Math.floor(Math.random()*colors.length)] });
+    }
   }
 
   if (phase !== 'flying') return;
@@ -2016,8 +2023,19 @@ function drawProjectile() {
     if (ghostProjectile) {
       ctx.save();
       ctx.scale(SCALE, SCALE);
+      const gpe = ghostProjectile;
+      if (gpe.isFire) {
+        ctx.globalAlpha = 0.45 * 0.35;
+        const grad = ctx.createRadialGradient(gpe.x, gpe.y, 0, gpe.x, gpe.y, gpe.r * 2.2);
+        grad.addColorStop(0, '#FFAA00');
+        grad.addColorStop(1, 'rgba(255,80,0,0)');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(gpe.x, gpe.y, gpe.r * 2.2, 0, Math.PI * 2);
+        ctx.fill();
+      }
       ctx.globalAlpha = 0.45;
-      drawSprite(STONE_SPR, ghostProjectile.isFire ? FIRE_STONE_PAL : STONE_PAL, ghostProjectile.x, ghostProjectile.y, false, ghostProjectile.scale);
+      drawSprite(STONE_SPR, gpe.isFire ? FIRE_STONE_PAL : STONE_PAL, gpe.x, gpe.y, false, gpe.scale);
       ctx.globalAlpha = 1;
       ctx.restore();
     }
@@ -2057,6 +2075,16 @@ function drawProjectile() {
   // Ghost: previous stone still flying after early miss
   if (ghostProjectile) {
     const gp = ghostProjectile;
+    if (gp.isFire) {
+      ctx.globalAlpha = 0.45 * 0.35;
+      const grad = ctx.createRadialGradient(gp.x, gp.y, 0, gp.x, gp.y, gp.r * 2.2);
+      grad.addColorStop(0, '#FFAA00');
+      grad.addColorStop(1, 'rgba(255,80,0,0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(gp.x, gp.y, gp.r * 2.2, 0, Math.PI * 2);
+      ctx.fill();
+    }
     ctx.globalAlpha = 0.45;
     drawSprite(STONE_SPR, gp.isFire ? FIRE_STONE_PAL : STONE_PAL, gp.x, gp.y, false, gp.scale);
     ctx.globalAlpha = 1;
