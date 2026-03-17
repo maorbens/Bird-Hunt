@@ -1592,7 +1592,7 @@ function onHit(bx, by) {
     timeLeft = Math.min(timeLeft + TIME_BONUS, 99);
     if (timeLeft > 10) _stopTicking();
     playSfx('extra');
-    addFloatingText('+10 שניות', bx, by - 56, '#44FF88', 18);
+    addFloatingText('10s+', bx, by - 56, '#44FF88', 18);
   }
 
   addFloatingText('+' + pts, bx, by - 30, isFireStone ? '#FF8800' : '#FFD700', 18, true);
@@ -1602,7 +1602,7 @@ function onHit(bx, by) {
   if (!isFireStone && consecutiveHits >= FIRE_COMBO) {
     isFireStone = true;
     playSfx('fire');
-    addFloatingText('אבן אש!', SLING_X + 70, SLING_Y - 50, '#FF4400', 18);
+    addFloatingText('Firestone', SLING_X + 70, SLING_Y - 50, '#FF4400', 18);
   }
 
   updateUI();
@@ -1634,7 +1634,7 @@ function onMiss() {
     const prevScale = stoneScale;
     stoneScale = Math.max(0.75, stoneScale * 0.75);
     if (stoneScale < prevScale && missCount < MISS_LIMIT)
-      addFloatingText('אבן קטנה', SLING_X + 70, SLING_Y - 50, '#FF8844', 18);
+      addFloatingText('Tiny stone', SLING_X + 70, SLING_Y - 50, '#FF8844', 18);
   }
 
   updateUI(true);
