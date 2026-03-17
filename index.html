@@ -538,7 +538,8 @@
     .avatar-cell.selected:focus, .avatar-cell.selected:focus-visible {
       box-shadow: 3px 3px 0 #000, 0 0 0 3px rgba(255,215,0,0.45);
     }
-    #avatar-track:focus, #avatar-track:focus-visible {
+    #avatar-track:focus, #avatar-track:focus-visible,
+    #profile-popup:focus, #profile-popup:focus-visible {
       outline: none !important;
       box-shadow: none !important;
     }
@@ -957,10 +958,12 @@ function _buildAvatarGrid() {
     const sel = track.querySelector('.avatar-cell.selected');
     if (sel) track.scrollTo({ left: sel.offsetLeft - (track.offsetWidth - sel.offsetWidth) / 2, behavior: 'instant' });
   });
-  track.addEventListener('pointerdown', () => {
-    requestAnimationFrame(() => {
-      if (document.activeElement === track) track.blur();
-    });
+  // Prevent Chrome 132+ from showing focus ring on the scroll container itself
+  track.addEventListener('pointerdown', e => {
+    if (e.target === track) e.preventDefault();
+  });
+  document.getElementById('profile-popup').addEventListener('pointerdown', e => {
+    if (e.target === document.getElementById('profile-popup')) e.preventDefault();
   });
 }
 
