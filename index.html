@@ -584,19 +584,23 @@
     }
     #profile-save-btn:active { transform: translate(3px,3px); box-shadow: 1px 1px 0 #000; }
     #profile-cancel-btn {
-      background: transparent;
-      border: none;
-      color: rgba(255,255,255,0.42);
-      font-family: 'Roboto', sans-serif;
-      font-weight: 600;
-      font-size: clamp(12px, 2.2vmin, 16px);
-      cursor: pointer;
-      padding: 4px 8px;
-      text-decoration: underline;
+      width: 100%;
+      padding: clamp(14px, 3vmin, 28px) 0;
+      background: rgba(26, 26, 60, 0.85);
+      color: #99aacc;
+      border: 4px solid #556;
+      box-shadow: 4px 4px 0 #000;
+      font-family: 'Press Start 2P', monospace;
+      font-weight: 700;
+      font-size: clamp(16px, 3.6vmin, 28px);
+      text-align: center;
       direction: ltr;
-      margin-top: -8px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: transform 0.07s, box-shadow 0.07s, color 0.12s, border-color 0.12s;
     }
-    #profile-cancel-btn:hover { color: rgba(255,255,255,0.68); }
+    #profile-cancel-btn:hover  { color: #dde; border-color: #889; }
+    #profile-cancel-btn:active { transform: translate(3px,3px); box-shadow: 1px 1px 0 #000; }
     @keyframes inputShake {
       0%,100% { transform: translateX(0); }
       20%,60%  { transform: translateX(-7px); }
