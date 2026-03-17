@@ -502,44 +502,23 @@
     }
     #avatar-carousel {
       width: 100%;
-      display: flex;
-      align-items: center;
-      gap: 6px;
+      margin-inline: calc(-1 * clamp(36px, 9vw, 96px));
+      width: calc(100% + 2 * clamp(36px, 9vw, 96px));
     }
-    .carousel-arrow {
-      flex-shrink: 0;
-      width: clamp(28px, 6vmin, 38px);
-      height: clamp(28px, 6vmin, 38px);
-      background: #2a3a5e;
-      border: 3px solid #fff;
-      box-shadow: 2px 2px 0 #000;
-      color: #fff;
-      font-size: clamp(18px, 4vmin, 26px);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: transform 0.07s, box-shadow 0.07s;
-      border-radius: 4px;
-      line-height: 1;
-      padding: 0;
-    }
-    .carousel-arrow:active { transform: translate(2px,2px); box-shadow: 0 0 0 #000; }
     #avatar-track {
-      flex: 1;
       display: flex;
-      gap: clamp(8px, 2vmin, 14px);
+      gap: clamp(10px, 2.5vmin, 18px);
       overflow-x: auto;
       scroll-snap-type: x mandatory;
       scroll-behavior: smooth;
       scrollbar-width: none;
-      padding: 10px 2px;
+      padding: 10px clamp(36px, 9vw, 96px);
     }
     #avatar-track::-webkit-scrollbar { display: none; }
     .avatar-cell {
       flex-shrink: 0;
-      width: clamp(72px, 15vmin, 92px);
-      height: clamp(72px, 15vmin, 92px);
+      width: clamp(144px, 30vmin, 184px);
+      height: clamp(144px, 30vmin, 184px);
       border-radius: 50%;
       scroll-snap-align: center;
       cursor: pointer;
@@ -750,9 +729,7 @@
       <div id="profile-title">Create Profile</div>
       <div id="profile-subtitle">Pick a hunter &amp; name — your duo for the hunt!</div>
       <div id="avatar-carousel">
-        <button class="carousel-arrow" id="avatar-prev">&#8249;</button>
         <div id="avatar-track"></div>
-        <button class="carousel-arrow" id="avatar-next">&#8250;</button>
       </div>
       <div id="name-label">Username</div>
       <input id="name-input" type="text" maxlength="16"
@@ -1043,18 +1020,6 @@ document.getElementById('profile-cancel-btn').addEventListener('click', () => {
 });
 document.getElementById('name-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') { e.preventDefault(); _saveProfileFromModal(); }
-});
-document.getElementById('avatar-prev').addEventListener('click', () => {
-  const track = document.getElementById('avatar-track');
-  const cell = track.querySelector('.avatar-cell');
-  const step = cell ? cell.offsetWidth + parseInt(getComputedStyle(track).gap) : 90;
-  track.scrollBy({ left: -step, behavior: 'smooth' });
-});
-document.getElementById('avatar-next').addEventListener('click', () => {
-  const track = document.getElementById('avatar-track');
-  const cell = track.querySelector('.avatar-cell');
-  const step = cell ? cell.offsetWidth + parseInt(getComputedStyle(track).gap) : 90;
-  track.scrollBy({ left: step, behavior: 'smooth' });
 });
 
 // ── Intro Screen ──────────────────────────────────────────────────────────
