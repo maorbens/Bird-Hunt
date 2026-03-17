@@ -958,12 +958,12 @@ function _buildAvatarGrid() {
     const sel = track.querySelector('.avatar-cell.selected');
     if (sel) track.scrollTo({ left: sel.offsetLeft - (track.offsetWidth - sel.offsetWidth) / 2, behavior: 'instant' });
   });
-  // Prevent Chrome 132+ from showing focus ring on the scroll container itself
+  // Prevent Chrome 132+ from focusing scroll containers when clicking non-focusable areas
   track.addEventListener('pointerdown', e => {
-    if (e.target === track) e.preventDefault();
+    if (!e.target.closest('[tabindex]')) e.preventDefault();
   });
   document.getElementById('profile-popup').addEventListener('pointerdown', e => {
-    if (e.target === document.getElementById('profile-popup')) e.preventDefault();
+    if (!e.target.closest('input, button, [tabindex]')) e.preventDefault();
   });
 }
 
