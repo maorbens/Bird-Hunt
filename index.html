@@ -514,6 +514,7 @@
       scrollbar-width: none;
       padding: 10px clamp(36px, 9vw, 96px);
       outline: none;
+      -webkit-tap-highlight-color: transparent;
     }
     #avatar-track::-webkit-scrollbar { display: none; }
     .avatar-cell {
@@ -957,13 +958,6 @@ function _buildAvatarGrid() {
   requestAnimationFrame(() => {
     const sel = track.querySelector('.avatar-cell.selected');
     if (sel) track.scrollTo({ left: sel.offsetLeft - (track.offsetWidth - sel.offsetWidth) / 2, behavior: 'instant' });
-  });
-  // Prevent Chrome 132+ from focusing scroll containers when clicking non-focusable areas
-  track.addEventListener('pointerdown', e => {
-    if (!e.target.closest('[tabindex]')) e.preventDefault();
-  });
-  document.getElementById('profile-popup').addEventListener('pointerdown', e => {
-    if (!e.target.closest('input, button, [tabindex]')) e.preventDefault();
   });
 }
 
