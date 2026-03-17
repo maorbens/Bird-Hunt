@@ -539,8 +539,8 @@
       box-shadow: 3px 3px 0 #000, 0 0 0 3px rgba(255,215,0,0.45);
     }
     #avatar-track:focus, #avatar-track:focus-visible {
-      outline: none;
-      box-shadow: none;
+      outline: none !important;
+      box-shadow: none !important;
     }
     .avatar-cell img {
       width: 100%;
@@ -956,6 +956,11 @@ function _buildAvatarGrid() {
   requestAnimationFrame(() => {
     const sel = track.querySelector('.avatar-cell.selected');
     if (sel) track.scrollTo({ left: sel.offsetLeft - (track.offsetWidth - sel.offsetWidth) / 2, behavior: 'instant' });
+  });
+  track.addEventListener('pointerdown', () => {
+    requestAnimationFrame(() => {
+      if (document.activeElement === track) track.blur();
+    });
   });
 }
 
