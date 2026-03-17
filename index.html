@@ -500,38 +500,67 @@
       line-height: 1.85;
       margin-top: -8px;
     }
-    #avatar-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: clamp(8px, 1.8vmin, 16px);
+    #avatar-carousel {
       width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
-    .avatar-cell {
-      aspect-ratio: 1;
+    .carousel-arrow {
+      flex-shrink: 0;
+      width: clamp(28px, 6vmin, 38px);
+      height: clamp(28px, 6vmin, 38px);
+      background: #2a3a5e;
+      border: 3px solid #fff;
+      box-shadow: 2px 2px 0 #000;
+      color: #fff;
+      font-size: clamp(18px, 4vmin, 26px);
       cursor: pointer;
-      border: 3px solid #334;
-      box-shadow: 3px 3px 0 #000;
-      background: #0d1b2e;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: transform 0.07s, border-color 0.1s;
-      position: relative;
+      transition: transform 0.07s, box-shadow 0.07s;
+      border-radius: 4px;
+      line-height: 1;
+      padding: 0;
+    }
+    .carousel-arrow:active { transform: translate(2px,2px); box-shadow: 0 0 0 #000; }
+    #avatar-track {
+      flex: 1;
+      display: flex;
+      gap: clamp(8px, 2vmin, 14px);
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
+      scrollbar-width: none;
+      padding: 10px 2px;
+    }
+    #avatar-track::-webkit-scrollbar { display: none; }
+    .avatar-cell {
+      flex-shrink: 0;
+      width: clamp(72px, 15vmin, 92px);
+      height: clamp(72px, 15vmin, 92px);
+      border-radius: 50%;
+      scroll-snap-align: center;
+      cursor: pointer;
+      border: 3px solid #334466;
+      background: #0d1b2e;
       overflow: hidden;
+      transition: transform 0.1s, border-color 0.1s, box-shadow 0.1s;
+      box-shadow: 3px 3px 0 #000;
     }
     .avatar-cell img {
-      width: 78%;
-      height: 78%;
-      border-radius: 2px;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
       display: block;
     }
     .avatar-cell.selected {
-      border-color: #FFD700;
-      box-shadow: 3px 3px 0 #000, 0 0 0 2px rgba(255,215,0,0.4);
-      background: #1c2e44;
+      border: 4px solid #FFD700;
+      box-shadow: 3px 3px 0 #000, 0 0 0 3px rgba(255,215,0,0.45);
     }
-    .avatar-cell:not(.selected):hover { border-color: #667; }
-    .avatar-cell:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 #000; }
+    .avatar-cell:not(.selected):hover { border-color: #6677aa; }
+    .avatar-cell:active { transform: translate(2px,2px); }
     #name-label {
       color: rgba(255,255,255,0.82);
       font-family: 'Roboto', sans-serif;
@@ -720,7 +749,11 @@
     <div id="profile-popup">
       <div id="profile-title">Create Profile</div>
       <div id="profile-subtitle">Pick a hunter &amp; name — your duo for the hunt!</div>
-      <div id="avatar-grid"></div>
+      <div id="avatar-carousel">
+        <button class="carousel-arrow" id="avatar-prev">&#8249;</button>
+        <div id="avatar-track"></div>
+        <button class="carousel-arrow" id="avatar-next">&#8250;</button>
+      </div>
       <div id="name-label">Username</div>
       <input id="name-input" type="text" maxlength="16"
              placeholder="Enter name..." autocomplete="off"
@@ -866,9 +899,16 @@ const HUNTERS = [
   { name: 'חוקרת', svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#E8CC80"/><rect x="18" y="84" width="64" height="16" fill="#CC8800" rx="3"/><rect x="26" y="86" width="14" height="10" fill="#AA6600" rx="2"/><rect x="60" y="86" width="14" height="10" fill="#AA6600" rx="2"/><ellipse cx="50" cy="22" rx="50" ry="14" fill="#B08040"/><rect x="0" y="10" width="100" height="16" fill="#B08040" rx="2"/><ellipse cx="50" cy="10" rx="36" ry="18" fill="#C09448"/><rect x="14" y="2" width="72" height="14" fill="#C09448"/><rect x="14" y="22" width="72" height="6" fill="#7B5A20"/><rect x="22" y="32" width="56" height="56" fill="#F5D098" rx="12"/><rect x="22" y="32" width="10" height="56" fill="#D8B070" rx="8" opacity="0.4"/><rect x="68" y="32" width="10" height="56" fill="#D8B070" rx="8" opacity="0.4"/><path d="M26,38 Q36,33 44,37" stroke="#8A5020" stroke-width="3.5" fill="none" stroke-linecap="round"/><path d="M56,37 Q64,33 74,38" stroke="#8A5020" stroke-width="3.5" fill="none" stroke-linecap="round"/><rect x="18" y="42" width="64" height="16" fill="#1A6688" rx="8"/><rect x="20" y="44" width="60" height="12" fill="#1E7AA0" rx="6"/><rect x="22" y="44" width="25" height="5" fill="#28A8D0" rx="4" opacity="0.5"/><rect x="53" y="44" width="25" height="5" fill="#28A8D0" rx="4" opacity="0.5"/><rect x="47" y="45" width="6" height="8" fill="#0A4A60" rx="2"/><ellipse cx="50" cy="66" rx="7" ry="6" fill="#D8B070"/><ellipse cx="28" cy="70" rx="9" ry="6" fill="#F0A080" opacity="0.35"/><ellipse cx="72" cy="70" rx="9" ry="6" fill="#F0A080" opacity="0.35"/><path d="M32,76 Q50,90 68,76 Q50,84 32,76" fill="#fff"/><line x1="42" y1="76" x2="42" y2="84" stroke="#DDD" stroke-width="1"/><line x1="50" y1="76" x2="50" y2="86" stroke="#DDD" stroke-width="1"/><line x1="58" y1="76" x2="58" y2="84" stroke="#DDD" stroke-width="1"/><path d="M36,84 Q50,90 64,84" stroke="#D8B070" stroke-width="2" fill="none" stroke-linecap="round"/></svg>` },
 ];
 
-function _svgSrc(i) {
-  return 'data:image/svg+xml,' + encodeURIComponent(HUNTERS[i].svg);
-}
+const HUNTER_IMGS = [
+  'hunter_oldschool.jpeg',
+  'hunter_camo.jpeg',
+  'hunter_arab.jpeg',
+  'hunter_young.jpeg',
+  'hunter_blackops.jpeg',
+  'hunter_hipster.jpeg',
+  'hunter_russian.jpeg',
+  'hunter_safari.jpeg',
+];
 
 // ── Profile CRUD ──────────────────────────────────────────────────────────
 let userProfile = null;
@@ -898,24 +938,28 @@ let _profileMode = 'create';
 let _pickedAvatar = 0;
 
 function _buildAvatarGrid() {
-  const grid = document.getElementById('avatar-grid');
-  grid.innerHTML = '';
+  const track = document.getElementById('avatar-track');
+  track.innerHTML = '';
   HUNTERS.forEach((hunter, i) => {
     const cell = document.createElement('div');
     cell.className = 'avatar-cell' + (i === _pickedAvatar ? ' selected' : '');
     cell.title = hunter.name;
     const img = document.createElement('img');
-    img.src = _svgSrc(i);
-    img.width = 72; img.height = 72;
+    img.src = HUNTER_IMGS[i];
     img.alt = hunter.name;
     cell.appendChild(img);
     cell.addEventListener('click', () => {
       playSfx('button');
       _pickedAvatar = i;
-      grid.querySelectorAll('.avatar-cell').forEach(el => el.classList.remove('selected'));
+      track.querySelectorAll('.avatar-cell').forEach(el => el.classList.remove('selected'));
       cell.classList.add('selected');
+      cell.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
     });
-    grid.appendChild(cell);
+    track.appendChild(cell);
+  });
+  requestAnimationFrame(() => {
+    const sel = track.querySelector('.avatar-cell.selected');
+    if (sel) sel.scrollIntoView({ behavior: 'instant', block: 'nearest', inline: 'center' });
   });
 }
 
@@ -969,7 +1013,7 @@ function _updateProfileChip() {
   document.getElementById('info-btn').style.display = 'flex';
   const hs = userProfile.stats.highScore;
   document.getElementById('profile-chip-hs').textContent = String(hs);
-  document.getElementById('profile-chip-img').src = _svgSrc(userProfile.avatarIndex);
+  document.getElementById('profile-chip-img').src = HUNTER_IMGS[userProfile.avatarIndex];
 }
 
 // ── First-launch init ─────────────────────────────────────────────────────
@@ -999,6 +1043,18 @@ document.getElementById('profile-cancel-btn').addEventListener('click', () => {
 });
 document.getElementById('name-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') { e.preventDefault(); _saveProfileFromModal(); }
+});
+document.getElementById('avatar-prev').addEventListener('click', () => {
+  const track = document.getElementById('avatar-track');
+  const cell = track.querySelector('.avatar-cell');
+  const step = cell ? cell.offsetWidth + parseInt(getComputedStyle(track).gap) : 90;
+  track.scrollBy({ left: -step, behavior: 'smooth' });
+});
+document.getElementById('avatar-next').addEventListener('click', () => {
+  const track = document.getElementById('avatar-track');
+  const cell = track.querySelector('.avatar-cell');
+  const step = cell ? cell.offsetWidth + parseInt(getComputedStyle(track).gap) : 90;
+  track.scrollBy({ left: step, behavior: 'smooth' });
 });
 
 // ── Intro Screen ──────────────────────────────────────────────────────────
