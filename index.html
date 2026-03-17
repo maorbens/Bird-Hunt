@@ -1592,10 +1592,13 @@ function onHit(bx, by) {
     timeLeft = Math.min(timeLeft + TIME_BONUS, 99);
     if (timeLeft > 10) _stopTicking();
     playSfx('extra');
-    addFloatingText('+10s', bx, by - 59, '#44FF88', 16);
+    const gap = 29; // natural gap: (by-30) - (by-59)
+    const bonusY = Math.max(UI_TOP_H + 16 + 4, by - 59);
+    addFloatingText('+10s', bx, bonusY, '#44FF88', 16);
+    addFloatingText('+' + pts, bx, bonusY + gap, isFireStone ? '#FF8800' : '#FFD700', 16);
+  } else {
+    addFloatingText('+' + pts, bx, by - 30, isFireStone ? '#FF8800' : '#FFD700', 16);
   }
-
-  addFloatingText('+' + pts, bx, by - 30, isFireStone ? '#FF8800' : '#FFD700', 16);
   spawnParticles(bx, by, isFireStone);
 
   // Activate fire stone at 3 consecutive hits
