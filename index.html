@@ -695,6 +695,9 @@
       position: relative;
       top: -2px;
     }
+    @media (orientation: landscape) {
+      body > * { display: none !important; }
+    }
   </style>
 </head>
 <body>
@@ -805,6 +808,8 @@
   </div>
 
 <script>
+if (screen.orientation?.lock) screen.orientation.lock('portrait').catch(() => {});
+
 const canvas = document.getElementById('canvas');
 const ctx    = canvas.getContext('2d');
 ctx.imageSmoothingEnabled = false;
