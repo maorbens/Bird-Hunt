@@ -1115,10 +1115,6 @@ function initProfile() {
     }
     highScore = userProfile.stats.highScore;
     _updateProfileChip();
-    // Sign in anonymously if not already signed in to keep cloud sync
-    if (!_fbAuth.currentUser) {
-      _fbAuth.signInAnonymously().catch(err => console.error('Anonymous sign-in:', err));
-    }
   }
 }
 
@@ -2704,7 +2700,15 @@ function _updateGoogleSignInUI(googleUser) {
 
 _fbAuth.onAuthStateChanged(async firebaseUser => {
   _updateGoogleSignInUI(firebaseUser && !firebaseUser.isAnonymous ? firebaseUser : null);
-  if (!firebaseUser) return;
+  if (!firebaseUser) {
+    // Firebase finished initializing — no session found.
+    // Sign in anonymously only for guests (not Google users whose session may have expired).
+    const local = _getStoredProfile();
+    if (local && local.provider !== 'google') {
+      _fbAuth.signInAnonymously().catch(err => console.error('Anonymous sign-in:', err));
+    }
+    return;
+  }
 
   const uid   = firebaseUser.uid;
   const local = _getStoredProfile();
