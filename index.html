@@ -2903,14 +2903,14 @@ _fbAuth.onAuthStateChanged(async firebaseUser => {
   const bestHS  = Math.max(localHS, cloudHS);
 
   if (cloud) {
-    // Returning user — restore cloud profile
-    userProfile = _makeProfile(cloud.displayName || firebaseUser.displayName || 'Player', cloud.avatarIndex ?? (local?.avatarIndex ?? 0));
+    // Returning user — restore cloud profile, but prefer locally-chosen name
+    userProfile = _makeProfile(local?.displayName || cloud.displayName || firebaseUser.displayName || 'Player', cloud.avatarIndex ?? (local?.avatarIndex ?? 0));
     userProfile.uid      = uid;
     userProfile.provider = 'google';
     userProfile.stats    = { ...(cloud.stats || {}), highScore: bestHS };
   } else {
-    // First Google sign-in — build from local or scratch
-    userProfile = _makeProfile(firebaseUser.displayName || 'Player', local?.avatarIndex ?? 0);
+    // First Google sign-in — prefer locally-chosen name over Google account name
+    userProfile = _makeProfile(local?.displayName || firebaseUser.displayName || 'Player', local?.avatarIndex ?? 0);
     userProfile.uid      = uid;
     userProfile.provider = 'google';
     userProfile.stats    = { ...(local?.stats || {}), highScore: bestHS };
