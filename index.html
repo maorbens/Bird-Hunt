@@ -2659,7 +2659,15 @@ function signInWithGoogle() {
   const current  = _fbAuth.currentUser;
   if (current && current.isAnonymous) {
     // Link anonymous account to Google — preserves uid and cloud data
-    current.linkWithPopup(provider).catch(err => {
+    current.linkWithPopup(provider).then(result => {
+      // linkWithPopup does NOT trigger onAuthStateChanged, so update UI manually
+      _updateGoogleSignInUI(result.user);
+      if (userProfile) {
+        userProfile.provider = 'google';
+        userProfile.uid = result.user.uid;
+        _persistProfile(userProfile);
+      }
+    }).catch(err => {
       if (err.code === 'auth/credential-already-in-use') {
         // Google account already exists — sign in normally and merge
         _fbAuth.signInWithPopup(provider).catch(e => console.error('Google sign-in:', e));
