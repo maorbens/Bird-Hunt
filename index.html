@@ -768,6 +768,7 @@
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 </head>
 <body>
   <canvas id="canvas"></canvas>
@@ -2606,7 +2607,7 @@ document.getElementById('howto-got-it').addEventListener('click', () => {
   document.getElementById('howto-overlay').classList.remove('visible');
 });
 
-// ── Firebase / Google Auth ─────────────────────────────────────────────────
+// ── Firebase / Google Auth + Firestore ────────────────────────────────────
 const firebaseConfig = {
   apiKey: "AIzaSyDhH-JN3DB_ypZPJ-J6q1EQCdDSdOA7TEE",
   authDomain: "bird-hunt-2026.firebaseapp.com",
@@ -2618,7 +2619,37 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const _fbAuth = firebase.auth();
+const _db     = firebase.firestore();
 
+// ── Firestore helpers ──────────────────────────────────────────────────────
+async function _loadCloudProfile(uid) {
+  try {
+    const doc = await _db.collection('users').doc(uid).get();
+    return doc.exists ? doc.data() : null;
+  } catch(e) { console.error('Firestore load:', e); return null; }
+}
+
+async function _saveCloudProfile(profile) {
+  if (!profile || profile.provider !== 'google') return;
+  try {
+    await _db.collection('users').doc(profile.uid).set({
+      displayName:  profile.displayName,
+      avatarIndex:  profile.avatarIndex,
+      provider:     profile.provider,
+      stats:        profile.stats,
+      updatedAt:    firebase.firestore.FieldValue.serverTimestamp(),
+    }, { merge: true });
+  } catch(e) { console.error('Firestore save:', e); }
+}
+
+// Override _persistProfile to also sync to cloud when signed in with Google
+function _persistProfile(p) {
+  try { localStorage.setItem(PROFILE_KEY, JSON.stringify(p)); } catch(e) {}
+  userProfile = p;
+  if (p && p.provider === 'google') _saveCloudProfile(p);
+}
+
+// ── Google Sign-In / Sign-Out ──────────────────────────────────────────────
 function signInWithGoogle() {
   const provider = new firebase.auth.GoogleAuthProvider();
   _fbAuth.signInWithPopup(provider).catch(err => console.error('Google sign-in:', err));
@@ -2648,20 +2679,35 @@ function _updateGoogleSignInUI(googleUser) {
   }
 }
 
-_fbAuth.onAuthStateChanged(googleUser => {
+_fbAuth.onAuthStateChanged(async googleUser => {
   _updateGoogleSignInUI(googleUser);
   if (!googleUser) return;
+
   const gUid   = googleUser.uid;
-  const stored = _getStoredProfile();
-  if (stored && stored.uid === gUid) {
-    userProfile = stored;
-  } else {
-    userProfile = _makeProfile(googleUser.displayName || 'Player', stored ? stored.avatarIndex : 0);
+  const local  = _getStoredProfile();
+  const cloud  = await _loadCloudProfile(gUid);
+
+  // Build merged profile: take the higher high score
+  const localHS = local ? (local.stats?.highScore || 0) : 0;
+  const cloudHS = cloud ? (cloud.stats?.highScore  || 0) : 0;
+  const bestHS  = Math.max(localHS, cloudHS);
+
+  if (cloud) {
+    // Returning user — restore cloud profile
+    userProfile = _makeProfile(cloud.displayName || googleUser.displayName || 'Player', cloud.avatarIndex ?? (local?.avatarIndex ?? 0));
     userProfile.uid      = gUid;
     userProfile.provider = 'google';
-    if (stored) userProfile.stats = stored.stats;
+    userProfile.stats    = { ...(cloud.stats || {}), highScore: bestHS };
+  } else {
+    // First Google sign-in — build from local or scratch
+    userProfile = _makeProfile(googleUser.displayName || 'Player', local?.avatarIndex ?? 0);
+    userProfile.uid      = gUid;
+    userProfile.provider = 'google';
+    userProfile.stats    = { ...(local?.stats || {}), highScore: bestHS };
   }
-  _persistProfile(userProfile);
+
+  highScore = bestHS;
+  _persistProfile(userProfile);  // saves to both localStorage + Firestore
   _updateProfileChip();
   _hideProfileModal();
 });
