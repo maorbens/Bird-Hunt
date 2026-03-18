@@ -1828,6 +1828,7 @@ function spawnParticles(x, y, isFire = false) {
 
 // ── Hit sound ─────────────────────────────────────────────────────────────
 async function playHitSound() {
+  if (!soundEnabled) return;
   try {
     const ctx = _getAudioCtx();
     if (ctx.state !== 'running') await ctx.resume();
