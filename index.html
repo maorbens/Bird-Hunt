@@ -1227,12 +1227,15 @@ async function _saveProfileFromModal() {
     setTimeout(() => inp.classList.remove('input-error'), 400);
     return;
   }
-  // Check name uniqueness across all users
+  // Ensure authenticated before reading/writing Firestore
+  if (!_fbAuth.currentUser) {
+    try { await _fbAuth.signInAnonymously(); } catch(e) { console.error('anon sign-in:', e); }
+  }
+  // Check name uniqueness via dedicated usernames collection
+  const currentUid = userProfile?.uid ?? _fbAuth.currentUser?.uid ?? null;
   try {
-    const currentUid = userProfile?.uid ?? null;
-    const snap = await _db.collection('users').where('displayNameLower', '==', name.toLowerCase()).get();
-    const taken = snap.docs.some(doc => doc.id !== currentUid);
-    if (taken) {
+    const available = await _checkNameAvailable(name.toLowerCase(), currentUid);
+    if (!available) {
       nameErrorEl.textContent = 'Username already taken';
       const inp = document.getElementById('name-input');
       inp.classList.add('input-error');
@@ -1245,11 +1248,12 @@ async function _saveProfileFromModal() {
     userProfile = _makeProfile(name, _pickedAvatar);
     // carry over any high score from old localStorage key
     if (highScore > 0) userProfile.stats.highScore = highScore;
-    // Sign in anonymously so guest data syncs to cloud
-    if (!_fbAuth.currentUser) {
-      _fbAuth.signInAnonymously().catch(err => console.error('Anonymous sign-in:', err));
-    }
+    // anonymous sign-in already done above if needed
   } else {
+    // Release old username claim if name changed
+    if (userProfile.displayName.toLowerCase() !== name.toLowerCase()) {
+      _releaseUsername(userProfile.displayName.toLowerCase());
+    }
     userProfile.displayName = name;
     userProfile.avatarIndex = _pickedAvatar;
   }
@@ -2809,10 +2813,25 @@ async function _loadCloudProfile(uid) {
   } catch(e) { console.error('Firestore load:', e); return null; }
 }
 
+// Checks if a username is available. Returns true if available.
+// Requires Firestore rule: match /usernames/{name} { allow read: if true; }
+async function _checkNameAvailable(nameLower, excludeUid) {
+  const doc = await _db.collection('usernames').doc(nameLower).get();
+  if (!doc.exists) return true;
+  return doc.data().uid === excludeUid;
+}
+
+// Releases a username claim from the usernames index.
+function _releaseUsername(nameLower) {
+  _db.collection('usernames').doc(nameLower).delete()
+    .catch(e => console.error('Release username:', e));
+}
+
 async function _saveCloudProfile(profile) {
   if (!profile || (profile.provider !== 'google' && profile.provider !== 'anonymous')) return;
   try {
-    await _db.collection('users').doc(profile.uid).set({
+    const batch = _db.batch();
+    batch.set(_db.collection('users').doc(profile.uid), {
       displayName:      profile.displayName,
       displayNameLower: profile.displayName.toLowerCase(),
       avatarIndex:      profile.avatarIndex,
@@ -2820,6 +2839,11 @@ async function _saveCloudProfile(profile) {
       stats:            profile.stats,
       updatedAt:        firebase.firestore.FieldValue.serverTimestamp(),
     }, { merge: true });
+    // Claim the username in the index (enables O(1) uniqueness checks)
+    batch.set(_db.collection('usernames').doc(profile.displayName.toLowerCase()), {
+      uid: profile.uid,
+    });
+    await batch.commit();
   } catch(e) { console.error('Firestore save:', e); }
 }
 
