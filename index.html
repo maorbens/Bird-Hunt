@@ -2839,16 +2839,7 @@ function signInWithGoogle() {
 
 function signOutGoogle() {
   _fbAuth.signOut().then(() => {
-    if (userProfile) {
-      const preGoogleName = localStorage.getItem('birdHuntPreGoogleName');
-      if (preGoogleName) {
-        userProfile.displayName = preGoogleName;
-        try { localStorage.removeItem('birdHuntPreGoogleName'); } catch(e) {}
-      }
-      userProfile.provider = 'local';
-      _persistProfile(userProfile);
-      _updateProfileChip();
-    }
+    if (userProfile) { userProfile.provider = 'local'; _persistProfile(userProfile); }
     _updateGoogleSignInUI(null);
     // Re-sign in anonymously to keep cloud sync for guest
     _fbAuth.signInAnonymously().catch(err => console.error('Anonymous re-sign-in:', err));
@@ -2919,9 +2910,6 @@ _fbAuth.onAuthStateChanged(async firebaseUser => {
     userProfile.stats    = { ...(cloud.stats || {}), highScore: bestHS };
   } else {
     // First Google sign-in — prefer locally-chosen name over Google account name
-    if (local?.displayName) {
-      try { localStorage.setItem('birdHuntPreGoogleName', local.displayName); } catch(e) {}
-    }
     userProfile = _makeProfile(local?.displayName || firebaseUser.displayName || 'Player', local?.avatarIndex ?? 0);
     userProfile.uid      = uid;
     userProfile.provider = 'google';
