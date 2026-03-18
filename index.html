@@ -698,7 +698,76 @@
     @media (orientation: landscape) {
       body > * { display: none !important; }
     }
+
+    /* ── Google Auth UI ───────────────────────────────────────────────────── */
+    #google-divider {
+      color: rgba(255,255,255,0.38);
+      font-family: 'Roboto', sans-serif;
+      font-size: clamp(11px, 2vmin, 14px);
+      width: 100%;
+      text-align: center;
+      letter-spacing: 0.08em;
+    }
+    #google-signin-btn {
+      width: 100%;
+      padding: clamp(12px, 2.5vmin, 20px) 0;
+      background: #fff;
+      color: #3c4043;
+      border: 3px solid #000;
+      box-shadow: 4px 4px 0 #000;
+      font-family: 'Roboto', sans-serif;
+      font-weight: 600;
+      font-size: clamp(14px, 3vmin, 20px);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: transform 0.07s, box-shadow 0.07s, background 0.1s;
+    }
+    #google-signin-btn:hover { background: #f8f9fa; }
+    #google-signin-btn:active { transform: translate(3px,3px); box-shadow: 1px 1px 0 #000; }
+    #google-signout-row {
+      display: none;
+      width: 100%;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: rgba(255,255,255,0.07);
+      border: 2px solid #445;
+      padding: clamp(8px, 2vmin, 14px) clamp(12px, 2.5vmin, 20px);
+      box-sizing: border-box;
+    }
+    #google-signout-row.visible { display: flex; }
+    #google-user-email {
+      color: rgba(255,255,255,0.75);
+      font-family: 'Roboto', sans-serif;
+      font-size: clamp(11px, 2vmin, 15px);
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      direction: ltr;
+      text-align: left;
+    }
+    #google-signout-btn {
+      background: transparent;
+      color: #FF6B6B;
+      border: 2px solid #FF6B6B;
+      font-family: 'Roboto', sans-serif;
+      font-weight: 600;
+      font-size: clamp(11px, 2vmin, 13px);
+      padding: 6px 12px;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 0.1s;
+      white-space: nowrap;
+    }
+    #google-signout-btn:hover { background: rgba(255,107,107,0.15); }
   </style>
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 </head>
 <body>
   <canvas id="canvas"></canvas>
@@ -755,6 +824,20 @@
              autocorrect="off" spellcheck="false" />
       <button id="profile-save-btn">Save</button>
       <button id="profile-cancel-btn" style="display:none">Cancel</button>
+      <div id="google-divider">── or ──</div>
+      <button id="google-signin-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22">
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+        </svg>
+        Sign in with Google
+      </button>
+      <div id="google-signout-row">
+        <span id="google-user-email"></span>
+        <button id="google-signout-btn">Sign out</button>
+      </div>
     </div>
   </div>
 
@@ -2521,6 +2604,75 @@ document.getElementById('info-btn').addEventListener('click', () => {
 document.getElementById('howto-got-it').addEventListener('click', () => {
   playSfx('button');
   document.getElementById('howto-overlay').classList.remove('visible');
+});
+
+// ── Firebase / Google Auth ─────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyDhH-JN3DB_ypZPJ-J6q1EQCdDSdOA7TEE",
+  authDomain: "bird-hunt-2026.firebaseapp.com",
+  projectId: "bird-hunt-2026",
+  storageBucket: "bird-hunt-2026.firebasestorage.app",
+  messagingSenderId: "688511974099",
+  appId: "1:688511974099:web:20dff822ae0d1163677226",
+  measurementId: "G-0LHPR3WN9S"
+};
+firebase.initializeApp(firebaseConfig);
+const _fbAuth = firebase.auth();
+
+function signInWithGoogle() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  _fbAuth.signInWithPopup(provider).catch(err => console.error('Google sign-in:', err));
+}
+
+function signOutGoogle() {
+  _fbAuth.signOut().then(() => {
+    if (userProfile) { userProfile.provider = 'local'; _persistProfile(userProfile); }
+    _updateGoogleSignInUI(null);
+  }).catch(err => console.error('Sign-out:', err));
+}
+
+function _updateGoogleSignInUI(googleUser) {
+  const signinBtn  = document.getElementById('google-signin-btn');
+  const divider    = document.getElementById('google-divider');
+  const signoutRow = document.getElementById('google-signout-row');
+  if (googleUser) {
+    signinBtn.style.display  = 'none';
+    divider.style.display    = 'none';
+    signoutRow.classList.add('visible');
+    document.getElementById('google-user-email').textContent =
+      googleUser.email || googleUser.displayName || '';
+  } else {
+    signinBtn.style.display  = '';
+    divider.style.display    = '';
+    signoutRow.classList.remove('visible');
+  }
+}
+
+_fbAuth.onAuthStateChanged(googleUser => {
+  _updateGoogleSignInUI(googleUser);
+  if (!googleUser) return;
+  const gUid   = googleUser.uid;
+  const stored = _getStoredProfile();
+  if (stored && stored.uid === gUid) {
+    userProfile = stored;
+  } else {
+    userProfile = _makeProfile(googleUser.displayName || 'Player', stored ? stored.avatarIndex : 0);
+    userProfile.uid      = gUid;
+    userProfile.provider = 'google';
+    if (stored) userProfile.stats = stored.stats;
+  }
+  _persistProfile(userProfile);
+  _updateProfileChip();
+  _hideProfileModal();
+});
+
+document.getElementById('google-signin-btn').addEventListener('click', () => {
+  playSfx('button');
+  signInWithGoogle();
+});
+document.getElementById('google-signout-btn').addEventListener('click', () => {
+  playSfx('button');
+  signOutGoogle();
 });
 </script>
 </body>
