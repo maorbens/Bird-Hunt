@@ -2657,29 +2657,29 @@ function _persistProfile(p) {
 }
 
 // ── Google Sign-In / Sign-Out ──────────────────────────────────────────────
+
+// Handle redirect result on page load (from signInWithRedirect or linkWithRedirect)
+_fbAuth.getRedirectResult().then(result => {
+  if (!result || !result.user || result.user.isAnonymous) return;
+  // Redirect sign-in/link succeeded — update profile and UI
+  // (onAuthStateChanged may not fire for linkWithRedirect, so we handle it here too)
+  _updateGoogleSignInUI(result.user);
+  if (userProfile) {
+    userProfile.provider = 'google';
+    userProfile.uid      = result.user.uid;
+    _persistProfile(userProfile);
+    _updateProfileChip();
+  }
+}).catch(err => console.error('Redirect sign-in result:', err));
+
 function signInWithGoogle() {
   const provider = new firebase.auth.GoogleAuthProvider();
   const current  = _fbAuth.currentUser;
   if (current && current.isAnonymous) {
-    // Link anonymous account to Google — preserves uid and cloud data
-    current.linkWithPopup(provider).then(result => {
-      // linkWithPopup does NOT trigger onAuthStateChanged, so update UI manually
-      _updateGoogleSignInUI(result.user);
-      if (userProfile) {
-        userProfile.provider = 'google';
-        userProfile.uid = result.user.uid;
-        _persistProfile(userProfile);
-      }
-    }).catch(err => {
-      if (err.code === 'auth/credential-already-in-use') {
-        // Google account already exists — sign in normally and merge
-        _fbAuth.signInWithPopup(provider).catch(e => console.error('Google sign-in:', e));
-      } else {
-        console.error('Link error:', err);
-      }
-    });
+    // Link anonymous account to Google via redirect — preserves uid and cloud data
+    current.linkWithRedirect(provider);
   } else {
-    _fbAuth.signInWithPopup(provider).catch(err => console.error('Google sign-in:', err));
+    _fbAuth.signInWithRedirect(provider);
   }
 }
 
