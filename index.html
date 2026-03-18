@@ -2660,12 +2660,13 @@ function _persistProfile(p) {
 }
 
 // ── Google Sign-In / Sign-Out ──────────────────────────────────────────────
+const _REDIRECT_PENDING_KEY = '_bh_googleRedirectPending';
 
 // Handle redirect result on page load (from signInWithRedirect or linkWithRedirect)
 _fbAuth.getRedirectResult().then(result => {
+  localStorage.removeItem(_REDIRECT_PENDING_KEY);
   if (!result || !result.user || result.user.isAnonymous) return;
-  // Redirect sign-in/link succeeded — update profile and UI
-  // (onAuthStateChanged may not fire for linkWithRedirect, so we handle it here too)
+  // onAuthStateChanged fires too, but update here as safety net
   _updateGoogleSignInUI(result.user);
   if (userProfile) {
     userProfile.provider = 'google';
@@ -2673,13 +2674,18 @@ _fbAuth.getRedirectResult().then(result => {
     _persistProfile(userProfile);
     _updateProfileChip();
   }
-}).catch(err => console.error('Redirect sign-in result:', err));
+}).catch(err => {
+  localStorage.removeItem(_REDIRECT_PENDING_KEY);
+  console.error('Redirect sign-in result:', err);
+});
 
 function signInWithGoogle() {
   const provider = new firebase.auth.GoogleAuthProvider();
   const current  = _fbAuth.currentUser;
+  // Mark that we're about to redirect so onAuthStateChanged(null) doesn't
+  // race-call signInAnonymously() while the redirect result is being processed
+  localStorage.setItem(_REDIRECT_PENDING_KEY, '1');
   if (current && current.isAnonymous) {
-    // Link anonymous account to Google via redirect — preserves uid and cloud data
     current.linkWithRedirect(provider);
   } else {
     _fbAuth.signInWithRedirect(provider);
@@ -2715,6 +2721,11 @@ function _updateGoogleSignInUI(googleUser) {
 _fbAuth.onAuthStateChanged(async firebaseUser => {
   _updateGoogleSignInUI(firebaseUser && !firebaseUser.isAnonymous ? firebaseUser : null);
   if (!firebaseUser) {
+    // If we're returning from a Google redirect, skip anonymous sign-in —
+    // the redirect result will sign in as Google (or keep the linked account).
+    // Without this guard, signInAnonymously() races with the redirect result
+    // and its onAuthStateChanged fires AFTER the Google user, wiping the UI.
+    if (localStorage.getItem(_REDIRECT_PENDING_KEY)) return;
     // Firebase finished initializing — no session found.
     // Sign in anonymously only for guests (not Google users whose session may have expired).
     const local = _getStoredProfile();
