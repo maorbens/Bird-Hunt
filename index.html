@@ -1704,7 +1704,7 @@ function playSfx(key, gain = 1, rate = 1) {
   if (!soundEnabled) return;
   try {
     const ctx = _getAudioCtx();
-    const play = (buf, trim) => { if (ctx.state === 'running') _playSfxBuf(ctx, buf, trim, gain, rate); };
+    const play = (buf, trim) => { if (ctx.state === 'running' && soundEnabled) _playSfxBuf(ctx, buf, trim, gain, rate); };
     _resumeAndFire(ctx, () => _decodeAndPlay(ctx, _sfx[key], play));
   } catch(e) {}
 }
@@ -2943,6 +2943,7 @@ document.getElementById('settings-sound-btn').addEventListener('click', () => {
   soundEnabled = !soundEnabled;
   localStorage.setItem('soundEnabled', soundEnabled);
   _applySoundUI();
+  if (!soundEnabled) { stopStretchSound(); _stopTicking(); }
   if (soundEnabled) playSfx('button');
 });
 </script>
