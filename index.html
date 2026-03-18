@@ -2677,9 +2677,10 @@ function signInWithGoogle() {
         // Google account already linked to a previous Firebase account (e.g. after sign-out).
         // err.credential contains the Google token — use it directly without opening
         // a second popup (which would be blocked by Safari since there's no user gesture).
-        // Close modal immediately so the user isn't left waiting 1-2s for onAuthStateChanged.
-        _hideProfileModal();
         _fbAuth.signInWithCredential(err.credential)
+          .then(result => {
+            _updateGoogleSignInUI(result.user);
+          })
           .catch(e => console.error('Google sign-in with credential:', e));
       } else {
         console.error('Link error:', err);
