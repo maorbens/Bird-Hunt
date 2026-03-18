@@ -2671,7 +2671,6 @@ function signInWithGoogle() {
         _persistProfile(userProfile);
         _updateProfileChip();
       }
-      _hideProfileModal();
     }).catch(err => {
       if (err.code === 'auth/credential-already-in-use') {
         // Google account already linked to a previous Firebase account (e.g. after sign-out).
@@ -2778,7 +2777,6 @@ _fbAuth.onAuthStateChanged(async firebaseUser => {
   highScore = bestHS;
   _persistProfile(userProfile);  // saves to both localStorage + Firestore
   _updateProfileChip();
-  _hideProfileModal();
 });
 
 document.getElementById('google-signin-btn').addEventListener('click', () => {
