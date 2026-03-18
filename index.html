@@ -1583,6 +1583,7 @@ fetch('631739__walllable__looped-rubber-y-stretch.wav')
   .catch(() => {});
 
 async function startStretchSound() {
+  if (!soundEnabled) return;
   try {
     stopStretchSound();
     const ctx = _getAudioCtx();
@@ -1722,6 +1723,7 @@ function preloadSfx() {
 let _tickingSource = null;
 function _startTicking() {
   if (_tickingSource) return;
+  if (!soundEnabled) return;
   try {
     const ctx = _getAudioCtx();
     const s = _sfx.ticking;
