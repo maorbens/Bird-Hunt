@@ -2660,35 +2660,33 @@ function _persistProfile(p) {
 }
 
 // ── Google Sign-In / Sign-Out ──────────────────────────────────────────────
-const _REDIRECT_PENDING_KEY = '_bh_googleRedirectPending';
-
-// Handle redirect result on page load (from signInWithRedirect or linkWithRedirect)
-_fbAuth.getRedirectResult().then(result => {
-  localStorage.removeItem(_REDIRECT_PENDING_KEY);
-  if (!result || !result.user || result.user.isAnonymous) return;
-  // onAuthStateChanged fires too, but update here as safety net
-  _updateGoogleSignInUI(result.user);
-  if (userProfile) {
-    userProfile.provider = 'google';
-    userProfile.uid      = result.user.uid;
-    _persistProfile(userProfile);
-    _updateProfileChip();
-  }
-}).catch(err => {
-  localStorage.removeItem(_REDIRECT_PENDING_KEY);
-  console.error('Redirect sign-in result:', err);
-});
-
 function signInWithGoogle() {
   const provider = new firebase.auth.GoogleAuthProvider();
   const current  = _fbAuth.currentUser;
-  // Mark that we're about to redirect so onAuthStateChanged(null) doesn't
-  // race-call signInAnonymously() while the redirect result is being processed
-  localStorage.setItem(_REDIRECT_PENDING_KEY, '1');
   if (current && current.isAnonymous) {
-    current.linkWithRedirect(provider);
+    // Link anonymous → Google with popup. linkWithPopup does NOT reliably fire
+    // onAuthStateChanged (confirmed Firebase SDK issue), so update UI manually in .then()
+    current.linkWithPopup(provider).then(result => {
+      _updateGoogleSignInUI(result.user);
+      if (userProfile) {
+        userProfile.provider = 'google';
+        userProfile.uid      = result.user.uid;
+        _persistProfile(userProfile);
+        _updateProfileChip();
+      }
+      _hideProfileModal();
+    }).catch(err => {
+      if (err.code === 'auth/credential-already-in-use') {
+        // This Google account is tied to a different Firebase account — sign in directly
+        _fbAuth.signInWithPopup(provider).catch(e => console.error('Google sign-in:', e));
+      } else {
+        console.error('Link error:', err);
+      }
+    });
   } else {
-    _fbAuth.signInWithRedirect(provider);
+    // signInWithPopup works on all modern browsers; signInWithRedirect is broken
+    // on Chrome 115+, Firefox 109+, Safari 16.1+ due to third-party storage partitioning
+    _fbAuth.signInWithPopup(provider).catch(err => console.error('Google sign-in:', err));
   }
 }
 
@@ -2721,11 +2719,6 @@ function _updateGoogleSignInUI(googleUser) {
 _fbAuth.onAuthStateChanged(async firebaseUser => {
   _updateGoogleSignInUI(firebaseUser && !firebaseUser.isAnonymous ? firebaseUser : null);
   if (!firebaseUser) {
-    // If we're returning from a Google redirect, skip anonymous sign-in —
-    // the redirect result will sign in as Google (or keep the linked account).
-    // Without this guard, signInAnonymously() races with the redirect result
-    // and its onAuthStateChanged fires AFTER the Google user, wiping the UI.
-    if (localStorage.getItem(_REDIRECT_PENDING_KEY)) return;
     // Firebase finished initializing — no session found.
     // Sign in anonymously only for guests (not Google users whose session may have expired).
     const local = _getStoredProfile();
