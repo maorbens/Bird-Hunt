@@ -2903,8 +2903,8 @@ _fbAuth.onAuthStateChanged(async firebaseUser => {
   const bestHS  = Math.max(localHS, cloudHS);
 
   if (cloud) {
-    // Returning user — restore cloud profile, but prefer locally-chosen name
-    userProfile = _makeProfile(local?.displayName || cloud.displayName || firebaseUser.displayName || 'Player', cloud.avatarIndex ?? (local?.avatarIndex ?? 0));
+    // Returning user — restore cloud profile (name was set by the user in-game)
+    userProfile = _makeProfile(cloud.displayName || 'Player', cloud.avatarIndex ?? (local?.avatarIndex ?? 0));
     userProfile.uid      = uid;
     userProfile.provider = 'google';
     userProfile.stats    = { ...(cloud.stats || {}), highScore: bestHS };
