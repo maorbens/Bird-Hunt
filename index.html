@@ -894,6 +894,20 @@
 <script>
 if (screen.orientation?.lock) screen.orientation.lock('portrait').catch(() => {});
 
+// ── Firebase init (must come first — accessed by showProfileModal on load) ──
+const firebaseConfig = {
+  apiKey: "AIzaSyDhH-JN3DB_ypZPJ-J6q1EQCdDSdOA7TEE",
+  authDomain: "bird-hunt-2026.firebaseapp.com",
+  projectId: "bird-hunt-2026",
+  storageBucket: "bird-hunt-2026.firebasestorage.app",
+  messagingSenderId: "688511974099",
+  appId: "1:688511974099:web:20dff822ae0d1163677226",
+  measurementId: "G-0LHPR3WN9S"
+};
+firebase.initializeApp(firebaseConfig);
+const _fbAuth = firebase.auth();
+const _db     = firebase.firestore();
+
 const canvas = document.getElementById('canvas');
 const ctx    = canvas.getContext('2d');
 ctx.imageSmoothingEnabled = false;
@@ -2615,18 +2629,7 @@ document.getElementById('howto-got-it').addEventListener('click', () => {
 });
 
 // ── Firebase / Google Auth + Firestore ────────────────────────────────────
-const firebaseConfig = {
-  apiKey: "AIzaSyDhH-JN3DB_ypZPJ-J6q1EQCdDSdOA7TEE",
-  authDomain: "bird-hunt-2026.firebaseapp.com",
-  projectId: "bird-hunt-2026",
-  storageBucket: "bird-hunt-2026.firebasestorage.app",
-  messagingSenderId: "688511974099",
-  appId: "1:688511974099:web:20dff822ae0d1163677226",
-  measurementId: "G-0LHPR3WN9S"
-};
-firebase.initializeApp(firebaseConfig);
-const _fbAuth = firebase.auth();
-const _db     = firebase.firestore();
+// (Firebase is initialized at the top of this script — see above)
 
 // ── Firestore helpers ──────────────────────────────────────────────────────
 async function _loadCloudProfile(uid) {
