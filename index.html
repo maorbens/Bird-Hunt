@@ -699,14 +699,72 @@
       body > * { display: none !important; }
     }
 
-    /* ── Google Auth UI ───────────────────────────────────────────────────── */
-    #google-divider {
-      color: rgba(255,255,255,0.38);
-      font-family: 'Roboto', sans-serif;
-      font-size: clamp(11px, 2vmin, 14px);
-      width: 100%;
+    /* ── Settings button ─────────────────────────────────────────────────── */
+    #settings-btn {
+      display: none;
+      position: absolute;
+      top: max(8px, env(safe-area-inset-top));
+      left: calc(21px + 54px + 9px);
+      z-index: 10;
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background: #fff;
+      border: 3px solid #000;
+      box-shadow: 3px 3px 0 #000, inset 2px 2px 0 #fff, inset -2px -2px 0 #aaa;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      color: #111;
+      transition: transform 0.07s, box-shadow 0.07s;
+    }
+    #settings-btn:hover { background: #f2f2f2; box-shadow: 3px 3px 0 #000, inset 2px 2px 0 #fff, inset -2px -2px 0 #999; }
+    #settings-btn:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 #000; }
+
+    /* ── Settings overlay ────────────────────────────────────────────────── */
+    #settings-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.72);
+      z-index: 35;
+      align-items: center;
+      justify-content: center;
+      padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+      box-sizing: border-box;
+    }
+    #settings-overlay.visible { display: flex; }
+    #settings-popup {
+      background: #1a1a2e;
+      border: 4px solid #fff;
+      box-shadow: 6px 6px 0 #000, inset 0 0 0 2px #000;
+      padding: clamp(36px, 7.5vmin, 84px) clamp(36px, 9vw, 96px);
       text-align: center;
-      letter-spacing: 0.08em;
+      direction: ltr;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: clamp(14px, 3vmin, 28px);
+      width: min(520px, 100%);
+      max-height: 100%;
+      overflow-y: auto;
+      box-sizing: border-box;
+    }
+    #settings-title {
+      color: #FFD700;
+      font-family: 'Press Start 2P', monospace;
+      font-weight: 500;
+      font-size: clamp(18px, 4vmin, 32px);
+    }
+    #settings-google-desc {
+      color: rgba(255,255,255,0.88);
+      font-family: 'Roboto', sans-serif;
+      font-weight: 500;
+      font-size: clamp(14px, 2.6vmin, 20px);
+      line-height: 1.6;
+      text-align: center;
+      width: 100%;
     }
     #google-signin-btn {
       width: 100%;
@@ -764,6 +822,57 @@
       white-space: nowrap;
     }
     #google-signout-btn:hover { background: rgba(255,107,107,0.15); }
+    #settings-sound-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      border-top: 2px solid rgba(255,255,255,0.15);
+      padding-top: clamp(10px, 2vmin, 20px);
+    }
+    #settings-sound-label {
+      color: rgba(255,255,255,0.88);
+      font-family: 'Roboto', sans-serif;
+      font-weight: 600;
+      font-size: clamp(14px, 2.6vmin, 20px);
+    }
+    #settings-sound-btn {
+      background: transparent;
+      border: 3px solid #fff;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      padding: 0;
+      box-shadow: 3px 3px 0 #000;
+      transition: transform 0.07s, box-shadow 0.07s, border-color 0.15s, color 0.15s;
+    }
+    #settings-sound-btn:hover { background: rgba(255,255,255,0.1); }
+    #settings-sound-btn:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 #000; }
+    #settings-sound-btn.muted { border-color: rgba(255,255,255,0.35); color: rgba(255,255,255,0.35); box-shadow: 3px 3px 0 rgba(0,0,0,0.4); }
+    #settings-done-btn {
+      padding: clamp(14px, 3vmin, 28px) 0;
+      width: 100%;
+      box-sizing: border-box;
+      background: #e94560;
+      color: #fff;
+      border: 4px solid #000;
+      box-shadow: 4px 4px 0 #000;
+      font-family: 'Press Start 2P', monospace;
+      font-weight: 500;
+      font-size: clamp(16px, 3.6vmin, 28px);
+      text-align: center;
+      direction: ltr;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: transform 0.07s, box-shadow 0.07s;
+      margin-top: 6px;
+    }
+    #settings-done-btn:active { transform: translate(3px,3px); box-shadow: 1px 1px 0 #000; }
   </style>
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -811,6 +920,39 @@
     </div>
   </div>
 
+  <!-- Settings overlay -->
+  <div id="settings-overlay">
+    <div id="settings-popup">
+      <div id="settings-title">Settings</div>
+      <div id="settings-google-desc">Sign in with Google to save your high scores across devices.</div>
+      <button id="google-signin-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22">
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+        </svg>
+        Sign in with Google
+      </button>
+      <div id="google-signout-row">
+        <span id="google-user-email"></span>
+        <button id="google-signout-btn">Sign out</button>
+      </div>
+      <div id="settings-sound-row">
+        <span id="settings-sound-label">Sound</span>
+        <button id="settings-sound-btn">
+          <svg id="settings-sound-icon-on" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+          </svg>
+          <svg id="settings-sound-icon-off" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" style="display:none">
+            <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3z"/>
+          </svg>
+        </button>
+      </div>
+      <button id="settings-done-btn">Done</button>
+    </div>
+  </div>
+
   <!-- Profile modal (create / edit) -->
   <div id="profile-overlay">
     <div id="profile-popup">
@@ -825,20 +967,6 @@
              autocorrect="off" spellcheck="false" />
       <button id="profile-save-btn">Save</button>
       <button id="profile-cancel-btn" style="display:none">Cancel</button>
-      <div id="google-divider">── or ──</div>
-      <button id="google-signin-btn">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22">
-          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-        </svg>
-        Sign in with Google
-      </button>
-      <div id="google-signout-row">
-        <span id="google-user-email"></span>
-        <button id="google-signout-btn">Sign out</button>
-      </div>
     </div>
   </div>
 
@@ -884,6 +1012,12 @@
     </div>
     <!-- Info button -->
     <button id="info-btn">i</button>
+    <!-- Settings button -->
+    <button id="settings-btn">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="26" height="26" fill="currentColor">
+        <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.22-.07.47.12.61l2.03 1.58c-.05.3-.07.63-.07.94s.02.64.07.94L2.86 14.52c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+      </svg>
+    </button>
     <!-- Profile bar: full-width floating pixel panel, click to edit -->
     <div id="profile-chip" onclick="playSfx('button');showProfileModal('edit')">
       <span id="profile-chip-hs"></span>
@@ -1106,6 +1240,7 @@ function _updateProfileChip() {
   const chip = document.getElementById('profile-chip');
   chip.style.display = 'flex';
   document.getElementById('info-btn').style.display = 'flex';
+  document.getElementById('settings-btn').style.display = 'flex';
   const hs = userProfile.stats.highScore;
   document.getElementById('profile-chip-hs').textContent = String(hs);
   document.getElementById('profile-chip-img').src = HUNTER_IMGS[userProfile.avatarIndex];
@@ -1552,7 +1687,10 @@ function _resumeAndFire(ctx, fn) {
   ctx.resume().then(fn).catch(() => {});
 }
 
+let soundEnabled = true;
+
 function playSfx(key, gain = 1, rate = 1) {
+  if (!soundEnabled) return;
   try {
     const ctx = _getAudioCtx();
     const play = (buf, trim) => { if (ctx.state === 'running') _playSfxBuf(ctx, buf, trim, gain, rate); };
@@ -2697,17 +2835,14 @@ function signOutGoogle() {
 
 function _updateGoogleSignInUI(googleUser) {
   const signinBtn  = document.getElementById('google-signin-btn');
-  const divider    = document.getElementById('google-divider');
   const signoutRow = document.getElementById('google-signout-row');
   if (googleUser) {
     signinBtn.style.display  = 'none';
-    divider.style.display    = 'none';
     signoutRow.classList.add('visible');
     document.getElementById('google-user-email').textContent =
       googleUser.email || googleUser.displayName || '';
   } else {
     signinBtn.style.display  = '';
-    divider.style.display    = '';
     signoutRow.classList.remove('visible');
   }
 }
@@ -2780,6 +2915,23 @@ document.getElementById('google-signin-btn').addEventListener('click', () => {
 document.getElementById('google-signout-btn').addEventListener('click', () => {
   playSfx('button');
   signOutGoogle();
+});
+
+// ── Settings popup ────────────────────────────────────────────────────────
+document.getElementById('settings-btn').addEventListener('click', () => {
+  playSfx('button');
+  document.getElementById('settings-overlay').classList.add('visible');
+});
+document.getElementById('settings-done-btn').addEventListener('click', () => {
+  playSfx('button');
+  document.getElementById('settings-overlay').classList.remove('visible');
+});
+document.getElementById('settings-sound-btn').addEventListener('click', () => {
+  soundEnabled = !soundEnabled;
+  document.getElementById('settings-sound-icon-on').style.display  = soundEnabled ? '' : 'none';
+  document.getElementById('settings-sound-icon-off').style.display = soundEnabled ? 'none' : '';
+  document.getElementById('settings-sound-btn').classList.toggle('muted', !soundEnabled);
+  if (soundEnabled) playSfx('button');
 });
 </script>
 </body>
