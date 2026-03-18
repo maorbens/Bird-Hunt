@@ -1078,6 +1078,10 @@ function _saveProfileFromModal() {
     userProfile = _makeProfile(name, _pickedAvatar);
     // carry over any high score from old localStorage key
     if (highScore > 0) userProfile.stats.highScore = highScore;
+    // Sign in anonymously so guest data syncs to cloud
+    if (!_fbAuth.currentUser) {
+      _fbAuth.signInAnonymously().catch(err => console.error('Anonymous sign-in:', err));
+    }
   } else {
     userProfile.displayName = name;
     userProfile.avatarIndex = _pickedAvatar;
@@ -1111,6 +1115,10 @@ function initProfile() {
     }
     highScore = userProfile.stats.highScore;
     _updateProfileChip();
+    // Sign in anonymously if not already signed in to keep cloud sync
+    if (!_fbAuth.currentUser) {
+      _fbAuth.signInAnonymously().catch(err => console.error('Anonymous sign-in:', err));
+    }
   }
 }
 
@@ -2630,7 +2638,7 @@ async function _loadCloudProfile(uid) {
 }
 
 async function _saveCloudProfile(profile) {
-  if (!profile || profile.provider !== 'google') return;
+  if (!profile || (profile.provider !== 'google' && profile.provider !== 'anonymous')) return;
   try {
     await _db.collection('users').doc(profile.uid).set({
       displayName:  profile.displayName,
@@ -2642,23 +2650,38 @@ async function _saveCloudProfile(profile) {
   } catch(e) { console.error('Firestore save:', e); }
 }
 
-// Override _persistProfile to also sync to cloud when signed in with Google
+// Override _persistProfile to also sync to cloud when signed in with Google or anonymously
 function _persistProfile(p) {
   try { localStorage.setItem(PROFILE_KEY, JSON.stringify(p)); } catch(e) {}
   userProfile = p;
-  if (p && p.provider === 'google') _saveCloudProfile(p);
+  if (p && (p.provider === 'google' || p.provider === 'anonymous')) _saveCloudProfile(p);
 }
 
 // ── Google Sign-In / Sign-Out ──────────────────────────────────────────────
 function signInWithGoogle() {
   const provider = new firebase.auth.GoogleAuthProvider();
-  _fbAuth.signInWithPopup(provider).catch(err => console.error('Google sign-in:', err));
+  const current  = _fbAuth.currentUser;
+  if (current && current.isAnonymous) {
+    // Link anonymous account to Google — preserves uid and cloud data
+    current.linkWithPopup(provider).catch(err => {
+      if (err.code === 'auth/credential-already-in-use') {
+        // Google account already exists — sign in normally and merge
+        _fbAuth.signInWithPopup(provider).catch(e => console.error('Google sign-in:', e));
+      } else {
+        console.error('Link error:', err);
+      }
+    });
+  } else {
+    _fbAuth.signInWithPopup(provider).catch(err => console.error('Google sign-in:', err));
+  }
 }
 
 function signOutGoogle() {
   _fbAuth.signOut().then(() => {
     if (userProfile) { userProfile.provider = 'local'; _persistProfile(userProfile); }
     _updateGoogleSignInUI(null);
+    // Re-sign in anonymously to keep cloud sync for guest
+    _fbAuth.signInAnonymously().catch(err => console.error('Anonymous re-sign-in:', err));
   }).catch(err => console.error('Sign-out:', err));
 }
 
@@ -2679,29 +2702,50 @@ function _updateGoogleSignInUI(googleUser) {
   }
 }
 
-_fbAuth.onAuthStateChanged(async googleUser => {
-  _updateGoogleSignInUI(googleUser);
-  if (!googleUser) return;
+_fbAuth.onAuthStateChanged(async firebaseUser => {
+  _updateGoogleSignInUI(firebaseUser && !firebaseUser.isAnonymous ? firebaseUser : null);
+  if (!firebaseUser) return;
 
-  const gUid   = googleUser.uid;
-  const local  = _getStoredProfile();
-  const cloud  = await _loadCloudProfile(gUid);
+  const uid   = firebaseUser.uid;
+  const local = _getStoredProfile();
+  const cloud = await _loadCloudProfile(uid);
 
-  // Build merged profile: take the higher high score
+  if (firebaseUser.isAnonymous) {
+    // Anonymous user — upgrade local profile to cloud-synced anonymous profile
+    if (!local) return; // wait until user creates profile via modal
+    if (local.provider === 'local' || local.uid !== uid) {
+      const localHS = local.stats?.highScore || 0;
+      const cloudHS = cloud ? (cloud.stats?.highScore || 0) : 0;
+      const bestHS  = Math.max(localHS, cloudHS);
+      userProfile = _makeProfile(
+        cloud?.displayName || local.displayName || 'Player',
+        cloud?.avatarIndex ?? local.avatarIndex ?? 0
+      );
+      userProfile.uid      = uid;
+      userProfile.provider = 'anonymous';
+      userProfile.stats    = { ...(local.stats || {}), ...(cloud?.stats || {}), highScore: bestHS };
+      highScore = bestHS;
+      _persistProfile(userProfile);
+      _updateProfileChip();
+    }
+    return;
+  }
+
+  // Google user
   const localHS = local ? (local.stats?.highScore || 0) : 0;
   const cloudHS = cloud ? (cloud.stats?.highScore  || 0) : 0;
   const bestHS  = Math.max(localHS, cloudHS);
 
   if (cloud) {
     // Returning user — restore cloud profile
-    userProfile = _makeProfile(cloud.displayName || googleUser.displayName || 'Player', cloud.avatarIndex ?? (local?.avatarIndex ?? 0));
-    userProfile.uid      = gUid;
+    userProfile = _makeProfile(cloud.displayName || firebaseUser.displayName || 'Player', cloud.avatarIndex ?? (local?.avatarIndex ?? 0));
+    userProfile.uid      = uid;
     userProfile.provider = 'google';
     userProfile.stats    = { ...(cloud.stats || {}), highScore: bestHS };
   } else {
     // First Google sign-in — build from local or scratch
-    userProfile = _makeProfile(googleUser.displayName || 'Player', local?.avatarIndex ?? 0);
-    userProfile.uid      = gUid;
+    userProfile = _makeProfile(firebaseUser.displayName || 'Player', local?.avatarIndex ?? 0);
+    userProfile.uid      = uid;
     userProfile.provider = 'google';
     userProfile.stats    = { ...(local?.stats || {}), highScore: bestHS };
   }
