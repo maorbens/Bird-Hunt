@@ -1012,11 +1012,6 @@ function _getStoredProfile() {
   try { return JSON.parse(localStorage.getItem(PROFILE_KEY) || 'null'); } catch(e) { return null; }
 }
 
-function _persistProfile(p) {
-  try { localStorage.setItem(PROFILE_KEY, JSON.stringify(p)); } catch(e) {}
-  userProfile = p;
-}
-
 function _makeProfile(displayName, avatarIndex) {
   return {
     uid: 'local_' + Math.random().toString(36).substr(2, 9),
@@ -2649,7 +2644,6 @@ async function _saveCloudProfile(profile) {
   } catch(e) { console.error('Firestore save:', e); }
 }
 
-// Override _persistProfile to also sync to cloud when signed in with Google or anonymously
 function _persistProfile(p) {
   try { localStorage.setItem(PROFILE_KEY, JSON.stringify(p)); } catch(e) {}
   userProfile = p;
