@@ -1057,6 +1057,9 @@ function showProfileModal(mode) {
   document.getElementById('name-input').value =
     (_profileMode === 'edit' && userProfile) ? userProfile.displayName : '';
   _buildAvatarGrid();
+  // Sync Google sign-in/out UI with current Firebase auth state every time modal opens
+  const cu = _fbAuth.currentUser;
+  _updateGoogleSignInUI(cu && !cu.isAnonymous ? cu : null);
   document.getElementById('profile-overlay').classList.add('visible');
   setTimeout(() => document.getElementById('name-input').focus(), 120);
 }
