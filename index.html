@@ -576,6 +576,14 @@
     }
     #name-input:focus { border-color: #FFD700; }
     #name-input.input-error { border-color: #FF4444; animation: inputShake 0.32s; }
+    #name-error {
+      color: #FF4444;
+      font-family: 'Roboto', sans-serif;
+      font-size: clamp(11px, 2vmin, 14px);
+      min-height: 1.2em;
+      align-self: flex-start;
+      margin-top: -4px;
+    }
     #profile-save-btn {
       width: 100%;
       padding: clamp(14px, 3vmin, 28px) 0;
@@ -965,6 +973,7 @@
       <input id="name-input" type="text" maxlength="16"
              placeholder="Enter name..." autocomplete="off"
              autocorrect="off" spellcheck="false" />
+      <div id="name-error"></div>
       <button id="profile-save-btn">Done</button>
       <button id="profile-cancel-btn" style="display:none">Cancel</button>
     </div>
@@ -1208,8 +1217,9 @@ function _hideProfileModal() {
   document.getElementById('profile-overlay').classList.remove('visible');
 }
 
-function _saveProfileFromModal() {
+async function _saveProfileFromModal() {
   const name = document.getElementById('name-input').value.trim();
+  const nameErrorEl = document.getElementById('name-error');
   if (!name) {
     const inp = document.getElementById('name-input');
     inp.classList.add('input-error');
@@ -1217,6 +1227,20 @@ function _saveProfileFromModal() {
     setTimeout(() => inp.classList.remove('input-error'), 400);
     return;
   }
+  // Check name uniqueness across all users
+  try {
+    const currentUid = userProfile?.uid ?? null;
+    const snap = await _db.collection('users').where('displayNameLower', '==', name.toLowerCase()).get();
+    const taken = snap.docs.some(doc => doc.id !== currentUid);
+    if (taken) {
+      nameErrorEl.textContent = 'Username already taken';
+      const inp = document.getElementById('name-input');
+      inp.classList.add('input-error');
+      setTimeout(() => inp.classList.remove('input-error'), 400);
+      return;
+    }
+  } catch(e) { console.error('Name uniqueness check:', e); }
+  nameErrorEl.textContent = '';
   if (_profileMode === 'create') {
     userProfile = _makeProfile(name, _pickedAvatar);
     // carry over any high score from old localStorage key
@@ -1273,6 +1297,9 @@ document.getElementById('profile-cancel-btn').addEventListener('click', () => {
 });
 document.getElementById('name-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') { e.preventDefault(); _saveProfileFromModal(); }
+});
+document.getElementById('name-input').addEventListener('input', () => {
+  document.getElementById('name-error').textContent = '';
 });
 
 // ── Intro Screen ──────────────────────────────────────────────────────────
@@ -2786,11 +2813,12 @@ async function _saveCloudProfile(profile) {
   if (!profile || (profile.provider !== 'google' && profile.provider !== 'anonymous')) return;
   try {
     await _db.collection('users').doc(profile.uid).set({
-      displayName:  profile.displayName,
-      avatarIndex:  profile.avatarIndex,
-      provider:     profile.provider,
-      stats:        profile.stats,
-      updatedAt:    firebase.firestore.FieldValue.serverTimestamp(),
+      displayName:      profile.displayName,
+      displayNameLower: profile.displayName.toLowerCase(),
+      avatarIndex:      profile.avatarIndex,
+      provider:         profile.provider,
+      stats:            profile.stats,
+      updatedAt:        firebase.firestore.FieldValue.serverTimestamp(),
     }, { merge: true });
   } catch(e) { console.error('Firestore save:', e); }
 }
