@@ -1687,7 +1687,17 @@ function _resumeAndFire(ctx, fn) {
   ctx.resume().then(fn).catch(() => {});
 }
 
-let soundEnabled = true;
+let soundEnabled = localStorage.getItem('soundEnabled') !== 'false';
+
+function _applySoundUI() {
+  const on  = document.getElementById('settings-sound-icon-on');
+  const off = document.getElementById('settings-sound-icon-off');
+  const btn = document.getElementById('settings-sound-btn');
+  if (!on || !off || !btn) return;
+  on.style.display  = soundEnabled ? '' : 'none';
+  off.style.display = soundEnabled ? 'none' : '';
+  btn.classList.toggle('muted', !soundEnabled);
+}
 
 function playSfx(key, gain = 1, rate = 1) {
   if (!soundEnabled) return;
@@ -2920,6 +2930,7 @@ document.getElementById('google-signout-btn').addEventListener('click', () => {
 // ── Settings popup ────────────────────────────────────────────────────────
 document.getElementById('settings-btn').addEventListener('click', () => {
   playSfx('button');
+  _applySoundUI();
   document.getElementById('settings-overlay').classList.add('visible');
 });
 document.getElementById('settings-done-btn').addEventListener('click', () => {
@@ -2928,9 +2939,8 @@ document.getElementById('settings-done-btn').addEventListener('click', () => {
 });
 document.getElementById('settings-sound-btn').addEventListener('click', () => {
   soundEnabled = !soundEnabled;
-  document.getElementById('settings-sound-icon-on').style.display  = soundEnabled ? '' : 'none';
-  document.getElementById('settings-sound-icon-off').style.display = soundEnabled ? 'none' : '';
-  document.getElementById('settings-sound-btn').classList.toggle('muted', !soundEnabled);
+  localStorage.setItem('soundEnabled', soundEnabled);
+  _applySoundUI();
   if (soundEnabled) playSfx('button');
 });
 </script>
