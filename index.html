@@ -2674,8 +2674,11 @@ function signInWithGoogle() {
       _hideProfileModal();
     }).catch(err => {
       if (err.code === 'auth/credential-already-in-use') {
-        // This Google account is tied to a different Firebase account — sign in directly
-        _fbAuth.signInWithPopup(provider).catch(e => console.error('Google sign-in:', e));
+        // Google account already linked to a previous Firebase account (e.g. after sign-out).
+        // err.credential contains the Google token — use it directly without opening
+        // a second popup (which would be blocked by Safari since there's no user gesture).
+        _fbAuth.signInWithCredential(err.credential)
+          .catch(e => console.error('Google sign-in with credential:', e));
       } else {
         console.error('Link error:', err);
       }
