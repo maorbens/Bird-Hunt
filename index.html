@@ -3065,19 +3065,16 @@ function _hideSigninLoading() {
 }
 
 // ── Google Sign-In / Sign-Out ──────────────────────────────────────────────
-let _googleSignInPending = false;
-
 function signInWithGoogle() {
   const provider = new firebase.auth.GoogleAuthProvider();
   provider.setCustomParameters({ prompt: 'select_account' });
   // signInWithPopup works on all modern browsers; signInWithRedirect is broken
   // on Chrome 115+, Firefox 109+, Safari 16.1+ due to third-party storage partitioning
-  _googleSignInPending = true;
-  _fbAuth.signInWithPopup(provider)
-    .catch(err => {
-      _googleSignInPending = false;
-      console.error('Google sign-in:', err);
-    });
+  _showSigninLoading();
+  _fbAuth.signInWithPopup(provider).catch(err => {
+    _hideSigninLoading();
+    console.error('Google sign-in:', err);
+  });
 }
 
 function signOutGoogle() {
@@ -3111,12 +3108,6 @@ function _updateGoogleSignInUI(googleUser) {
 _fbAuth.onAuthStateChanged(async firebaseUser => {
   _updateGoogleSignInUI(firebaseUser && !firebaseUser.isAnonymous ? firebaseUser : null);
   if (!firebaseUser || firebaseUser.isAnonymous) return;
-
-  // Show loading overlay as soon as we return from Google's UI
-  if (_googleSignInPending) {
-    _showSigninLoading();
-    _googleSignInPending = false;
-  }
 
   // Google user — hide profile modal immediately to avoid flicker
   _hideProfileModal();
