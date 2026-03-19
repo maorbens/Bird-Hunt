@@ -3130,8 +3130,19 @@ _fbAuth.onAuthStateChanged(async firebaseUser => {
     _persistProfile(userProfile);
     hideAuthScreen();
     _updateProfileChip();
+  } else if (local) {
+    // First Google sign-in but guest profile exists — carry it over silently
+    userProfile = _makeProfile(local.displayName || 'Player', local.avatarIndex ?? 0);
+    userProfile.uid      = uid;
+    userProfile.provider = 'google';
+    userProfile.stats    = { ...(local.stats || {}), highScore: bestHS };
+    highScore = bestHS;
+    _persistProfile(userProfile);
+    await _saveCloudProfile(userProfile);
+    hideAuthScreen();
+    _updateProfileChip();
   } else {
-    // First Google sign-in — show Hello Hunter to pick name/avatar
+    // First Google sign-in with no prior profile — show Hello Hunter
     highScore = bestHS;
     hideAuthScreen();
     showProfileModal('hello');
