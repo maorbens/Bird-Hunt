@@ -2891,6 +2891,7 @@ function _persistProfile(p, releaseNameLower) {
 // ── Google Sign-In / Sign-Out ──────────────────────────────────────────────
 function signInWithGoogle() {
   const provider = new firebase.auth.GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
   // signInWithPopup works on all modern browsers; signInWithRedirect is broken
   // on Chrome 115+, Firefox 109+, Safari 16.1+ due to third-party storage partitioning
   _fbAuth.signInWithPopup(provider).catch(err => console.error('Google sign-in:', err));
