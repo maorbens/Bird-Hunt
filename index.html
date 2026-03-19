@@ -1366,7 +1366,7 @@ function showProfileModal(mode) {
   document.getElementById('profile-subtitle').style.display =
     (isCreate || isHello) ? '' : 'none';
   document.getElementById('profile-cancel-btn').style.display =
-    _profileMode === 'edit' ? '' : 'none';
+    (_profileMode === 'edit' || _profileMode === 'hello') ? '' : 'none';
   const googleSection = document.getElementById('intro-google-section');
   if (_profileMode === 'edit' || isHello) {
     googleSection.classList.add('hidden');
