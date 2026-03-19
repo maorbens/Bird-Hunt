@@ -1089,7 +1089,7 @@
   <div id="profile-overlay">
     <div id="profile-popup">
       <div id="profile-title">Create Profile</div>
-      <div id="profile-subtitle">Pick a hunter &amp; name</div>
+      <div id="profile-subtitle">Pick your persona &amp; name</div>
       <div id="avatar-carousel">
         <div id="avatar-track"></div>
       </div>
@@ -1362,7 +1362,7 @@ function showProfileModal(mode) {
   const isHello = _profileMode === 'hello';
   const isCreate = _profileMode === 'create';
   document.getElementById('profile-title').textContent =
-    isHello ? 'Hello Hunter' : (isCreate ? 'Create Profile' : 'Edit Profile');
+    isHello ? 'Hello, hunter' : (isCreate ? 'Create Profile' : 'Edit Profile');
   document.getElementById('profile-subtitle').style.display =
     (isCreate || isHello) ? '' : 'none';
   document.getElementById('profile-cancel-btn').style.display =
