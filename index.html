@@ -1468,12 +1468,11 @@ document.getElementById('profile-cancel-btn').addEventListener('click', () => {
   playSfx('button');
   _hideProfileModal();
   if (_profileMode === 'hello') {
-    _fbAuth.signOut().then(() => {
-      try { localStorage.removeItem(PROFILE_KEY); } catch(e) {}
-      userProfile = null;
-      _updateGoogleSignInUI(null);
-      showAuthScreen();
-    });
+    const cu = _fbAuth.currentUser;
+    if (cu && !cu.isAnonymous) {
+      _fbAuth.signOut();
+    }
+    showAuthScreen();
   }
 });
 document.getElementById('name-input').addEventListener('keydown', e => {
