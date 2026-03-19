@@ -1400,9 +1400,18 @@ function _updateProfileChip() {
 }
 
 // ── First-launch init ─────────────────────────────────────────────────────
+function _hasCachedFirebaseUser() {
+  try {
+    return !!localStorage.getItem(`firebase:authUser:${firebaseConfig.apiKey}:[DEFAULT]`);
+  } catch(e) { return false; }
+}
+
 function initProfile() {
   userProfile = _getStoredProfile();
   if (!userProfile) {
+    // If Firebase has a cached logged-in user, wait for onAuthStateChanged
+    // to resolve before showing the auth screen (avoids flash of login UI)
+    if (_hasCachedFirebaseUser()) return;
     showAuthScreen();
   } else {
     // Merge old high-score key if needed
@@ -3046,7 +3055,11 @@ function _updateGoogleSignInUI(googleUser) {
 
 _fbAuth.onAuthStateChanged(async firebaseUser => {
   _updateGoogleSignInUI(firebaseUser && !firebaseUser.isAnonymous ? firebaseUser : null);
-  if (!firebaseUser || firebaseUser.isAnonymous) return;
+  if (!firebaseUser || firebaseUser.isAnonymous) {
+    // If we skipped the auth screen waiting for Firebase, show it now
+    if (!userProfile) showAuthScreen();
+    return;
+  }
 
   // Google user — hide profile modal immediately to avoid flicker
   _hideProfileModal();
