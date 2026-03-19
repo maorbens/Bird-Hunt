@@ -3070,11 +3070,9 @@ function signInWithGoogle() {
   provider.setCustomParameters({ prompt: 'select_account' });
   // signInWithPopup works on all modern browsers; signInWithRedirect is broken
   // on Chrome 115+, Firefox 109+, Safari 16.1+ due to third-party storage partitioning
-  _showSigninLoading();
-  _fbAuth.signInWithPopup(provider).catch(err => {
-    _hideSigninLoading();
-    console.error('Google sign-in:', err);
-  });
+  _fbAuth.signInWithPopup(provider)
+    .then(() => _showSigninLoading())
+    .catch(err => console.error('Google sign-in:', err));
 }
 
 function signOutGoogle() {
