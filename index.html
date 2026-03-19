@@ -3021,7 +3021,10 @@ function signInWithGoogle() {
   // signInWithPopup works on all modern browsers; signInWithRedirect is broken
   // on Chrome 115+, Firefox 109+, Safari 16.1+ due to third-party storage partitioning
   _fbAuth.signInWithPopup(provider)
-    .then(() => hideAuthScreen())
+    .then(() => {
+      hideAuthScreen();
+      document.getElementById('settings-overlay').classList.remove('visible');
+    })
     .catch(err => console.error('Google sign-in:', err));
 }
 
@@ -3061,8 +3064,9 @@ _fbAuth.onAuthStateChanged(async firebaseUser => {
     return;
   }
 
-  // Google user — hide profile modal immediately to avoid flicker
+  // Google user — hide profile modal and settings overlay immediately to avoid flicker
   _hideProfileModal();
+  document.getElementById('settings-overlay').classList.remove('visible');
 
   const uid   = firebaseUser.uid;
   const local = _getStoredProfile();
