@@ -2961,8 +2961,8 @@ _fbAuth.onAuthStateChanged(async firebaseUser => {
     userProfile.provider = 'google';
     userProfile.stats    = { ...(cloud.stats || {}), highScore: bestHS };
   } else {
-    // First Google sign-in — prefer locally-chosen name over Google account name
-    userProfile = _makeProfile(local?.displayName || firebaseUser.displayName || 'Player', local?.avatarIndex ?? 0);
+    // First Google sign-in — prefer Google account name over locally-chosen name
+    userProfile = _makeProfile(firebaseUser.displayName || local?.displayName || 'Player', local?.avatarIndex ?? 0);
     userProfile.uid      = uid;
     userProfile.provider = 'google';
     userProfile.stats    = { ...(local?.stats || {}), highScore: bestHS };
