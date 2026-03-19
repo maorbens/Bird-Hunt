@@ -369,7 +369,7 @@
       align-items: center;
       gap: clamp(6px, 1.6vmin, 14px);
     }
-    .auth-mode #auth-hud { display: flex; top: calc(50% + 70px); }
+    .auth-mode #auth-hud { display: flex; }
     .auth-mode #intro-hud { display: none; }
     .auth-mode #intro-logo { transform: translateX(calc(-50% + 5px)) translateY(-70px); }
     .auth-mode #intro-clouds,
@@ -2850,7 +2850,7 @@ function stopIntroBirdAnim() {
   if (introBirdAnimId) { cancelAnimationFrame(introBirdAnimId); introBirdAnimId = null; }
 }
 
-window.addEventListener('resize', () => { if (introBirdAnimId) { resizeIntroBirdCanvas(); positionIntroHud(); } });
+window.addEventListener('resize', () => { if (introBirdAnimId) { resizeIntroBirdCanvas(); positionIntroHud(); if (document.getElementById('intro-screen').classList.contains('auth-mode')) positionAuthHud(); } });
 
 let _audioWasBackgrounded = false;
 let _zombieCheckTimeout = null;
@@ -2983,11 +2983,21 @@ function _persistProfile(p, releaseNameLower) {
 }
 
 // ── Auth screen ───────────────────────────────────────────────────────────
+function positionAuthHud() {
+  const hud      = document.getElementById('auth-hud');
+  const logoBottom = document.getElementById('intro-logo').getBoundingClientRect().bottom;
+  const grassTop   = document.getElementById('intro-ground').getBoundingClientRect().top;
+  const midY = (logoBottom + grassTop) / 2;
+  hud.style.top       = midY + 'px';
+  hud.style.transform = 'translateY(-50%)';
+}
+
 function showAuthScreen() {
   document.getElementById('profile-chip').style.display = 'none';
   document.getElementById('info-btn').style.display = 'none';
   document.getElementById('settings-btn').style.display = 'none';
   document.getElementById('intro-screen').classList.add('auth-mode');
+  positionAuthHud();
 }
 
 function hideAuthScreen() {
