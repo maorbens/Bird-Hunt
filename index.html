@@ -1379,6 +1379,7 @@ async function _saveProfileFromModal() {
   }
   _persistProfile(userProfile, releaseNameLower);
   _hideProfileModal();
+  if (_profileMode === 'hello') hideAuthScreen();
   _updateProfileChip();
 }
 
