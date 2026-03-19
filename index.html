@@ -2897,6 +2897,7 @@ function signOutGoogle() {
     userProfile = null;
     highScore   = 0;
     _updateGoogleSignInUI(null);
+    document.getElementById('settings-overlay').classList.remove('visible');
     showProfileModal('create');
   }).catch(err => console.error('Sign-out:', err));
 }
