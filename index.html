@@ -1227,10 +1227,6 @@ async function _saveProfileFromModal() {
     setTimeout(() => inp.classList.remove('input-error'), 400);
     return;
   }
-  // Ensure authenticated before reading/writing Firestore
-  if (!_fbAuth.currentUser) {
-    try { await _fbAuth.signInAnonymously(); } catch(e) { console.error('anon sign-in:', e); }
-  }
   // Check name uniqueness via dedicated usernames collection
   const currentUid = userProfile?.uid ?? _fbAuth.currentUser?.uid ?? null;
   try {
@@ -1248,13 +1244,6 @@ async function _saveProfileFromModal() {
     userProfile = _makeProfile(name, _pickedAvatar);
     // carry over any high score from old localStorage key
     if (highScore > 0) userProfile.stats.highScore = highScore;
-    // Promote to anonymous provider so _persistProfile syncs to Firestore
-    const _anonUser = _fbAuth.currentUser;
-    if (_anonUser && _anonUser.isAnonymous) {
-      userProfile.uid      = _anonUser.uid;
-      userProfile.provider = 'anonymous';
-    }
-    // anonymous sign-in already done above if needed
   } else {
     // Release old username claim if name changed
     if (userProfile.displayName.toLowerCase() !== name.toLowerCase()) {
@@ -1986,7 +1975,7 @@ function onMiss() {
   stoneDropAnim = { active: true, t: 0 };
 }
 
-function endGame() {
+async function endGame() {
   _stopTicking();
   playSfx('game_over');
   timerRunning = false;
@@ -1999,6 +1988,14 @@ function endGame() {
   if (userProfile) {
     userProfile.stats.gamesPlayed = (userProfile.stats.gamesPlayed || 0) + 1;
     if (isNew) userProfile.stats.highScore = highScore;
+    // First time saving to cloud — sign in anonymously to get a Firebase uid
+    if (userProfile.provider === 'local' && !_fbAuth.currentUser) {
+      try {
+        const cred = await _fbAuth.signInAnonymously();
+        userProfile.uid      = cred.user.uid;
+        userProfile.provider = 'anonymous';
+      } catch(e) { console.error('anon sign-in:', e); }
+    }
     _persistProfile(userProfile);
   }
   const EX  = '<span class="ex">!</span>';
@@ -2923,10 +2920,6 @@ _fbAuth.onAuthStateChanged(async firebaseUser => {
   if (!firebaseUser) {
     // Firebase finished initializing — no session found.
     // Sign in anonymously only for guests (not Google users whose session may have expired).
-    const local = _getStoredProfile();
-    if (local && local.provider !== 'google') {
-      _fbAuth.signInAnonymously().catch(err => console.error('Anonymous sign-in:', err));
-    }
     return;
   }
 
