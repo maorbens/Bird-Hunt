@@ -2922,23 +2922,25 @@ _fbAuth.onAuthStateChanged(async firebaseUser => {
   // Google user
   const uid   = firebaseUser.uid;
   const local = _getStoredProfile();
+  // Only inherit local profile if it belongs to this user (guest uid or same Firebase uid)
+  const ownLocal = (local && (local.uid?.startsWith('local_') || local.uid === uid)) ? local : null;
   const cloud = await _loadCloudProfile(uid);
-  const localHS = local ? (local.stats?.highScore || 0) : 0;
+  const localHS = ownLocal ? (ownLocal.stats?.highScore || 0) : 0;
   const cloudHS = cloud ? (cloud.stats?.highScore  || 0) : 0;
   const bestHS  = Math.max(localHS, cloudHS);
 
   if (cloud) {
     // Returning user — restore cloud profile (name was set by the user in-game)
-    userProfile = _makeProfile(cloud.displayName || 'Player', cloud.avatarIndex ?? (local?.avatarIndex ?? 0));
+    userProfile = _makeProfile(cloud.displayName || 'Player', cloud.avatarIndex ?? (ownLocal?.avatarIndex ?? 0));
     userProfile.uid      = uid;
     userProfile.provider = 'google';
     userProfile.stats    = { ...(cloud.stats || {}), highScore: bestHS };
   } else {
     // First Google sign-in — prefer locally-chosen name over Google account name
-    userProfile = _makeProfile(local?.displayName || firebaseUser.displayName || 'Player', local?.avatarIndex ?? 0);
+    userProfile = _makeProfile(ownLocal?.displayName || firebaseUser.displayName || 'Player', ownLocal?.avatarIndex ?? 0);
     userProfile.uid      = uid;
     userProfile.provider = 'google';
-    userProfile.stats    = { ...(local?.stats || {}), highScore: bestHS };
+    userProfile.stats    = { ...(ownLocal?.stats || {}), highScore: bestHS };
   }
 
   highScore = bestHS;
