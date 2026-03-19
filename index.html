@@ -357,6 +357,69 @@
     #intro-hud > div { width: calc(100% - 150px); }
     #intro-hud #start-btn,
     #intro-hud #howto-btn { width: 100%; padding-left: 0; padding-right: 0; box-sizing: border-box; }
+    /* ── Auth screen (initial login / after sign-out) ─────────────────────── */
+    #auth-hud {
+      display: none;
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      left: 0; right: 0;
+      z-index: 5;
+      flex-direction: column;
+      align-items: center;
+      gap: clamp(6px, 1.6vmin, 14px);
+    }
+    .auth-mode #auth-hud { display: flex; }
+    .auth-mode #intro-hud { display: none; }
+    #auth-hud > div {
+      width: calc(100% - 150px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: clamp(6px, 1.6vmin, 14px);
+    }
+    #auth-guest-btn {
+      width: 100%;
+      padding: clamp(14px, 3vmin, 28px) 0;
+      background: #e94560;
+      color: #fff;
+      border: 4px solid #000;
+      box-shadow: 4px 4px 0 #000;
+      font-family: 'Press Start 2P', monospace;
+      font-weight: 500;
+      font-size: clamp(13px, 2.6vmin, 20px);
+      text-align: center;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: transform 0.07s, box-shadow 0.07s;
+      box-sizing: border-box;
+    }
+    #auth-guest-btn:active { transform: translate(3px,3px); box-shadow: 1px 1px 0 #000; }
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      gap: 10px;
+      color: rgba(255,255,255,0.7);
+      font-family: 'Roboto', sans-serif;
+      font-size: clamp(12px, 2vmin, 16px);
+    }
+    .auth-divider::before, .auth-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(255,255,255,0.3);
+    }
+    #auth-google-desc {
+      font-size: clamp(12px, 2.2vmin, 17px);
+      color: rgba(255,255,255,0.88);
+      font-family: 'Roboto', sans-serif;
+      font-weight: 500;
+      line-height: 1.6;
+      text-align: center;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.55);
+      width: 100%;
+    }
     @media (orientation: landscape) {
       #intro-hud { flex-direction: row; justify-content: center; gap: calc(clamp(6px, 1.6vmin, 14px) + 10px); }
       #howto-btn { margin-top: 0; }
@@ -780,7 +843,8 @@
       text-shadow: 0 1px 3px rgba(0,0,0,0.55);
     }
     #google-signin-btn,
-    #intro-google-signin-btn {
+    #intro-google-signin-btn,
+    #auth-google-signin-btn {
       width: 100%;
       padding: clamp(12px, 2.5vmin, 20px) 0;
       background: #fff;
@@ -798,9 +862,9 @@
       transition: transform 0.07s, box-shadow 0.07s, background 0.1s;
     }
     #google-signin-btn:hover,
-    #intro-google-signin-btn:hover { background: #f8f9fa; }
+    #intro-google-signin-btn:hover, #auth-google-signin-btn:hover { background: #f8f9fa; }
     #google-signin-btn:active,
-    #intro-google-signin-btn:active { transform: translate(3px,3px); box-shadow: 1px 1px 0 #000; }
+    #intro-google-signin-btn:active, #auth-google-signin-btn:active { transform: translate(3px,3px); box-shadow: 1px 1px 0 #000; }
     #google-signout-row {
       display: none;
       width: 100%;
@@ -1062,6 +1126,23 @@
       <span id="profile-chip-hs"></span>
       <img id="profile-chip-img" src="" alt=""/>
     </div>
+    <!-- Auth screen HUD (shown on first entry / after sign-out) -->
+    <div id="auth-hud">
+      <div>
+        <button id="auth-guest-btn">Play as a Guest</button>
+        <div class="auth-divider"><span>or</span></div>
+        <div id="auth-google-desc">Sign in with Google to save your high scores across devices.</div>
+        <button id="auth-google-signin-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          </svg>
+          Sign in with Google
+        </button>
+      </div>
+    </div>
   </div>
 
 <script>
@@ -1230,14 +1311,16 @@ function _buildAvatarGrid() {
 function showProfileModal(mode) {
   _profileMode = mode || 'create';
   _pickedAvatar = userProfile ? userProfile.avatarIndex : 0;
+  const isHello = _profileMode === 'hello';
+  const isCreate = _profileMode === 'create';
   document.getElementById('profile-title').textContent =
-    _profileMode === 'create' ? 'Create Profile' : 'Edit Profile';
+    isHello ? 'Hello Hunter' : (isCreate ? 'Create Profile' : 'Edit Profile');
   document.getElementById('profile-subtitle').style.display =
-    _profileMode === 'create' ? '' : 'none';
+    (isCreate || isHello) ? '' : 'none';
   document.getElementById('profile-cancel-btn').style.display =
     _profileMode === 'edit' ? '' : 'none';
   const googleSection = document.getElementById('intro-google-section');
-  if (_profileMode === 'edit') {
+  if (_profileMode === 'edit' || isHello) {
     googleSection.classList.add('hidden');
   } else {
     googleSection.classList.remove('hidden');
@@ -1277,10 +1360,16 @@ async function _saveProfileFromModal() {
   } catch(e) { console.error('Name uniqueness check:', e); }
   nameErrorEl.textContent = '';
   let releaseNameLower = null;
-  if (_profileMode === 'create') {
+  if (_profileMode === 'create' || _profileMode === 'hello') {
     userProfile = _makeProfile(name, _pickedAvatar);
     // carry over any high score from old localStorage key
     if (highScore > 0) userProfile.stats.highScore = highScore;
+    // Link to Google account if the user just signed in with Google
+    const fbUser = _fbAuth.currentUser;
+    if (fbUser && !fbUser.isAnonymous) {
+      userProfile.uid = fbUser.uid;
+      userProfile.provider = 'google';
+    }
   } else {
     if (userProfile.displayName.toLowerCase() !== name.toLowerCase()) {
       releaseNameLower = userProfile.displayName.toLowerCase();
@@ -1309,7 +1398,7 @@ function _updateProfileChip() {
 function initProfile() {
   userProfile = _getStoredProfile();
   if (!userProfile) {
-    showProfileModal('create');
+    showAuthScreen();
   } else {
     // Merge old high-score key if needed
     if (highScore > userProfile.stats.highScore) {
@@ -2888,6 +2977,18 @@ function _persistProfile(p, releaseNameLower) {
   if (p && p.provider === 'google') _saveCloudProfile(p, releaseNameLower);
 }
 
+// ── Auth screen ───────────────────────────────────────────────────────────
+function showAuthScreen() {
+  document.getElementById('profile-chip').style.display = 'none';
+  document.getElementById('info-btn').style.display = 'none';
+  document.getElementById('settings-btn').style.display = 'none';
+  document.getElementById('intro-screen').classList.add('auth-mode');
+}
+
+function hideAuthScreen() {
+  document.getElementById('intro-screen').classList.remove('auth-mode');
+}
+
 // ── Google Sign-In / Sign-Out ──────────────────────────────────────────────
 function signInWithGoogle() {
   const provider = new firebase.auth.GoogleAuthProvider();
@@ -2904,7 +3005,7 @@ function signOutGoogle() {
     highScore   = 0;
     _updateGoogleSignInUI(null);
     document.getElementById('settings-overlay').classList.remove('visible');
-    showProfileModal('create');
+    showAuthScreen();
   }).catch(err => console.error('Sign-out:', err));
 }
 
@@ -2940,22 +3041,21 @@ _fbAuth.onAuthStateChanged(async firebaseUser => {
   const bestHS  = Math.max(localHS, cloudHS);
 
   if (cloud) {
-    // Returning user — restore cloud profile
+    // Returning user — restore cloud profile and go straight to home
     userProfile = _makeProfile(cloud.displayName || 'Player', cloud.avatarIndex ?? (local?.avatarIndex ?? 0));
     userProfile.uid      = uid;
     userProfile.provider = 'google';
     userProfile.stats    = { ...(cloud.stats || {}), highScore: bestHS };
+    highScore = bestHS;
+    _persistProfile(userProfile);
+    hideAuthScreen();
+    _updateProfileChip();
   } else {
-    // First Google sign-in — prefer locally-chosen name over Google account name
-    userProfile = _makeProfile(local?.displayName || firebaseUser.displayName || 'Player', local?.avatarIndex ?? 0);
-    userProfile.uid      = uid;
-    userProfile.provider = 'google';
-    userProfile.stats    = { ...(local?.stats || {}), highScore: bestHS };
+    // First Google sign-in — show Hello Hunter to pick name/avatar
+    highScore = bestHS;
+    hideAuthScreen();
+    showProfileModal('hello');
   }
-
-  highScore = bestHS;
-  _persistProfile(userProfile);  // saves to both localStorage + Firestore
-  _updateProfileChip();
 });
 
 document.getElementById('google-signin-btn').addEventListener('click', () => {
@@ -2963,6 +3063,14 @@ document.getElementById('google-signin-btn').addEventListener('click', () => {
   signInWithGoogle();
 });
 document.getElementById('intro-google-signin-btn').addEventListener('click', () => {
+  playSfx('button');
+  signInWithGoogle();
+});
+document.getElementById('auth-guest-btn').addEventListener('click', () => {
+  playSfx('button');
+  showProfileModal('hello');
+});
+document.getElementById('auth-google-signin-btn').addEventListener('click', () => {
   playSfx('button');
   signInWithGoogle();
 });
