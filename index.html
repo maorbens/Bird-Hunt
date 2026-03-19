@@ -1262,11 +1262,7 @@ async function _saveProfileFromModal() {
     setTimeout(() => inp.classList.remove('input-error'), 400);
     return;
   }
-  // Ensure authenticated before reading/writing Firestore
-  if (!_fbAuth.currentUser) {
-    try { await _fbAuth.signInAnonymously(); } catch(e) { console.error('anon sign-in:', e); }
-  }
-  // Check name uniqueness via dedicated usernames collection
+  // Check name uniqueness via dedicated usernames collection (read: if true — no auth needed)
   const currentUid = userProfile?.uid ?? _fbAuth.currentUser?.uid ?? null;
   try {
     const available = await _checkNameAvailable(name.toLowerCase(), currentUid);
@@ -1283,13 +1279,6 @@ async function _saveProfileFromModal() {
     userProfile = _makeProfile(name, _pickedAvatar);
     // carry over any high score from old localStorage key
     if (highScore > 0) userProfile.stats.highScore = highScore;
-    // Promote to anonymous provider so _persistProfile syncs to Firestore
-    const _anonUser = _fbAuth.currentUser;
-    if (_anonUser && _anonUser.isAnonymous) {
-      userProfile.uid      = _anonUser.uid;
-      userProfile.provider = 'anonymous';
-    }
-    // anonymous sign-in already done above if needed
   } else {
     // Release old username claim if name changed
     if (userProfile.displayName.toLowerCase() !== name.toLowerCase()) {
@@ -2869,7 +2858,7 @@ function _releaseUsername(nameLower) {
 }
 
 async function _saveCloudProfile(profile) {
-  if (!profile || (profile.provider !== 'google' && profile.provider !== 'anonymous')) return;
+  if (!profile || profile.provider !== 'google') return;
   try {
     const batch = _db.batch();
     batch.set(_db.collection('users').doc(profile.uid), {
@@ -2891,51 +2880,21 @@ async function _saveCloudProfile(profile) {
 function _persistProfile(p) {
   try { localStorage.setItem(PROFILE_KEY, JSON.stringify(p)); } catch(e) {}
   userProfile = p;
-  if (p && (p.provider === 'google' || p.provider === 'anonymous')) _saveCloudProfile(p);
+  if (p && p.provider === 'google') _saveCloudProfile(p);
 }
 
 // ── Google Sign-In / Sign-Out ──────────────────────────────────────────────
 function signInWithGoogle() {
   const provider = new firebase.auth.GoogleAuthProvider();
-  const current  = _fbAuth.currentUser;
-  if (current && current.isAnonymous) {
-    // Link anonymous → Google with popup. linkWithPopup does NOT reliably fire
-    // onAuthStateChanged (confirmed Firebase SDK issue), so update UI manually in .then()
-    current.linkWithPopup(provider).then(result => {
-      _updateGoogleSignInUI(result.user);
-      if (userProfile) {
-        userProfile.provider = 'google';
-        userProfile.uid      = result.user.uid;
-        _persistProfile(userProfile);
-        _updateProfileChip();
-      }
-    }).catch(err => {
-      if (err.code === 'auth/credential-already-in-use') {
-        // Google account already linked to a previous Firebase account (e.g. after sign-out).
-        // err.credential contains the Google token — use it directly without opening
-        // a second popup (which would be blocked by Safari since there's no user gesture).
-        _fbAuth.signInWithCredential(err.credential)
-          .then(result => {
-            _updateGoogleSignInUI(result.user);
-          })
-          .catch(e => console.error('Google sign-in with credential:', e));
-      } else {
-        console.error('Link error:', err);
-      }
-    });
-  } else {
-    // signInWithPopup works on all modern browsers; signInWithRedirect is broken
-    // on Chrome 115+, Firefox 109+, Safari 16.1+ due to third-party storage partitioning
-    _fbAuth.signInWithPopup(provider).catch(err => console.error('Google sign-in:', err));
-  }
+  // signInWithPopup works on all modern browsers; signInWithRedirect is broken
+  // on Chrome 115+, Firefox 109+, Safari 16.1+ due to third-party storage partitioning
+  _fbAuth.signInWithPopup(provider).catch(err => console.error('Google sign-in:', err));
 }
 
 function signOutGoogle() {
   _fbAuth.signOut().then(() => {
     if (userProfile) { userProfile.provider = 'local'; _persistProfile(userProfile); }
     _updateGoogleSignInUI(null);
-    // Re-sign in anonymously to keep cloud sync for guest
-    _fbAuth.signInAnonymously().catch(err => console.error('Anonymous re-sign-in:', err));
   }).catch(err => console.error('Sign-out:', err));
 }
 
@@ -2958,42 +2917,12 @@ function _updateGoogleSignInUI(googleUser) {
 
 _fbAuth.onAuthStateChanged(async firebaseUser => {
   _updateGoogleSignInUI(firebaseUser && !firebaseUser.isAnonymous ? firebaseUser : null);
-  if (!firebaseUser) {
-    // Firebase finished initializing — no session found.
-    // Sign in anonymously only for guests (not Google users whose session may have expired).
-    const local = _getStoredProfile();
-    if (local && local.provider !== 'google') {
-      _fbAuth.signInAnonymously().catch(err => console.error('Anonymous sign-in:', err));
-    }
-    return;
-  }
+  if (!firebaseUser || firebaseUser.isAnonymous) return;
 
+  // Google user
   const uid   = firebaseUser.uid;
   const local = _getStoredProfile();
   const cloud = await _loadCloudProfile(uid);
-
-  if (firebaseUser.isAnonymous) {
-    // Anonymous user — upgrade local profile to cloud-synced anonymous profile
-    if (!local) return; // wait until user creates profile via modal
-    if (local.provider === 'local' || local.uid !== uid) {
-      const localHS = local.stats?.highScore || 0;
-      const cloudHS = cloud ? (cloud.stats?.highScore || 0) : 0;
-      const bestHS  = Math.max(localHS, cloudHS);
-      userProfile = _makeProfile(
-        cloud?.displayName || local.displayName || 'Player',
-        cloud?.avatarIndex ?? local.avatarIndex ?? 0
-      );
-      userProfile.uid      = uid;
-      userProfile.provider = 'anonymous';
-      userProfile.stats    = { ...(local.stats || {}), ...(cloud?.stats || {}), highScore: bestHS };
-      highScore = bestHS;
-      _persistProfile(userProfile);
-      _updateProfileChip();
-    }
-    return;
-  }
-
-  // Google user
   const localHS = local ? (local.stats?.highScore || 0) : 0;
   const cloudHS = cloud ? (cloud.stats?.highScore  || 0) : 0;
   const bestHS  = Math.max(localHS, cloudHS);
