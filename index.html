@@ -1400,18 +1400,9 @@ function _updateProfileChip() {
 }
 
 // ── First-launch init ─────────────────────────────────────────────────────
-function _hasCachedFirebaseUser() {
-  try {
-    return !!localStorage.getItem(`firebase:authUser:${firebaseConfig.apiKey}:[DEFAULT]`);
-  } catch(e) { return false; }
-}
-
 function initProfile() {
   userProfile = _getStoredProfile();
   if (!userProfile) {
-    // If Firebase has a cached logged-in user, wait for onAuthStateChanged
-    // to resolve before showing the auth screen (avoids flash of login UI)
-    if (_hasCachedFirebaseUser()) return;
     showAuthScreen();
   } else {
     // Merge old high-score key if needed
@@ -3020,12 +3011,7 @@ function signInWithGoogle() {
   provider.setCustomParameters({ prompt: 'select_account' });
   // signInWithPopup works on all modern browsers; signInWithRedirect is broken
   // on Chrome 115+, Firefox 109+, Safari 16.1+ due to third-party storage partitioning
-  _fbAuth.signInWithPopup(provider)
-    .then(() => {
-      hideAuthScreen();
-      document.getElementById('settings-overlay').classList.remove('visible');
-    })
-    .catch(err => console.error('Google sign-in:', err));
+  _fbAuth.signInWithPopup(provider).catch(err => console.error('Google sign-in:', err));
 }
 
 function signOutGoogle() {
@@ -3058,15 +3044,10 @@ function _updateGoogleSignInUI(googleUser) {
 
 _fbAuth.onAuthStateChanged(async firebaseUser => {
   _updateGoogleSignInUI(firebaseUser && !firebaseUser.isAnonymous ? firebaseUser : null);
-  if (!firebaseUser || firebaseUser.isAnonymous) {
-    // If we skipped the auth screen waiting for Firebase, show it now
-    if (!userProfile) showAuthScreen();
-    return;
-  }
+  if (!firebaseUser || firebaseUser.isAnonymous) return;
 
-  // Google user — hide profile modal and settings overlay immediately to avoid flicker
+  // Google user — hide profile modal immediately to avoid flicker
   _hideProfileModal();
-  document.getElementById('settings-overlay').classList.remove('visible');
 
   const uid   = firebaseUser.uid;
   const local = _getStoredProfile();
