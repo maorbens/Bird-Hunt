@@ -1248,6 +1248,12 @@ async function _saveProfileFromModal() {
     userProfile = _makeProfile(name, _pickedAvatar);
     // carry over any high score from old localStorage key
     if (highScore > 0) userProfile.stats.highScore = highScore;
+    // Promote to anonymous provider so _persistProfile syncs to Firestore
+    const _anonUser = _fbAuth.currentUser;
+    if (_anonUser && _anonUser.isAnonymous) {
+      userProfile.uid      = _anonUser.uid;
+      userProfile.provider = 'anonymous';
+    }
     // anonymous sign-in already done above if needed
   } else {
     // Release old username claim if name changed
