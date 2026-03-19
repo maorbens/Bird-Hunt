@@ -1467,6 +1467,14 @@ document.getElementById('profile-save-btn').addEventListener('click', () => {
 document.getElementById('profile-cancel-btn').addEventListener('click', () => {
   playSfx('button');
   _hideProfileModal();
+  if (_profileMode === 'hello') {
+    _fbAuth.signOut().then(() => {
+      try { localStorage.removeItem(PROFILE_KEY); } catch(e) {}
+      userProfile = null;
+      _updateGoogleSignInUI(null);
+      showAuthScreen();
+    });
+  }
 });
 document.getElementById('name-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') { e.preventDefault(); _saveProfileFromModal(); }
@@ -3094,7 +3102,7 @@ function _updateGoogleSignInUI(googleUser) {
   } else {
     signinBtn.style.display  = '';
     signoutRow.classList.remove('visible');
-    introSection.classList.remove('hidden');
+    if (_profileMode !== 'hello') introSection.classList.remove('hidden');
   }
 }
 
