@@ -528,8 +528,7 @@
     #profile-overlay {
       display: none;
       position: fixed;
-      top: 0; left: 0; right: 0;
-      height: 100dvh;
+      top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(0,0,0,0.88);
       z-index: 50;
       align-items: center;
@@ -1378,7 +1377,9 @@ function showProfileModal(mode) {
   document.getElementById('name-input').value =
     (_profileMode === 'edit' && userProfile) ? userProfile.displayName : '';
   _buildAvatarGrid();
+  document.body.style.overflow = 'hidden';
   document.getElementById('profile-overlay').classList.add('visible');
+  _syncOverlayToViewport();
   setTimeout(() => document.getElementById('name-input').focus(), 120);
 }
 
@@ -2911,20 +2912,31 @@ window.addEventListener('resize', () => {
   if (document.getElementById('intro-screen').classList.contains('auth-mode')) positionAuthHud();
 });
 
-// Keep #profile-overlay sized to the visual viewport (fixes iOS keyboard push)
+// Keep #profile-overlay pinned to the visual viewport (fixes iOS keyboard push/scroll)
+function _syncOverlayToViewport() {
+  const vv = window.visualViewport;
+  if (!vv) return;
+  const overlay = document.getElementById('profile-overlay');
+  if (!overlay || !overlay.classList.contains('visible')) return;
+  overlay.style.top    = vv.offsetTop  + 'px';
+  overlay.style.left   = vv.offsetLeft + 'px';
+  overlay.style.width  = vv.width      + 'px';
+  overlay.style.height = vv.height     + 'px';
+}
 if (window.visualViewport) {
-  window.visualViewport.addEventListener('resize', () => {
-    const overlay = document.getElementById('profile-overlay');
-    if (overlay && overlay.classList.contains('visible')) {
-      overlay.style.height = window.visualViewport.height + 'px';
-      overlay.style.top    = window.visualViewport.offsetTop  + 'px';
-    }
-  });
+  window.visualViewport.addEventListener('resize', _syncOverlayToViewport);
+  window.visualViewport.addEventListener('scroll', _syncOverlayToViewport);
 }
 
 function _resetOverlaySize() {
   const overlay = document.getElementById('profile-overlay');
-  if (overlay) { overlay.style.height = ''; overlay.style.top = ''; }
+  if (overlay) {
+    overlay.style.top = '';
+    overlay.style.left = '';
+    overlay.style.width = '';
+    overlay.style.height = '';
+  }
+  document.body.style.overflow = '';
 }
 
 let _audioWasBackgrounded = false;
