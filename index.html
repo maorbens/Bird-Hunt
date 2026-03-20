@@ -2942,18 +2942,48 @@ window.addEventListener('resize', () => {
 
 // Bottom-sheet / keyboard positioning for iOS Safari.
 //
-// Problem: visualViewport fires BOTH resize (vv.height changes) AND scroll (vv.offsetTop
-// changes). resize = keyboard animating open/closed. scroll = user scrolling content OR
-// iOS adjusting viewport. We must update position during keyboard animation but NOT when
-// the user scrolls sheet content (that would move the sheet and create black gaps).
+// Problem A: visualViewport fires BOTH resize (vv.height changes) AND scroll
+// (vv.offsetTop changes). resize = keyboard animating. scroll = iOS viewport shift.
+// We update position during animation (resize) and lock 100ms after resizes stop.
 //
-// Solution: track keyboard during animation via resize events, then LOCK position 100ms
-// after resizes stop (animation done). scroll events are ignored while locked.
+// Problem B: even with JS locked, iOS Safari physically moves position:fixed elements
+// when the visual viewport shifts during elastic overscroll (rubber-band). The sheet
+// "floats up" when the user tries to scroll past the top of the sheet content.
+//
+// Fix for B: touchmove listeners that call preventDefault() at sheet scroll boundaries,
+// preventing the elastic bounce (and thus the vv.offsetTop shift) from occurring.
 //
 // kbHeight threshold 150px: real keyboard >150, iOS Compact toolbar ~50-80px <150.
 // No-keyboard mode uses window.innerHeight (layout viewport) — completely stable.
 let _kbLocked = false;
 let _kbLockTimer = null;
+let _touchStartY = 0;
+
+// Track touch start position for boundary direction detection
+document.addEventListener('touchstart', (e) => {
+  _touchStartY = e.touches[0].clientY;
+}, { passive: true });
+
+// Prevent elastic overscroll from shifting vv.offsetTop (which moves position:fixed sheet)
+document.addEventListener('touchmove', (e) => {
+  const overlay = document.getElementById('profile-overlay');
+  if (!overlay || !overlay.classList.contains('visible') || !_kbLocked) return;
+
+  const popup = document.getElementById('profile-popup');
+  if (popup && e.target.closest && e.target.closest('#profile-popup')) {
+    // Inside sheet: allow normal scroll, but block elastic bounce at boundaries
+    const dy = e.touches[0].clientY - _touchStartY;
+    const atTop    = popup.scrollTop <= 0;
+    const atBottom = popup.scrollTop + popup.clientHeight >= popup.scrollHeight - 1;
+    if ((dy > 0 && atTop) || (dy < 0 && atBottom)) {
+      e.preventDefault(); // At boundary — stop elastic bounce
+    }
+    // else: mid-scroll, let it scroll normally
+  } else {
+    // Outside sheet: nothing should scroll
+    e.preventDefault();
+  }
+}, { passive: false });
 
 function _syncSheetToKeyboard(fromResize) {
   const vv = window.visualViewport;
