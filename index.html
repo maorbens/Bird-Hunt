@@ -1467,13 +1467,15 @@ document.getElementById('profile-save-btn').addEventListener('click', () => {
 });
 document.getElementById('profile-cancel-btn').addEventListener('click', () => {
   playSfx('button');
+  document.getElementById('name-input').blur();
   _hideProfileModal();
   if (_profileMode === 'hello') {
     const cu = _fbAuth.currentUser;
     if (cu && !cu.isAnonymous) {
       _fbAuth.signOut();
     }
-    showAuthScreen();
+    // Delay slightly so the keyboard finishes dismissing before we measure layout
+    setTimeout(showAuthScreen, 50);
   }
 });
 document.getElementById('name-input').addEventListener('keydown', e => {
@@ -2902,7 +2904,10 @@ function stopIntroBirdAnim() {
   if (introBirdAnimId) { cancelAnimationFrame(introBirdAnimId); introBirdAnimId = null; }
 }
 
-window.addEventListener('resize', () => { if (introBirdAnimId) { resizeIntroBirdCanvas(); positionIntroHud(); if (document.getElementById('intro-screen').classList.contains('auth-mode')) positionAuthHud(); } });
+window.addEventListener('resize', () => {
+  if (introBirdAnimId) { resizeIntroBirdCanvas(); positionIntroHud(); }
+  if (document.getElementById('intro-screen').classList.contains('auth-mode')) positionAuthHud();
+});
 
 let _audioWasBackgrounded = false;
 let _zombieCheckTimeout = null;
