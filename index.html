@@ -995,6 +995,11 @@
     #settings-done-btn:active { transform: translate(3px,3px); box-shadow: 1px 1px 0 #000; }
 
     /* ── Sign-in button loading state ───────────────────────────────────── */
+    body.signing-in #auth-guest-btn,
+    body.signing-in #start-btn,
+    body.signing-in #howto-btn,
+    body.signing-in #info-btn,
+    body.signing-in #settings-btn { pointer-events: none; opacity: 0.4; }
     #google-signin-btn.signing-in,
     #intro-google-signin-btn.signing-in,
     #auth-google-signin-btn.signing-in {
@@ -3098,9 +3103,11 @@ const _googleBtns = () => [
   document.getElementById('auth-google-signin-btn'),
 ];
 function _showSigninLoading() {
+  document.body.classList.add('signing-in');
   _googleBtns().forEach(b => b && b.classList.add('signing-in'));
 }
 function _hideSigninLoading() {
+  document.body.classList.remove('signing-in');
   _googleBtns().forEach(b => b && b.classList.remove('signing-in'));
 }
 
