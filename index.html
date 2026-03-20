@@ -3119,11 +3119,18 @@ function signInWithGoogle() {
   });
 }
 
-// On iOS Safari, signInWithPopup navigates away and the page is frozen in
-// bfcache. When the user returns without signing in, the page is restored
-// with the loader still visible. pageshow(persisted=true) catches this.
+// On iOS Safari, signInWithPopup opens a new tab for Google OAuth.
+// The original page stays alive — its Promise never rejects if the user
+// closes that tab without signing in.  When focus returns to this page,
+// check whether sign-in actually happened; if not, hide the loader.
+// pageshow(persisted) covers the bfcache / redirect case as well.
 window.addEventListener('pageshow', (e) => {
   if (e.persisted) _hideSigninLoading();
+});
+window.addEventListener('focus', () => {
+  setTimeout(() => {
+    if (!_fbAuth.currentUser || _fbAuth.currentUser.isAnonymous) _hideSigninLoading();
+  }, 300);
 });
 
 function signOutGoogle() {
