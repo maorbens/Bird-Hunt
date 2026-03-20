@@ -2955,13 +2955,14 @@ function _syncSheetToKeyboard() {
   if (!vv) return;
   const popup = document.getElementById('profile-popup');
   if (!popup) return;
-  popup.style.top = (vv.offsetTop + vv.height) + 'px';
-  const kbHeight = Math.max(0, window.innerHeight - vv.offsetTop - vv.height);
+  // Use vv.height alone (NOT vv.offsetTop + vv.height).
+  // vv.height only changes when the keyboard opens/closes.
+  // vv.offsetTop also changes when the user scrolls sheet content — using it
+  // would reposition the sheet on every scroll gesture (the black-gap bug).
+  popup.style.top = vv.height + 'px';
+  const kbHeight = Math.max(0, window.innerHeight - vv.height);
   const keyboardOpen = kbHeight > 50;
-  // When keyboard is open, clamp height to visible area so sheet doesn't overflow above screen.
-  // When keyboard is closed, clear inline style so CSS max-height:90vh takes over.
   popup.style.maxHeight = keyboardOpen ? (vv.height - 8) + 'px' : '';
-  // Reduce bottom padding when keyboard is open (safe-area inset is not needed under keyboard)
   popup.style.paddingBottom = keyboardOpen ? 'clamp(16px, 3vmin, 28px)' : '';
 }
 if (window.visualViewport) {
