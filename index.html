@@ -558,7 +558,10 @@
       background: #1a1a2e;
       border: 4px solid #FFD700;
       border-bottom: none;
-      box-shadow: 0 -6px 0 #000, inset 0 0 0 2px #000;
+      /* Large downward box-shadow fills any gap between sheet bottom and screen bottom.
+         box-shadow is NOT clipped by overflow-y:auto (unlike ::after), so this is
+         the reliable way to extend the background color below the sheet. */
+      box-shadow: 0 -6px 0 #000, inset 0 0 0 2px #000, 0 9999px 0 9999px #1a1a2e;
       border-radius: 20px 20px 0 0;
       padding: clamp(16px, 3vmin, 28px) clamp(36px, 9vw, 96px) calc(clamp(36px, 7.5vmin, 84px) + env(safe-area-inset-bottom, 0px));
       text-align: center;
@@ -572,16 +575,7 @@
       overflow-y: auto;
       overscroll-behavior: contain;
       box-sizing: border-box;
-    }
-    /* Extends sheet background below itself to fill gap between sheet and keyboard */
-    #profile-popup::after {
-      content: '';
-      position: absolute;
-      left: 0; right: 0;
-      bottom: -50vh;
-      height: 50vh;
-      background: #1a1a2e;
-      pointer-events: none;
+      transition: max-height 0.25s cubic-bezier(0.32, 0, 0.68, 1);
     }
     #profile-title {
       color: #FFD700;
@@ -2949,24 +2943,48 @@ window.addEventListener('resize', () => {
   if (document.getElementById('intro-screen').classList.contains('auth-mode')) positionAuthHud();
 });
 
-// Anchor sheet bottom to visual viewport bottom (correct approach for iOS Safari keyboard).
-// position:fixed + top = vv.offsetTop+vv.height, then translateY(-100%) pulls it upward.
-// The ::after pseudo-element extends the background below the sheet to cover any gap.
+// iOS Safari keyboard handling for bottom sheet.
+//
+// Correct approach (per visualViewport spec + iOS 26 research):
+//  1. top = vv.offsetTop + vv.height  →  sheet bottom anchors to visual viewport bottom
+//     (i.e. above the keyboard). CSS: position:fixed + transform:translateY(-100%).
+//  2. max-height = vv.height - 8      →  prevents sheet from extending above the screen top.
+//     Critical: without this, a tall sheet overflows upward off-screen when keyboard opens.
+//  3. box-shadow fills any gap below the sheet (iOS 26 has offsetTop drift after dismiss).
+//     box-shadow is NOT clipped by overflow-y:auto, making it reliable vs ::after.
+//
+// NOTE for Capacitor migration: visualViewport does NOT fire when @capacitor/keyboard
+// manages resize. Switch to: resize:"none" + keyboardWillShow → CSS --keyboard-height var.
 function _syncSheetToKeyboard() {
   const vv = window.visualViewport;
   if (!vv) return;
   const popup = document.getElementById('profile-popup');
   if (!popup) return;
+  // Anchor sheet's bottom edge to the top of the keyboard
   popup.style.top = (vv.offsetTop + vv.height) + 'px';
+  // Clamp height so sheet never overflows above the visible area
+  const kbHeight = Math.max(0, window.innerHeight - vv.offsetTop - vv.height);
+  popup.style.maxHeight = kbHeight > 50 ? (vv.height - 8) + 'px' : '';
 }
 if (window.visualViewport) {
   window.visualViewport.addEventListener('resize', _syncSheetToKeyboard);
   window.visualViewport.addEventListener('scroll', _syncSheetToKeyboard);
 }
 
+// iOS 26 bug: visualViewport.offsetTop doesn't reset to 0 after keyboard dismiss.
+// Force a micro-scroll to nudge WebKit into recalculating the viewport position.
+document.addEventListener('focusout', () => {
+  setTimeout(() => {
+    if (window.visualViewport && window.visualViewport.offsetTop > 0) {
+      window.scrollBy(0, -1);
+      window.scrollBy(0, 1);
+    }
+  }, 100);
+});
+
 function _resetSheetPosition() {
   const popup = document.getElementById('profile-popup');
-  if (popup) popup.style.top = '';
+  if (popup) { popup.style.top = ''; popup.style.maxHeight = ''; }
   // Restore body scroll (saved during _showProfileModal)
   const savedY = parseInt(document.body.dataset.scrollY || '0', 10);
   document.body.style.position = '';
