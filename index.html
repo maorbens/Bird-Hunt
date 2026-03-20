@@ -3120,19 +3120,26 @@ function signInWithGoogle() {
   });
 }
 
-// Show loader instantly when user returns from the Google OAuth tab.
-// onAuthStateChanged will either clear the fallback timer (on success)
-// or we hide after 1 s if there was no auth change (user cancelled).
-window.addEventListener('focus', () => {
+// Show loader the moment the user returns from the Google OAuth tab.
+// Both events are needed: visibilitychange for iOS Safari (new-tab flow),
+// focus as a fallback for desktop browsers.
+// onAuthStateChanged clears the timer on success; if it doesn't fire
+// within 300 ms the user cancelled and we hide the loader.
+function _onReturnFromOAuth() {
   if (!_signinInProgress) return;
   _showSigninLoading();
+  if (_focusHideTimer) clearTimeout(_focusHideTimer);
   _focusHideTimer = setTimeout(() => {
     _focusHideTimer = null;
     if (!_fbAuth.currentUser || _fbAuth.currentUser.isAnonymous) {
       _signinInProgress = false;
       _hideSigninLoading();
     }
-  }, 1000);
+  }, 300);
+}
+window.addEventListener('focus', _onReturnFromOAuth);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') _onReturnFromOAuth();
 });
 
 function signOutGoogle() {
