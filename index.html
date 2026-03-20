@@ -3159,7 +3159,7 @@ function _updateGoogleSignInUI(googleUser) {
 
 _fbAuth.onAuthStateChanged(async firebaseUser => {
   _updateGoogleSignInUI(firebaseUser && !firebaseUser.isAnonymous ? firebaseUser : null);
-  if (!firebaseUser || firebaseUser.isAnonymous) { _hideSigninLoading(); return; }
+  if (!firebaseUser || firebaseUser.isAnonymous) return;
 
   // Google user — hide profile modal immediately to avoid flicker
   _hideProfileModal();
