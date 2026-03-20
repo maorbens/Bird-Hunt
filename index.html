@@ -3172,11 +3172,17 @@ function _updateGoogleSignInUI(googleUser) {
 
 _fbAuth.onAuthStateChanged(async firebaseUser => {
   if (_focusHideTimer) { clearTimeout(_focusHideTimer); _focusHideTimer = null; }
+  _updateGoogleSignInUI(firebaseUser && !firebaseUser.isAnonymous ? firebaseUser : null);
+  if (!firebaseUser || firebaseUser.isAnonymous) {
+    // During signInWithPopup Firebase may fire null before the final user —
+    // don't clear _signinInProgress mid-flow; only hide if no sign-in is pending.
+    if (!_signinInProgress) _hideSigninLoading();
+    return;
+  }
+  // Confirmed Google user — sign-in is complete.
   const isNewSignIn = _signinInProgress;
   _signinInProgress = false;
-  _updateGoogleSignInUI(firebaseUser && !firebaseUser.isAnonymous ? firebaseUser : null);
-  if (!firebaseUser || firebaseUser.isAnonymous) { _hideSigninLoading(); return; }
-  // On page refresh the profile loads silently – only show overlay for a fresh sign-in.
+  // On page refresh the profile loads silently; show overlay only for fresh sign-ins.
   if (isNewSignIn) _showSigninLoading();
 
   // Google user — hide profile modal immediately to avoid flicker
