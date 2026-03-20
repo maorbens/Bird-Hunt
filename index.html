@@ -3123,7 +3123,25 @@ function signInWithGoogle() {
   // signInWithPopup works on all modern browsers; signInWithRedirect is broken
   // on Chrome 115+, Firefox 109+, Safari 16.1+ due to third-party storage partitioning
   _showSigninLoading();
+
+  // On iOS the popup opens as a new tab; overlay stays hidden in background.
+  // When user returns without signing in, hide the overlay within 1s.
+  let cancelTimer;
+  const onReturn = () => {
+    if (!document.hidden) {
+      document.removeEventListener('visibilitychange', onReturn);
+      cancelTimer = setTimeout(_hideSigninLoading, 1000);
+    }
+  };
+  document.addEventListener('visibilitychange', onReturn);
+
+  // If sign-in succeeds, onAuthStateChanged cancels the timer so overlay
+  // stays until the profile is fully loaded.
+  signInWithGoogle._cancel = () => { clearTimeout(cancelTimer); };
+
   _fbAuth.signInWithPopup(provider).catch(err => {
+    clearTimeout(cancelTimer);
+    document.removeEventListener('visibilitychange', onReturn);
     _hideSigninLoading();
     console.error('Google sign-in:', err);
   });
@@ -3160,6 +3178,10 @@ function _updateGoogleSignInUI(googleUser) {
 _fbAuth.onAuthStateChanged(async firebaseUser => {
   _updateGoogleSignInUI(firebaseUser && !firebaseUser.isAnonymous ? firebaseUser : null);
   if (!firebaseUser || firebaseUser.isAnonymous) return;
+
+  // Sign-in succeeded — cancel the fallback hide-timer so overlay stays
+  // until the profile is fully loaded below.
+  if (signInWithGoogle._cancel) { signInWithGoogle._cancel(); signInWithGoogle._cancel = null; }
 
   // Google user — hide profile modal immediately to avoid flicker
   _hideProfileModal();
