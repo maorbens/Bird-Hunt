@@ -531,17 +531,14 @@
       top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(0,0,0,0.88);
       z-index: 50;
-      align-items: flex-end;
-      justify-content: center;
-      overflow: hidden;
     }
-    #profile-overlay.visible { display: flex; }
+    #profile-overlay.visible { display: block; }
     #profile-overlay.visible #profile-popup {
       animation: sheetSlideIn 0.32s cubic-bezier(0.32, 0.72, 0, 1) both;
     }
     @keyframes sheetSlideIn {
-      from { transform: translateY(100%); }
-      to   { transform: none; }
+      from { transform: translateY(0); }
+      to   { transform: translateY(-100%); }
     }
     #sheet-handle {
       width: 44px;
@@ -552,6 +549,12 @@
       flex-shrink: 0;
     }
     #profile-popup {
+      /* position: fixed + top set by JS; transform pulls sheet upward into view */
+      position: fixed;
+      left: 0; right: 0;
+      top: 100vh; /* JS overrides this via visualViewport */
+      transform: translateY(-100%);
+      margin: 0 auto;
       background: #1a1a2e;
       border: 4px solid #FFD700;
       border-bottom: none;
@@ -564,13 +567,21 @@
       flex-direction: column;
       align-items: center;
       gap: clamp(14px, 3vmin, 28px);
-      width: 100%;
       max-width: 520px;
       max-height: 90vh;
       overflow-y: auto;
-      overscroll-behavior: none;
+      overscroll-behavior: contain;
       box-sizing: border-box;
-      transition: max-height 0.15s ease-out;
+    }
+    /* Extends sheet background below itself to fill gap between sheet and keyboard */
+    #profile-popup::after {
+      content: '';
+      position: absolute;
+      left: 0; right: 0;
+      bottom: -50vh;
+      height: 50vh;
+      background: #1a1a2e;
+      pointer-events: none;
     }
     #profile-title {
       color: #FFD700;
@@ -1397,7 +1408,13 @@ function showProfileModal(mode) {
   document.getElementById('name-input').value =
     (_profileMode === 'edit' && userProfile) ? userProfile.displayName : '';
   _buildAvatarGrid();
+  // iOS Safari requires position:fixed to truly lock background scroll
+  const _savedScrollY = window.scrollY;
+  document.body.dataset.scrollY = String(_savedScrollY);
+  document.body.style.top = '-' + _savedScrollY + 'px';
+  document.body.style.position = 'fixed';
   document.body.style.overflow = 'hidden';
+  document.body.style.width = '100%';
   document.getElementById('profile-overlay').classList.add('visible');
   _syncSheetToKeyboard();
   setTimeout(() => document.getElementById('name-input').focus(), 120);
@@ -2932,17 +2949,15 @@ window.addEventListener('resize', () => {
   if (document.getElementById('intro-screen').classList.contains('auth-mode')) positionAuthHud();
 });
 
-// Constrain bottom sheet height to visual viewport so content stays above keyboard
+// Anchor sheet bottom to visual viewport bottom (correct approach for iOS Safari keyboard).
+// position:fixed + top = vv.offsetTop+vv.height, then translateY(-100%) pulls it upward.
+// The ::after pseudo-element extends the background below the sheet to cover any gap.
 function _syncSheetToKeyboard() {
   const vv = window.visualViewport;
   if (!vv) return;
   const popup = document.getElementById('profile-popup');
-  const overlay = document.getElementById('profile-overlay');
-  if (!popup || !overlay || !overlay.classList.contains('visible')) return;
-  const kbHeight = Math.max(0, window.innerHeight - vv.offsetTop - vv.height);
-  // When keyboard is open, cap max-height to the visual area above it.
-  // The sheet stays anchored at bottom:0 so its background extends under the keyboard.
-  popup.style.maxHeight = kbHeight > 50 ? (vv.height - 24) + 'px' : '';
+  if (!popup) return;
+  popup.style.top = (vv.offsetTop + vv.height) + 'px';
 }
 if (window.visualViewport) {
   window.visualViewport.addEventListener('resize', _syncSheetToKeyboard);
@@ -2951,8 +2966,14 @@ if (window.visualViewport) {
 
 function _resetSheetPosition() {
   const popup = document.getElementById('profile-popup');
-  if (popup) popup.style.maxHeight = '';
+  if (popup) popup.style.top = '';
+  // Restore body scroll (saved during _showProfileModal)
+  const savedY = parseInt(document.body.dataset.scrollY || '0', 10);
+  document.body.style.position = '';
   document.body.style.overflow = '';
+  document.body.style.top = '';
+  document.body.style.width = '';
+  window.scrollTo(0, savedY);
 }
 
 let _audioWasBackgrounded = false;
