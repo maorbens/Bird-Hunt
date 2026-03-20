@@ -556,12 +556,9 @@
       transform: translateY(-100%);
       margin: 0 auto;
       background: #1a1a2e;
-      border: 4px solid #FFD700;
-      border-bottom: none;
-      /* Large downward box-shadow fills any gap between sheet bottom and screen bottom.
-         box-shadow is NOT clipped by overflow-y:auto (unlike ::after), so this is
-         the reliable way to extend the background color below the sheet. */
-      box-shadow: 0 -6px 0 #000, inset 0 0 0 2px #000, 0 9999px 0 9999px #1a1a2e;
+      /* box-shadow fills gap between sheet bottom and keyboard/screen bottom.
+         box-shadow is not clipped by overflow-y:auto, unlike ::after. */
+      box-shadow: 0 9999px 0 9999px #1a1a2e;
       border-radius: 20px 20px 0 0;
       padding: clamp(16px, 3vmin, 28px) clamp(36px, 9vw, 96px) calc(clamp(36px, 7.5vmin, 84px) + env(safe-area-inset-bottom, 0px));
       text-align: center;
@@ -2972,11 +2969,13 @@ if (window.visualViewport) {
   window.visualViewport.addEventListener('scroll', _syncSheetToKeyboard);
 }
 
-// Reset visual-viewport scroll (iOS 26 offsetTop drift fix) BEFORE the keyboard opens.
-// scrollTo(0,0) is safe here because body is position:fixed during the modal — no visible jump.
+// iOS 26 offsetTop drift fix: scrollTo(0,0) before keyboard opens to reset any accumulated
+// visualViewport offset. Also re-sync 350ms later (after keyboard animation completes) to
+// correct any residual drift that occurred during the animation.
 document.addEventListener('focusin', (e) => {
   if (e.target.closest && e.target.closest('#profile-popup')) {
     window.scrollTo(0, 0);
+    setTimeout(_syncSheetToKeyboard, 350);
   }
 }, true);
 
