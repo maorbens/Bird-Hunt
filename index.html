@@ -2966,7 +2966,9 @@ function _syncSheetToKeyboard() {
 }
 if (window.visualViewport) {
   window.visualViewport.addEventListener('resize', _syncSheetToKeyboard);
-  window.visualViewport.addEventListener('scroll', _syncSheetToKeyboard);
+  // Do NOT add a 'scroll' listener — scrolling inside overflow-y:auto on iOS Safari
+  // fires visualViewport.scroll and changes vv.offsetTop, which would cause the sheet
+  // to jump/resize while the user scrolls the sheet content.
 }
 
 // iOS 26 offsetTop drift fix: scrollTo(0,0) before keyboard opens to reset any accumulated
