@@ -531,18 +531,8 @@
       inset: 0;
       background: rgba(0,0,0,0.88);
       z-index: 50;
-      /* Flex container: sheet sits at the bottom of the visible viewport.
-         JS sets overlay height = visual viewport height (keyboard excluded)
-         via resize events only. Rubber-band only changes vv.offsetTop (not
-         vv.height) so resize never fires during elastic scroll — overlay
-         stays stable, sheet doesn't move. */
-      flex-direction: column;
-      justify-content: flex-end;
-      overflow: hidden;
-      /* Override body's touch-action:none so touch scroll works inside the sheet */
-      touch-action: pan-y;
     }
-    #profile-overlay.visible { display: flex; }
+    #profile-overlay.visible { display: block; }
     #profile-overlay.visible #profile-popup {
       animation: sheetSlideIn 0.32s cubic-bezier(0.32, 0.72, 0, 1) both;
     }
@@ -559,15 +549,17 @@
       flex-shrink: 0;
     }
     #profile-popup {
-      /* Flex child of #profile-overlay — NO position:fixed, NO top, NO transform.
-         Overlay is sized to visual viewport height by JS; sheet naturally sits
-         at the overlay bottom (above the keyboard). */
-      flex-shrink: 0;
-      width: 100%;
+      /* position:fixed on iOS Safari is anchored to the visual viewport.
+         When keyboard opens, bottom:0 automatically sits above it — no JS needed.
+         body { position:fixed } scroll-lock is NOT used (game has overflow:hidden). */
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
       max-width: 520px;
-      align-self: center;
+      margin-inline: auto;
       background: #1a1a2e;
-      /* box-shadow fills gap between sheet bottom and keyboard/screen bottom */
+      /* box-shadow fills safe-area gap below sheet on notched phones */
       box-shadow: 0 9999px 0 9999px #1a1a2e;
       border-radius: 20px 20px 0 0;
       padding: clamp(16px, 3vmin, 28px) clamp(36px, 9vw, 96px) calc(clamp(36px, 7.5vmin, 84px) + env(safe-area-inset-bottom, 0px));
@@ -577,12 +569,14 @@
       flex-direction: column;
       align-items: center;
       gap: clamp(14px, 3vmin, 28px);
-      max-height: 100%;
+      /* dvh shrinks with keyboard on iOS 16+; vh as fallback */
+      max-height: 92vh;
+      max-height: 92dvh;
       overflow-y: auto;
       overscroll-behavior: contain;
-      box-sizing: border-box;
       touch-action: pan-y;
       -webkit-overflow-scrolling: touch;
+      box-sizing: border-box;
     }
     #profile-title {
       color: #FFD700;
@@ -1409,15 +1403,8 @@ function showProfileModal(mode) {
   document.getElementById('name-input').value =
     (_profileMode === 'edit' && userProfile) ? userProfile.displayName : '';
   _buildAvatarGrid();
-  // iOS Safari requires position:fixed to truly lock background scroll
-  const _savedScrollY = window.scrollY;
-  document.body.dataset.scrollY = String(_savedScrollY);
-  document.body.style.top = '-' + _savedScrollY + 'px';
-  document.body.style.position = 'fixed';
-  document.body.style.overflow = 'hidden';
-  document.body.style.width = '100%';
+  // No body scroll-lock needed: html,body already have overflow:hidden for the game.
   document.getElementById('profile-overlay').classList.add('visible');
-  _syncOverlayToKeyboard();
   setTimeout(() => document.getElementById('name-input').focus(), 120);
 }
 
@@ -2950,53 +2937,12 @@ window.addEventListener('resize', () => {
   if (document.getElementById('intro-screen').classList.contains('auth-mode')) positionAuthHud();
 });
 
-// Bottom-sheet keyboard positioning for iOS Safari.
-//
-// Architecture: #profile-overlay (position:fixed; flex; overflow:hidden) is sized by JS
-// to the visual viewport height. #profile-popup is a plain flex-end child — no fixed
-// positioning, no top/transform juggling.
-//
-// Key insight: rubber-band elastic scroll changes vv.offsetTop but NOT vv.height.
-// visualViewport 'resize' only fires when vv.height changes (keyboard open/close,
-// toolbar resize). By listening to 'resize' only (ignoring 'scroll'), the overlay
-// height never changes during rubber-band → sheet stays perfectly still.
-//
-// Formula: overlay height = vv.offsetTop + vv.height = keyboard top in layout coords.
-// This accounts for iOS 26 safe-area drift in vv.offsetTop (which changes via resize,
-// not scroll) without being affected by rubber-band drift.
-function _syncOverlayToKeyboard() {
-  const vv = window.visualViewport;
-  if (!vv) return;
-  const overlay = document.getElementById('profile-overlay');
-  if (!overlay || !overlay.classList.contains('visible')) return;
-
-  // vv.offsetTop + vv.height = top of keyboard in layout-viewport coordinates.
-  // Falls back to window.innerHeight when no keyboard (vv fills the screen).
-  overlay.style.height = (vv.offsetTop + vv.height) + 'px';
-}
-if (window.visualViewport) {
-  // resize only — rubber-band changes vv.offsetTop (not vv.height) so no resize fires
-  window.visualViewport.addEventListener('resize', _syncOverlayToKeyboard);
-}
-
-document.addEventListener('focusin', (e) => {
-  if (e.target.closest && e.target.closest('#profile-popup')) {
-    window.scrollTo(0, 0);
-    // Re-sync 350ms after focus (after keyboard animation completes)
-    setTimeout(_syncOverlayToKeyboard, 350);
-  }
-}, true);
+// #profile-popup is position:fixed; bottom:0 — on iOS Safari, fixed elements are
+// anchored to the visual viewport, so the sheet automatically sits above the keyboard
+// without any JS. No body scroll-lock, no visualViewport listeners needed.
 
 function _resetSheetPosition() {
-  const overlay = document.getElementById('profile-overlay');
-  if (overlay) overlay.style.height = '';
-  // Restore body scroll (saved during _showProfileModal)
-  const savedY = parseInt(document.body.dataset.scrollY || '0', 10);
-  document.body.style.position = '';
-  document.body.style.overflow = '';
-  document.body.style.top = '';
-  document.body.style.width = '';
-  window.scrollTo(0, savedY);
+  // Nothing to reset: popup is pure CSS position:fixed, no inline styles applied.
 }
 
 let _audioWasBackgrounded = false;
