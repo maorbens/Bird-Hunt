@@ -2950,12 +2950,14 @@ let _zombieCheckTimeout = null;
 
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden && _signinInProgress) {
-    // User returned to the tab after Google OAuth — if still not signed in, cancel the loader
-    const u = _fbAuth.currentUser;
-    if (!u || u.isAnonymous) {
-      _signinInProgress = false;
-      _hideSigninLoading();
-    }
+    // User returned to tab after Google OAuth. Give Firebase ~1.5s to fire
+    // onAuthStateChanged with the new user before assuming sign-in was cancelled.
+    setTimeout(() => {
+      if (_signinInProgress) {
+        _signinInProgress = false;
+        _hideSigninLoading();
+      }
+    }, 1500);
   }
   if (document.hidden) {
     _stopTicking();
