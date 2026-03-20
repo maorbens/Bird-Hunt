@@ -575,7 +575,7 @@
       overflow-y: auto;
       overscroll-behavior: contain;
       box-sizing: border-box;
-      transition: max-height 0.25s cubic-bezier(0.32, 0, 0.68, 1);
+      /* No max-height transition — JS updates it instantly to follow keyboard animation */
     }
     #profile-title {
       color: #FFD700;
@@ -2943,48 +2943,50 @@ window.addEventListener('resize', () => {
   if (document.getElementById('intro-screen').classList.contains('auth-mode')) positionAuthHud();
 });
 
-// iOS Safari keyboard handling for bottom sheet.
+// iOS Safari keyboard / bottom-sheet positioning.
 //
-// Correct approach (per visualViewport spec + iOS 26 research):
-//  1. top = vv.offsetTop + vv.height  →  sheet bottom anchors to visual viewport bottom
-//     (i.e. above the keyboard). CSS: position:fixed + transform:translateY(-100%).
-//  2. max-height = vv.height - 8      →  prevents sheet from extending above the screen top.
-//     Critical: without this, a tall sheet overflows upward off-screen when keyboard opens.
-//  3. box-shadow fills any gap below the sheet (iOS 26 has offsetTop drift after dismiss).
-//     box-shadow is NOT clipped by overflow-y:auto, making it reliable vs ::after.
+// Strategy: position:fixed + top=(vv.offsetTop+vv.height) + translateY(-100%)
+//   → sheet bottom is always pinned to the top of the keyboard.
+//   max-height is clamped to vv.height so the sheet never bleeds above the screen.
 //
-// NOTE for Capacitor migration: visualViewport does NOT fire when @capacitor/keyboard
-// manages resize. Switch to: resize:"none" + keyboardWillShow → CSS --keyboard-height var.
+// iOS 26 bug: visualViewport.offsetTop accumulates after each keyboard open/close cycle
+//   instead of resetting to 0. Fix: call window.scrollTo(0,0) on FOCUSIN (before the
+//   keyboard opens) to reset the visual-viewport scroll position.
+//   DO NOT use window.scrollBy on focusout — it compounds the drift.
 function _syncSheetToKeyboard() {
   const vv = window.visualViewport;
   if (!vv) return;
   const popup = document.getElementById('profile-popup');
   if (!popup) return;
-  // Anchor sheet's bottom edge to the top of the keyboard
   popup.style.top = (vv.offsetTop + vv.height) + 'px';
-  // Clamp height so sheet never overflows above the visible area
   const kbHeight = Math.max(0, window.innerHeight - vv.offsetTop - vv.height);
-  popup.style.maxHeight = kbHeight > 50 ? (vv.height - 8) + 'px' : '';
+  const keyboardOpen = kbHeight > 50;
+  // When keyboard is open, clamp height to visible area so sheet doesn't overflow above screen.
+  // When keyboard is closed, clear inline style so CSS max-height:90vh takes over.
+  popup.style.maxHeight = keyboardOpen ? (vv.height - 8) + 'px' : '';
+  // Reduce bottom padding when keyboard is open (safe-area inset is not needed under keyboard)
+  popup.style.paddingBottom = keyboardOpen ? 'clamp(16px, 3vmin, 28px)' : '';
 }
 if (window.visualViewport) {
   window.visualViewport.addEventListener('resize', _syncSheetToKeyboard);
   window.visualViewport.addEventListener('scroll', _syncSheetToKeyboard);
 }
 
-// iOS 26 bug: visualViewport.offsetTop doesn't reset to 0 after keyboard dismiss.
-// Force a micro-scroll to nudge WebKit into recalculating the viewport position.
-document.addEventListener('focusout', () => {
-  setTimeout(() => {
-    if (window.visualViewport && window.visualViewport.offsetTop > 0) {
-      window.scrollBy(0, -1);
-      window.scrollBy(0, 1);
-    }
-  }, 100);
-});
+// Reset visual-viewport scroll (iOS 26 offsetTop drift fix) BEFORE the keyboard opens.
+// scrollTo(0,0) is safe here because body is position:fixed during the modal — no visible jump.
+document.addEventListener('focusin', (e) => {
+  if (e.target.closest && e.target.closest('#profile-popup')) {
+    window.scrollTo(0, 0);
+  }
+}, true);
 
 function _resetSheetPosition() {
   const popup = document.getElementById('profile-popup');
-  if (popup) { popup.style.top = ''; popup.style.maxHeight = ''; }
+  if (popup) {
+    popup.style.top = '';
+    popup.style.maxHeight = '';
+    popup.style.paddingBottom = '';
+  }
   // Restore body scroll (saved during _showProfileModal)
   const savedY = parseInt(document.body.dataset.scrollY || '0', 10);
   document.body.style.position = '';
