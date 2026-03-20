@@ -3112,15 +3112,24 @@ function signInWithGoogle() {
   // on Chrome 115+, Firefox 109+, Safari 16.1+ due to third-party storage partitioning
   _showSigninLoading();
 
+  // On iOS the popup is a new tab; spinner is hidden in the background while the
+  // user is on the Google tab. On return: wait up to 1s for onAuthStateChanged
+  // (sign-in succeeded) before giving up and hiding the spinner (cancelled).
+  let cancelTimer;
   const onReturn = () => {
     if (!document.hidden) {
       document.removeEventListener('visibilitychange', onReturn);
-      _hideSigninLoading();
+      cancelTimer = setTimeout(_hideSigninLoading, 1000);
     }
   };
   document.addEventListener('visibilitychange', onReturn);
 
+  // Called by onAuthStateChanged when sign-in succeeds — clears the timeout
+  // so the spinner stays until the profile is fully loaded.
+  signInWithGoogle._cancel = () => { clearTimeout(cancelTimer); };
+
   _fbAuth.signInWithPopup(provider).catch(err => {
+    clearTimeout(cancelTimer);
     document.removeEventListener('visibilitychange', onReturn);
     _hideSigninLoading();
     console.error('Google sign-in:', err);
@@ -3158,6 +3167,10 @@ function _updateGoogleSignInUI(googleUser) {
 _fbAuth.onAuthStateChanged(async firebaseUser => {
   _updateGoogleSignInUI(firebaseUser && !firebaseUser.isAnonymous ? firebaseUser : null);
   if (!firebaseUser || firebaseUser.isAnonymous) return;
+
+  // Sign-in succeeded — cancel the fallback hide-timer so spinner stays
+  // until the profile is fully loaded below.
+  if (signInWithGoogle._cancel) { signInWithGoogle._cancel(); signInWithGoogle._cancel = null; }
 
   // Google user — hide profile modal immediately to avoid flicker
   _hideProfileModal();
