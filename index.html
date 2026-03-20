@@ -2949,6 +2949,14 @@ let _audioWasBackgrounded = false;
 let _zombieCheckTimeout = null;
 
 document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && _signinInProgress) {
+    // User returned to the tab after Google OAuth — if still not signed in, cancel the loader
+    const u = _fbAuth.currentUser;
+    if (!u || u.isAnonymous) {
+      _signinInProgress = false;
+      _hideSigninLoading();
+    }
+  }
   if (document.hidden) {
     _stopTicking();
     stopStretchSound();
@@ -3107,13 +3115,17 @@ function _hideSigninLoading() {
 }
 
 // ── Google Sign-In / Sign-Out ──────────────────────────────────────────────
+let _signinInProgress = false;
+
 function signInWithGoogle() {
   const provider = new firebase.auth.GoogleAuthProvider();
   provider.setCustomParameters({ prompt: 'select_account' });
   // signInWithPopup works on all modern browsers; signInWithRedirect is broken
   // on Chrome 115+, Firefox 109+, Safari 16.1+ due to third-party storage partitioning
+  _signinInProgress = true;
   _showSigninLoading();
   _fbAuth.signInWithPopup(provider).catch(err => {
+    _signinInProgress = false;
     _hideSigninLoading();
     console.error('Google sign-in:', err);
   });
@@ -3188,6 +3200,7 @@ _fbAuth.onAuthStateChanged(async firebaseUser => {
     hideAuthScreen();
     showProfileModal('hello');
   }
+  _signinInProgress = false;
   _hideSigninLoading();
 });
 
