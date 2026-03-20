@@ -539,6 +539,8 @@
       flex-direction: column;
       justify-content: flex-end;
       overflow: hidden;
+      /* Override body's touch-action:none so touch scroll works inside the sheet */
+      touch-action: pan-y;
     }
     #profile-overlay.visible { display: flex; }
     #profile-overlay.visible #profile-popup {
@@ -579,6 +581,8 @@
       overflow-y: auto;
       overscroll-behavior: contain;
       box-sizing: border-box;
+      touch-action: pan-y;
+      -webkit-overflow-scrolling: touch;
     }
     #profile-title {
       color: #FFD700;
