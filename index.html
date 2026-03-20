@@ -2942,27 +2942,26 @@ window.addEventListener('resize', () => {
 
 // iOS Safari keyboard / bottom-sheet positioning.
 //
-// Strategy: position:fixed + top=(vv.offsetTop+vv.height) + translateY(-100%)
-//   → sheet bottom is always pinned to the top of the keyboard.
-//   max-height is clamped to vv.height so the sheet never bleeds above the screen.
+// Strategy: position:fixed + top + translateY(-100%) pins sheet bottom above keyboard.
 //
-// iOS 26 bug: visualViewport.offsetTop accumulates after each keyboard open/close cycle
-//   instead of resetting to 0. Fix: call window.scrollTo(0,0) on FOCUSIN (before the
-//   keyboard opens) to reset the visual-viewport scroll position.
-//   DO NOT use window.scrollBy on focusout — it compounds the drift.
+// Formula: sheetBottom = Math.max(0, vv.offsetTop) + vv.height
+//   - vv.offsetTop > 0 (iOS adjusting viewport for input): use full sum → correct keyboard top
+//   - vv.offsetTop < 0 (user overscrolling content): clamp to 0 → sheet stays put, no black gap
+//   - vv.offsetTop = 0 (normal): same as vv.height
+//
+// Keyboard detection threshold = 150px:
+//   - iOS 26 Compact toolbar (~50-80px) < 150 → NOT treated as keyboard → no layout override
+//   - Real keyboard (>200px) > 150 → correctly detected
 function _syncSheetToKeyboard() {
   const vv = window.visualViewport;
   if (!vv) return;
   const popup = document.getElementById('profile-popup');
   if (!popup) return;
-  // Use vv.height alone (NOT vv.offsetTop + vv.height).
-  // vv.height only changes when the keyboard opens/closes.
-  // vv.offsetTop also changes when the user scrolls sheet content — using it
-  // would reposition the sheet on every scroll gesture (the black-gap bug).
-  popup.style.top = vv.height + 'px';
-  const kbHeight = Math.max(0, window.innerHeight - vv.height);
-  const keyboardOpen = kbHeight > 50;
-  popup.style.maxHeight = keyboardOpen ? (vv.height - 8) + 'px' : '';
+  const sheetBottom = Math.max(0, vv.offsetTop) + vv.height;
+  popup.style.top = sheetBottom + 'px';
+  const kbHeight = Math.max(0, window.innerHeight - sheetBottom);
+  const keyboardOpen = kbHeight > 150;
+  popup.style.maxHeight = keyboardOpen ? (sheetBottom - 8) + 'px' : '';
   popup.style.paddingBottom = keyboardOpen ? 'clamp(16px, 3vmin, 28px)' : '';
 }
 if (window.visualViewport) {
