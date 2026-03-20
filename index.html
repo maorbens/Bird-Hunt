@@ -3112,26 +3112,10 @@ function signInWithGoogle() {
   provider.setCustomParameters({ prompt: 'select_account' });
   // signInWithPopup works on all modern browsers; signInWithRedirect is broken
   // on Chrome 115+, Firefox 109+, Safari 16.1+ due to third-party storage partitioning
-  _showSigninLoading();
   _fbAuth.signInWithPopup(provider).catch(err => {
-    _hideSigninLoading();
     console.error('Google sign-in:', err);
   });
 }
-
-// On iOS Safari, signInWithPopup opens a new tab for Google OAuth.
-// The original page stays alive — its Promise never rejects if the user
-// closes that tab without signing in.  When focus returns to this page,
-// check whether sign-in actually happened; if not, hide the loader.
-// pageshow(persisted) covers the bfcache / redirect case as well.
-window.addEventListener('pageshow', (e) => {
-  if (e.persisted) _hideSigninLoading();
-});
-window.addEventListener('focus', () => {
-  setTimeout(() => {
-    if (!_fbAuth.currentUser || _fbAuth.currentUser.isAnonymous) _hideSigninLoading();
-  }, 300);
-});
 
 function signOutGoogle() {
   _fbAuth.signOut().then(() => {
@@ -3164,6 +3148,7 @@ function _updateGoogleSignInUI(googleUser) {
 _fbAuth.onAuthStateChanged(async firebaseUser => {
   _updateGoogleSignInUI(firebaseUser && !firebaseUser.isAnonymous ? firebaseUser : null);
   if (!firebaseUser || firebaseUser.isAnonymous) return;
+  _showSigninLoading();
 
   // Google user — hide profile modal immediately to avoid flicker
   _hideProfileModal();
