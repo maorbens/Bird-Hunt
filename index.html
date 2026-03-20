@@ -528,7 +528,8 @@
     #profile-overlay {
       display: none;
       position: fixed;
-      inset: 0;
+      top: 0; left: 0; right: 0;
+      height: 100dvh;
       background: rgba(0,0,0,0.88);
       z-index: 50;
       align-items: center;
@@ -1383,6 +1384,7 @@ function showProfileModal(mode) {
 
 function _hideProfileModal() {
   document.getElementById('profile-overlay').classList.remove('visible');
+  _resetOverlaySize();
 }
 
 async function _saveProfileFromModal() {
@@ -2908,6 +2910,22 @@ window.addEventListener('resize', () => {
   if (introBirdAnimId) { resizeIntroBirdCanvas(); positionIntroHud(); }
   if (document.getElementById('intro-screen').classList.contains('auth-mode')) positionAuthHud();
 });
+
+// Keep #profile-overlay sized to the visual viewport (fixes iOS keyboard push)
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', () => {
+    const overlay = document.getElementById('profile-overlay');
+    if (overlay && overlay.classList.contains('visible')) {
+      overlay.style.height = window.visualViewport.height + 'px';
+      overlay.style.top    = window.visualViewport.offsetTop  + 'px';
+    }
+  });
+}
+
+function _resetOverlaySize() {
+  const overlay = document.getElementById('profile-overlay');
+  if (overlay) { overlay.style.height = ''; overlay.style.top = ''; }
+}
 
 let _audioWasBackgrounded = false;
 let _zombieCheckTimeout = null;
