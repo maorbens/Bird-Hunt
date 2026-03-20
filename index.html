@@ -2942,48 +2942,61 @@ window.addEventListener('resize', () => {
 
 // Bottom-sheet / keyboard positioning for iOS Safari.
 //
-// Two modes based on whether a real keyboard is open (threshold 150px):
+// Problem: visualViewport fires BOTH resize (vv.height changes) AND scroll (vv.offsetTop
+// changes). resize = keyboard animating open/closed. scroll = user scrolling content OR
+// iOS adjusting viewport. We must update position during keyboard animation but NOT when
+// the user scrolls sheet content (that would move the sheet and create black gaps).
 //
-//  NO KEYBOARD (kbHeight ≤ 150px — covers: no keyboard + iOS 26 Compact toolbar ~50-80px):
-//    top = window.innerHeight  (layout viewport — stable, never changes with toolbar)
-//    Prevents Safari Compact Toolbar show/hide (small vv.height fluctuations) from
-//    repositioning the sheet → fixes the "extra part extends/shortens while scrolling" bug.
+// Solution: track keyboard during animation via resize events, then LOCK position 100ms
+// after resizes stop (animation done). scroll events are ignored while locked.
 //
-//  KEYBOARD OPEN (kbHeight > 150px):
-//    top = Math.max(0, vv.offsetTop) + vv.height  (= visual viewport bottom = keyboard top)
-//    vv.offsetTop clamped to ≥0: overscrolling won't pull sheet up and create black gap.
-//    iOS 26 drift (offsetTop=24 + height=innerHeight-24-kb): sum still = keyboard top ✓
-function _syncSheetToKeyboard() {
+// kbHeight threshold 150px: real keyboard >150, iOS Compact toolbar ~50-80px <150.
+// No-keyboard mode uses window.innerHeight (layout viewport) — completely stable.
+let _kbLocked = false;
+let _kbLockTimer = null;
+
+function _syncSheetToKeyboard(fromResize) {
   const vv = window.visualViewport;
   if (!vv) return;
   const popup = document.getElementById('profile-popup');
   if (!popup) return;
+
   const kbHeight = Math.max(0, window.innerHeight - vv.offsetTop - vv.height);
+
   if (kbHeight > 150) {
-    // Real keyboard open: anchor sheet above it
-    const sheetBottom = Math.max(0, vv.offsetTop) + vv.height;
-    popup.style.top = sheetBottom + 'px';
-    popup.style.maxHeight = (vv.height - 8) + 'px';
-    popup.style.paddingBottom = 'clamp(16px, 3vmin, 28px)';
+    // Real keyboard is open.
+    // resize → always update (keyboard mid-animation) + reset lock timer.
+    // scroll → only update if not yet locked (prevents content-scroll from moving sheet).
+    if (fromResize || !_kbLocked) {
+      const sheetBottom = Math.max(0, vv.offsetTop) + vv.height;
+      popup.style.top = sheetBottom + 'px';
+      popup.style.maxHeight = (vv.height - 8) + 'px';
+      popup.style.paddingBottom = 'clamp(16px, 3vmin, 28px)';
+    }
+    if (fromResize) {
+      clearTimeout(_kbLockTimer);
+      _kbLockTimer = setTimeout(() => { _kbLocked = true; }, 100);
+    }
   } else {
-    // No keyboard (or just toolbar): stable anchor at layout viewport bottom
+    // No keyboard (or just toolbar): use stable layout-viewport anchor.
+    _kbLocked = false;
+    clearTimeout(_kbLockTimer);
     popup.style.top = window.innerHeight + 'px';
     popup.style.maxHeight = '';
     popup.style.paddingBottom = '';
   }
 }
 if (window.visualViewport) {
-  window.visualViewport.addEventListener('resize', _syncSheetToKeyboard);
-  window.visualViewport.addEventListener('scroll', _syncSheetToKeyboard);
+  window.visualViewport.addEventListener('resize', () => _syncSheetToKeyboard(true));
+  window.visualViewport.addEventListener('scroll', () => _syncSheetToKeyboard(false));
 }
 
-// iOS 26 offsetTop drift fix: scrollTo(0,0) before keyboard opens to reset any accumulated
-// visualViewport offset. Also re-sync 350ms later (after keyboard animation completes) to
-// correct any residual drift that occurred during the animation.
 document.addEventListener('focusin', (e) => {
   if (e.target.closest && e.target.closest('#profile-popup')) {
     window.scrollTo(0, 0);
-    setTimeout(_syncSheetToKeyboard, 350);
+    // Re-sync after keyboard animation completes (350ms). Pass fromResize=true so it
+    // can correct position even if already locked (e.g. second keyboard open).
+    setTimeout(() => _syncSheetToKeyboard(true), 350);
   }
 }, true);
 
