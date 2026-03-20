@@ -1024,6 +1024,20 @@
       animation: btn-spin 0.7s linear infinite;
     }
     @keyframes btn-spin { to { transform: rotate(360deg); } }
+    /* ── Standalone sign-in spinners ──────────────────────────────────────── */
+    .auth-spinner,
+    .settings-spinner {
+      display: none;
+      width: 40px; height: 40px;
+      border: 4px solid rgba(255,255,255,0.25);
+      border-top-color: #4285F4;
+      border-radius: 50%;
+      animation: btn-spin 0.7s linear infinite;
+    }
+    body.signing-in #auth-hud > div > *:not(.auth-spinner) { display: none !important; }
+    body.signing-in .auth-spinner { display: block; }
+    body.signing-in #settings-popup > *:not(.settings-spinner) { display: none !important; }
+    body.signing-in .settings-spinner { display: block; }
   </style>
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -1074,6 +1088,7 @@
   <!-- Settings overlay -->
   <div id="settings-overlay">
     <div id="settings-popup">
+      <div class="settings-spinner"></div>
       <div id="settings-title">Settings</div>
       <div id="settings-google-desc">Sign in with Google to save your high scores across devices.</div>
       <button id="google-signin-btn">
@@ -1191,6 +1206,7 @@
     <!-- Auth screen HUD (shown on first entry / after sign-out) -->
     <div id="auth-hud">
       <div>
+        <div class="auth-spinner"></div>
         <button id="auth-guest-btn">Play as a Guest</button>
         <div class="auth-divider"><span>or</span></div>
         <div id="auth-google-desc">Sign in with Google to save your high scores across devices.</div>
