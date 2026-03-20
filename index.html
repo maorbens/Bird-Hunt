@@ -3107,40 +3107,17 @@ function _hideSigninLoading() {
 }
 
 // ── Google Sign-In / Sign-Out ──────────────────────────────────────────────
-let _signinInProgress = false;
-let _focusHideTimer = null;
-
 function signInWithGoogle() {
   const provider = new firebase.auth.GoogleAuthProvider();
   provider.setCustomParameters({ prompt: 'select_account' });
-  _signinInProgress = true;
+  // signInWithPopup works on all modern browsers; signInWithRedirect is broken
+  // on Chrome 115+, Firefox 109+, Safari 16.1+ due to third-party storage partitioning
+  _showSigninLoading();
   _fbAuth.signInWithPopup(provider).catch(err => {
-    _signinInProgress = false;
+    _hideSigninLoading();
     console.error('Google sign-in:', err);
   });
 }
-
-// Show loader the moment the user returns from the Google OAuth tab.
-// Both events are needed: visibilitychange for iOS Safari (new-tab flow),
-// focus as a fallback for desktop browsers.
-// onAuthStateChanged clears the timer on success; if it doesn't fire
-// within 300 ms the user cancelled and we hide the loader.
-function _onReturnFromOAuth() {
-  if (!_signinInProgress) return;
-  _showSigninLoading();
-  if (_focusHideTimer) clearTimeout(_focusHideTimer);
-  _focusHideTimer = setTimeout(() => {
-    _focusHideTimer = null;
-    if (!_fbAuth.currentUser || _fbAuth.currentUser.isAnonymous) {
-      _signinInProgress = false;
-      _hideSigninLoading();
-    }
-  }, 300);
-}
-window.addEventListener('focus', _onReturnFromOAuth);
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') _onReturnFromOAuth();
-});
 
 function signOutGoogle() {
   _fbAuth.signOut().then(() => {
@@ -3171,19 +3148,8 @@ function _updateGoogleSignInUI(googleUser) {
 }
 
 _fbAuth.onAuthStateChanged(async firebaseUser => {
-  if (_focusHideTimer) { clearTimeout(_focusHideTimer); _focusHideTimer = null; }
   _updateGoogleSignInUI(firebaseUser && !firebaseUser.isAnonymous ? firebaseUser : null);
-  if (!firebaseUser || firebaseUser.isAnonymous) {
-    // During signInWithPopup Firebase may fire null before the final user —
-    // don't clear _signinInProgress mid-flow; only hide if no sign-in is pending.
-    if (!_signinInProgress) _hideSigninLoading();
-    return;
-  }
-  // Confirmed Google user — sign-in is complete.
-  const isNewSignIn = _signinInProgress;
-  _signinInProgress = false;
-  // On page refresh the profile loads silently; show overlay only for fresh sign-ins.
-  if (isNewSignIn) _showSigninLoading();
+  if (!firebaseUser || firebaseUser.isAnonymous) return;
 
   // Google user — hide profile modal immediately to avoid flicker
   _hideProfileModal();
