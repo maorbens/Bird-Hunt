@@ -3011,6 +3011,17 @@ initProfile();
 requestAnimationFrame(loop);
 preloadSfx();
 
+// If Safari restores the page from bfcache, re-check auth state
+window.addEventListener('pageshow', e => {
+  if (!e.persisted) return;
+  const stored = _getStoredProfile();
+  if (!stored && userProfile) {
+    userProfile = null;
+    highScore   = 0;
+    showAuthScreen();
+  }
+});
+
 document.getElementById('info-btn').addEventListener('click', () => {
   playSfx('button');
   document.getElementById('howto-overlay').classList.add('visible');
