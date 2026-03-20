@@ -3107,15 +3107,33 @@ function _hideSigninLoading() {
 }
 
 // ── Google Sign-In / Sign-Out ──────────────────────────────────────────────
+let _signinInProgress = false;
+let _focusHideTimer = null;
+
 function signInWithGoogle() {
   const provider = new firebase.auth.GoogleAuthProvider();
   provider.setCustomParameters({ prompt: 'select_account' });
-  // signInWithPopup works on all modern browsers; signInWithRedirect is broken
-  // on Chrome 115+, Firefox 109+, Safari 16.1+ due to third-party storage partitioning
+  _signinInProgress = true;
   _fbAuth.signInWithPopup(provider).catch(err => {
+    _signinInProgress = false;
     console.error('Google sign-in:', err);
   });
 }
+
+// Show loader instantly when user returns from the Google OAuth tab.
+// onAuthStateChanged will either clear the fallback timer (on success)
+// or we hide after 1 s if there was no auth change (user cancelled).
+window.addEventListener('focus', () => {
+  if (!_signinInProgress) return;
+  _showSigninLoading();
+  _focusHideTimer = setTimeout(() => {
+    _focusHideTimer = null;
+    if (!_fbAuth.currentUser || _fbAuth.currentUser.isAnonymous) {
+      _signinInProgress = false;
+      _hideSigninLoading();
+    }
+  }, 1000);
+});
 
 function signOutGoogle() {
   _fbAuth.signOut().then(() => {
@@ -3146,8 +3164,10 @@ function _updateGoogleSignInUI(googleUser) {
 }
 
 _fbAuth.onAuthStateChanged(async firebaseUser => {
+  if (_focusHideTimer) { clearTimeout(_focusHideTimer); _focusHideTimer = null; }
+  _signinInProgress = false;
   _updateGoogleSignInUI(firebaseUser && !firebaseUser.isAnonymous ? firebaseUser : null);
-  if (!firebaseUser || firebaseUser.isAnonymous) return;
+  if (!firebaseUser || firebaseUser.isAnonymous) { _hideSigninLoading(); return; }
   _showSigninLoading();
 
   // Google user — hide profile modal immediately to avoid flicker
