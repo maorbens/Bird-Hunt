@@ -570,7 +570,7 @@
       overflow-y: auto;
       overscroll-behavior: none;
       box-sizing: border-box;
-      transition: margin-bottom 0.15s ease-out;
+      transition: max-height 0.15s ease-out;
     }
     #profile-title {
       color: #FFD700;
@@ -2932,7 +2932,7 @@ window.addEventListener('resize', () => {
   if (document.getElementById('intro-screen').classList.contains('auth-mode')) positionAuthHud();
 });
 
-// Push bottom sheet above keyboard when it opens on iOS
+// Constrain bottom sheet height to visual viewport so content stays above keyboard
 function _syncSheetToKeyboard() {
   const vv = window.visualViewport;
   if (!vv) return;
@@ -2940,7 +2940,9 @@ function _syncSheetToKeyboard() {
   const overlay = document.getElementById('profile-overlay');
   if (!popup || !overlay || !overlay.classList.contains('visible')) return;
   const kbHeight = Math.max(0, window.innerHeight - vv.offsetTop - vv.height);
-  popup.style.marginBottom = kbHeight ? kbHeight + 'px' : '';
+  // When keyboard is open, cap max-height to the visual area above it.
+  // The sheet stays anchored at bottom:0 so its background extends under the keyboard.
+  popup.style.maxHeight = kbHeight > 50 ? (vv.height - 24) + 'px' : '';
 }
 if (window.visualViewport) {
   window.visualViewport.addEventListener('resize', _syncSheetToKeyboard);
@@ -2949,7 +2951,7 @@ if (window.visualViewport) {
 
 function _resetSheetPosition() {
   const popup = document.getElementById('profile-popup');
-  if (popup) popup.style.marginBottom = '';
+  if (popup) popup.style.maxHeight = '';
   document.body.style.overflow = '';
 }
 
