@@ -3119,6 +3119,13 @@ function signInWithGoogle() {
   });
 }
 
+// On iOS Safari, signInWithPopup navigates away and the page is frozen in
+// bfcache. When the user returns without signing in, the page is restored
+// with the loader still visible. pageshow(persisted=true) catches this.
+window.addEventListener('pageshow', (e) => {
+  if (e.persisted) _hideSigninLoading();
+});
+
 function signOutGoogle() {
   _fbAuth.signOut().then(() => {
     try { localStorage.removeItem(PROFILE_KEY); } catch(e) {}
