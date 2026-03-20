@@ -2940,29 +2940,37 @@ window.addEventListener('resize', () => {
   if (document.getElementById('intro-screen').classList.contains('auth-mode')) positionAuthHud();
 });
 
-// iOS Safari keyboard / bottom-sheet positioning.
+// Bottom-sheet / keyboard positioning for iOS Safari.
 //
-// Strategy: position:fixed + top + translateY(-100%) pins sheet bottom above keyboard.
+// Two modes based on whether a real keyboard is open (threshold 150px):
 //
-// Formula: sheetBottom = Math.max(0, vv.offsetTop) + vv.height
-//   - vv.offsetTop > 0 (iOS adjusting viewport for input): use full sum → correct keyboard top
-//   - vv.offsetTop < 0 (user overscrolling content): clamp to 0 → sheet stays put, no black gap
-//   - vv.offsetTop = 0 (normal): same as vv.height
+//  NO KEYBOARD (kbHeight ≤ 150px — covers: no keyboard + iOS 26 Compact toolbar ~50-80px):
+//    top = window.innerHeight  (layout viewport — stable, never changes with toolbar)
+//    Prevents Safari Compact Toolbar show/hide (small vv.height fluctuations) from
+//    repositioning the sheet → fixes the "extra part extends/shortens while scrolling" bug.
 //
-// Keyboard detection threshold = 150px:
-//   - iOS 26 Compact toolbar (~50-80px) < 150 → NOT treated as keyboard → no layout override
-//   - Real keyboard (>200px) > 150 → correctly detected
+//  KEYBOARD OPEN (kbHeight > 150px):
+//    top = Math.max(0, vv.offsetTop) + vv.height  (= visual viewport bottom = keyboard top)
+//    vv.offsetTop clamped to ≥0: overscrolling won't pull sheet up and create black gap.
+//    iOS 26 drift (offsetTop=24 + height=innerHeight-24-kb): sum still = keyboard top ✓
 function _syncSheetToKeyboard() {
   const vv = window.visualViewport;
   if (!vv) return;
   const popup = document.getElementById('profile-popup');
   if (!popup) return;
-  const sheetBottom = Math.max(0, vv.offsetTop) + vv.height;
-  popup.style.top = sheetBottom + 'px';
-  const kbHeight = Math.max(0, window.innerHeight - sheetBottom);
-  const keyboardOpen = kbHeight > 150;
-  popup.style.maxHeight = keyboardOpen ? (sheetBottom - 8) + 'px' : '';
-  popup.style.paddingBottom = keyboardOpen ? 'clamp(16px, 3vmin, 28px)' : '';
+  const kbHeight = Math.max(0, window.innerHeight - vv.offsetTop - vv.height);
+  if (kbHeight > 150) {
+    // Real keyboard open: anchor sheet above it
+    const sheetBottom = Math.max(0, vv.offsetTop) + vv.height;
+    popup.style.top = sheetBottom + 'px';
+    popup.style.maxHeight = (vv.height - 8) + 'px';
+    popup.style.paddingBottom = 'clamp(16px, 3vmin, 28px)';
+  } else {
+    // No keyboard (or just toolbar): stable anchor at layout viewport bottom
+    popup.style.top = window.innerHeight + 'px';
+    popup.style.maxHeight = '';
+    popup.style.paddingBottom = '';
+  }
 }
 if (window.visualViewport) {
   window.visualViewport.addEventListener('resize', _syncSheetToKeyboard);
