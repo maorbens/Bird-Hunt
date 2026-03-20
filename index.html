@@ -528,17 +528,25 @@
     #profile-overlay {
       display: none;
       position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
+      inset: 0;
       background: rgba(0,0,0,0.88);
       z-index: 50;
+      /* Flex container: sheet sits at the bottom of the visible viewport.
+         JS sets overlay height = visual viewport height (keyboard excluded)
+         via resize events only. Rubber-band only changes vv.offsetTop (not
+         vv.height) so resize never fires during elastic scroll — overlay
+         stays stable, sheet doesn't move. */
+      flex-direction: column;
+      justify-content: flex-end;
+      overflow: hidden;
     }
-    #profile-overlay.visible { display: block; }
+    #profile-overlay.visible { display: flex; }
     #profile-overlay.visible #profile-popup {
       animation: sheetSlideIn 0.32s cubic-bezier(0.32, 0.72, 0, 1) both;
     }
     @keyframes sheetSlideIn {
-      from { transform: translateY(0); }
-      to   { transform: translateY(-100%); }
+      from { transform: translateY(100%); }
+      to   { transform: translateY(0); }
     }
     #sheet-handle {
       width: 44px;
@@ -549,15 +557,15 @@
       flex-shrink: 0;
     }
     #profile-popup {
-      /* position: fixed + top set by JS; transform pulls sheet upward into view */
-      position: fixed;
-      left: 0; right: 0;
-      top: 100vh; /* JS overrides this via visualViewport */
-      transform: translateY(-100%);
-      margin: 0 auto;
+      /* Flex child of #profile-overlay — NO position:fixed, NO top, NO transform.
+         Overlay is sized to visual viewport height by JS; sheet naturally sits
+         at the overlay bottom (above the keyboard). */
+      flex-shrink: 0;
+      width: 100%;
+      max-width: 520px;
+      align-self: center;
       background: #1a1a2e;
-      /* box-shadow fills gap between sheet bottom and keyboard/screen bottom.
-         box-shadow is not clipped by overflow-y:auto, unlike ::after. */
+      /* box-shadow fills gap between sheet bottom and keyboard/screen bottom */
       box-shadow: 0 9999px 0 9999px #1a1a2e;
       border-radius: 20px 20px 0 0;
       padding: clamp(16px, 3vmin, 28px) clamp(36px, 9vw, 96px) calc(clamp(36px, 7.5vmin, 84px) + env(safe-area-inset-bottom, 0px));
@@ -567,12 +575,10 @@
       flex-direction: column;
       align-items: center;
       gap: clamp(14px, 3vmin, 28px);
-      max-width: 520px;
-      max-height: 90vh;
+      max-height: 100%;
       overflow-y: auto;
       overscroll-behavior: contain;
       box-sizing: border-box;
-      /* No max-height transition — JS updates it instantly to follow keyboard animation */
     }
     #profile-title {
       color: #FFD700;
@@ -1407,7 +1413,7 @@ function showProfileModal(mode) {
   document.body.style.overflow = 'hidden';
   document.body.style.width = '100%';
   document.getElementById('profile-overlay').classList.add('visible');
-  _syncSheetToKeyboard();
+  _syncOverlayToKeyboard();
   setTimeout(() => document.getElementById('name-input').focus(), 120);
 }
 
@@ -2940,103 +2946,46 @@ window.addEventListener('resize', () => {
   if (document.getElementById('intro-screen').classList.contains('auth-mode')) positionAuthHud();
 });
 
-// Bottom-sheet / keyboard positioning for iOS Safari.
+// Bottom-sheet keyboard positioning for iOS Safari.
 //
-// Problem A: visualViewport fires BOTH resize (vv.height changes) AND scroll
-// (vv.offsetTop changes). resize = keyboard animating. scroll = iOS viewport shift.
-// We update position during animation (resize) and lock 100ms after resizes stop.
+// Architecture: #profile-overlay (position:fixed; flex; overflow:hidden) is sized by JS
+// to the visual viewport height. #profile-popup is a plain flex-end child — no fixed
+// positioning, no top/transform juggling.
 //
-// Problem B: even with JS locked, iOS Safari physically moves position:fixed elements
-// when the visual viewport shifts during elastic overscroll (rubber-band). The sheet
-// "floats up" when the user tries to scroll past the top of the sheet content.
+// Key insight: rubber-band elastic scroll changes vv.offsetTop but NOT vv.height.
+// visualViewport 'resize' only fires when vv.height changes (keyboard open/close,
+// toolbar resize). By listening to 'resize' only (ignoring 'scroll'), the overlay
+// height never changes during rubber-band → sheet stays perfectly still.
 //
-// Fix for B: touchmove listeners that call preventDefault() at sheet scroll boundaries,
-// preventing the elastic bounce (and thus the vv.offsetTop shift) from occurring.
-//
-// kbHeight threshold 150px: real keyboard >150, iOS Compact toolbar ~50-80px <150.
-// No-keyboard mode uses window.innerHeight (layout viewport) — completely stable.
-let _kbLocked = false;
-let _kbLockTimer = null;
-let _touchStartY = 0;
-
-// Track touch start position for boundary direction detection
-document.addEventListener('touchstart', (e) => {
-  _touchStartY = e.touches[0].clientY;
-}, { passive: true });
-
-// Prevent elastic overscroll from shifting vv.offsetTop (which moves position:fixed sheet)
-document.addEventListener('touchmove', (e) => {
-  const overlay = document.getElementById('profile-overlay');
-  if (!overlay || !overlay.classList.contains('visible') || !_kbLocked) return;
-
-  const popup = document.getElementById('profile-popup');
-  if (popup && e.target.closest && e.target.closest('#profile-popup')) {
-    // Inside sheet: allow normal scroll, but block elastic bounce at boundaries
-    const dy = e.touches[0].clientY - _touchStartY;
-    const atTop    = popup.scrollTop <= 0;
-    const atBottom = popup.scrollTop + popup.clientHeight >= popup.scrollHeight - 1;
-    if ((dy > 0 && atTop) || (dy < 0 && atBottom)) {
-      e.preventDefault(); // At boundary — stop elastic bounce
-    }
-    // else: mid-scroll, let it scroll normally
-  } else {
-    // Outside sheet: nothing should scroll
-    e.preventDefault();
-  }
-}, { passive: false });
-
-function _syncSheetToKeyboard(fromResize) {
+// Formula: overlay height = vv.offsetTop + vv.height = keyboard top in layout coords.
+// This accounts for iOS 26 safe-area drift in vv.offsetTop (which changes via resize,
+// not scroll) without being affected by rubber-band drift.
+function _syncOverlayToKeyboard() {
   const vv = window.visualViewport;
   if (!vv) return;
-  const popup = document.getElementById('profile-popup');
-  if (!popup) return;
+  const overlay = document.getElementById('profile-overlay');
+  if (!overlay || !overlay.classList.contains('visible')) return;
 
-  const kbHeight = Math.max(0, window.innerHeight - vv.offsetTop - vv.height);
-
-  if (kbHeight > 150) {
-    // Real keyboard is open.
-    // resize → always update (keyboard mid-animation) + reset lock timer.
-    // scroll → only update if not yet locked (prevents content-scroll from moving sheet).
-    if (fromResize || !_kbLocked) {
-      const sheetBottom = Math.max(0, vv.offsetTop) + vv.height;
-      popup.style.top = sheetBottom + 'px';
-      popup.style.maxHeight = (vv.height - 8) + 'px';
-      popup.style.paddingBottom = 'clamp(16px, 3vmin, 28px)';
-    }
-    if (fromResize) {
-      clearTimeout(_kbLockTimer);
-      _kbLockTimer = setTimeout(() => { _kbLocked = true; }, 100);
-    }
-  } else {
-    // No keyboard (or just toolbar): use stable layout-viewport anchor.
-    _kbLocked = false;
-    clearTimeout(_kbLockTimer);
-    popup.style.top = window.innerHeight + 'px';
-    popup.style.maxHeight = '';
-    popup.style.paddingBottom = '';
-  }
+  // vv.offsetTop + vv.height = top of keyboard in layout-viewport coordinates.
+  // Falls back to window.innerHeight when no keyboard (vv fills the screen).
+  overlay.style.height = (vv.offsetTop + vv.height) + 'px';
 }
 if (window.visualViewport) {
-  window.visualViewport.addEventListener('resize', () => _syncSheetToKeyboard(true));
-  window.visualViewport.addEventListener('scroll', () => _syncSheetToKeyboard(false));
+  // resize only — rubber-band changes vv.offsetTop (not vv.height) so no resize fires
+  window.visualViewport.addEventListener('resize', _syncOverlayToKeyboard);
 }
 
 document.addEventListener('focusin', (e) => {
   if (e.target.closest && e.target.closest('#profile-popup')) {
     window.scrollTo(0, 0);
-    // Re-sync after keyboard animation completes (350ms). Pass fromResize=true so it
-    // can correct position even if already locked (e.g. second keyboard open).
-    setTimeout(() => _syncSheetToKeyboard(true), 350);
+    // Re-sync 350ms after focus (after keyboard animation completes)
+    setTimeout(_syncOverlayToKeyboard, 350);
   }
 }, true);
 
 function _resetSheetPosition() {
-  const popup = document.getElementById('profile-popup');
-  if (popup) {
-    popup.style.top = '';
-    popup.style.maxHeight = '';
-    popup.style.paddingBottom = '';
-  }
+  const overlay = document.getElementById('profile-overlay');
+  if (overlay) overlay.style.height = '';
   // Restore body scroll (saved during _showProfileModal)
   const savedY = parseInt(document.body.dataset.scrollY || '0', 10);
   document.body.style.position = '';
