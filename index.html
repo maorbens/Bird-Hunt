@@ -1382,9 +1382,9 @@ function _buildAvatarGrid() {
   });
 }
 
-function showProfileModal(mode) {
+function showProfileModal(mode, prefill) {
   _profileMode = mode || 'create';
-  _pickedAvatar = userProfile ? userProfile.avatarIndex : 0;
+  _pickedAvatar = prefill ? (prefill.avatarIndex ?? 0) : (userProfile ? userProfile.avatarIndex : 0);
   const isHello = _profileMode === 'hello';
   const isCreate = _profileMode === 'create';
   document.getElementById('profile-title').textContent =
@@ -1400,7 +1400,8 @@ function showProfileModal(mode) {
     googleSection.classList.remove('hidden');
   }
   document.getElementById('name-input').value =
-    (_profileMode === 'edit' && userProfile) ? userProfile.displayName : '';
+    (_profileMode === 'edit' && userProfile) ? userProfile.displayName : (prefill ? (prefill.displayName || '') : '');
+  document.getElementById('name-error').textContent = (prefill && prefill.nameError) ? prefill.nameError : '';
   _buildAvatarGrid();
   // No body scroll-lock needed: html,body already have overflow:hidden for the game.
   document.getElementById('profile-overlay').classList.add('visible');
@@ -1427,7 +1428,7 @@ async function _saveProfileFromModal() {
   try {
     const available = await _checkNameAvailable(name.toLowerCase(), currentUid);
     if (!available) {
-      nameErrorEl.textContent = 'Username already taken';
+      nameErrorEl.textContent = 'Username already taken. Please choose another.';
       const inp = document.getElementById('name-input');
       inp.classList.add('input-error');
       setTimeout(() => inp.classList.remove('input-error'), 400);
@@ -3221,7 +3222,11 @@ _fbAuth.onAuthStateChanged(async firebaseUser => {
       // Name already claimed by another Google user — let this user pick a new one
       highScore = bestHS;
       hideAuthScreen();
-      showProfileModal('hello');
+      showProfileModal('hello', {
+        avatarIndex: local.avatarIndex ?? 0,
+        displayName: local.displayName,
+        nameError: 'Username already taken. Please choose another.',
+      });
     }
   } else {
     // First Google sign-in with no prior profile — show Hello Hunter
