@@ -3225,7 +3225,7 @@ _fbAuth.onAuthStateChanged(async firebaseUser => {
       showProfileModal('hello', {
         avatarIndex: local.avatarIndex ?? 0,
         displayName: local.displayName,
-        nameError: 'Username already taken. Please choose another.',
+        nameError: 'Username already taken',
       });
     }
   } else {
