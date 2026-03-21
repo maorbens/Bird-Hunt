@@ -6,10 +6,10 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>Bird Hunt</title>
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:wght@400;600&display=swap" rel="stylesheet">
   <link href="https://fonts.bunny.net/css?family=press-start-2p:400" rel="stylesheet">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     html, body {
       width: 100%; height: 100%;
       overflow: hidden;
@@ -79,56 +79,64 @@
       z-index: 20;
       align-items: center;
       justify-content: center;
+      padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+      box-sizing: border-box;
     }
     #game-over-overlay.visible { display: flex; }
     #game-over-popup {
       background: #1a1a2e;
       border: 4px solid #fff;
       box-shadow: 6px 6px 0 #000, inset 0 0 0 2px #000;
-      padding: clamp(34px, 5vmin, 58px) calc(clamp(38px, 8.4vmin, 77px) + 20px) clamp(34px, 5vmin, 58px);
+      padding: clamp(36px, 7.5vmin, 84px) clamp(36px, 9vw, 96px);
       text-align: center;
-      direction: rtl;
+      direction: ltr;
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: clamp(18px, 3.5vmin, 32px);
       word-spacing: 0.1em;
-      width: fit-content;
-      max-width: 90vw;
-      max-height: 95dvh;
+      width: min(520px, 100%);
+      max-height: 100%;
       overflow-y: auto;
+      box-sizing: border-box;
     }
     #game-over-reason {
       color: #FF6B6B;
-      font-family: system-ui, -apple-system, sans-serif;
-      font-weight: 700;
-      font-size: clamp(24px, 5.25vmin, 42px);
-      text-shadow: 2px 2px 0 #000;
+      font-family: 'Press Start 2P', monospace;
+      font-weight: 500;
+      font-size: clamp(18px, 4vmin, 32px);
       text-align: center;
       width: 100%;
+      word-spacing: -0.12em;
     }
     #game-over-score, #game-over-hs {
       display: flex;
       align-items: baseline;
       gap: clamp(8px, 1.5vmin, 14px);
-      font-family: system-ui, -apple-system, sans-serif;
-      font-weight: 700;
-      text-shadow: 2px 2px 0 #000;
-      font-size: clamp(16px, 3.5vmin, 28px);
+      font-family: 'Press Start 2P', monospace;
+      font-weight: 500;
+      font-size: clamp(13px, 2.8vmin, 22px);
     }
     #game-over-score { color: #FFD700; }
-    #game-over-hs    { color: #aaffaa; margin-top: -12px; }
+    #game-over-hs    { color: #aaffaa; margin-top: calc(clamp(18px, 3.5vmin, 32px) * 0.2 - 7.2px); }
+    #game-over-hs.new-record { width: 100%; justify-content: center; gap: 0; }
+    #game-over-hs.new-record #hs-val { display: none; }
+    #game-over-hs.new-record #hs-label { display: flex; align-items: center; gap: 5px; line-height: 1; }
+    .nr-star { font-size: 1.5em; line-height: 1; position: relative; }
+    #hs-label .nr-star:first-child { top: -6px; left: -2px; }
+    #hs-label .nr-star:last-child  { top: -6px; left: -3px; }
     /* ── Shared pixel buttons ────────────────────────────────────────────── */
     #game-over-btns {
       display: flex;
       flex-direction: column;
       gap: clamp(6px, 1.6vmin, 14px);
-      margin-top: 10px;
-      width: clamp(180px, 48vmin, 380px);
+      margin-top: 6px;
+      width: 100%;
       align-self: center;
+      box-sizing: border-box;
     }
     #game-over-btns #restart-btn,
-    #game-over-btns #home-btn-go { width: 100%; }
+    #game-over-btns #home-btn-go { width: 100%; padding-left: 0; padding-right: 0; }
     #game-over-btns #home-btn-go { margin-top: 5px; }
     #restart-btn, #start-btn {
       padding: clamp(12px, 2.5vmin, 22px) clamp(24px, 6vmin, 52px);
@@ -136,43 +144,39 @@
       color: #fff;
       border: 4px solid #000;
       box-shadow: 4px 4px 0 #000;
-      font-family: system-ui, -apple-system, sans-serif;
-      font-weight: 700;
+      font-family: 'Press Start 2P', monospace;
+      font-weight: 500;
       font-size: clamp(15px, 3.2vmin, 24px);
       text-align: center;
-      direction: rtl;
+      direction: ltr;
       cursor: pointer;
       white-space: nowrap;
       transition: transform 0.07s, box-shadow 0.07s;
     }
     #game-over-btns #restart-btn { padding: clamp(14px, 3vmin, 28px) clamp(36px, 10vmin, 88px); font-size: clamp(16px, 3.6vmin, 28px); }
     #restart-btn:active, #start-btn:active { transform: translate(3px,3px); box-shadow: 1px 1px 0 #000; }
-    @keyframes startPulse {
-      0%, 100% { transform: scale(1);    box-shadow: 4px 4px 0 #000, 0 0 8px rgba(233,69,96,0.3); }
-      50%       { transform: scale(1.08); box-shadow: 5px 5px 0 #000, 0 0 22px rgba(233,69,96,0.7); }
-    }
     #start-btn {
-      transition: none;
-      transform-origin: center center;
-      animation: startPulse 2s ease-in-out infinite;
-      padding: clamp(14px, 3vmin, 28px) clamp(36px, 10vmin, 88px);
+      padding: clamp(14px, 3vmin, 28px) clamp(56px, 10vmin, 108px);
       font-size: clamp(16px, 3.6vmin, 28px);
+      align-self: stretch;
+      box-sizing: border-box;
     }
-    #start-btn:active { animation: none; transform: translate(3px,3px); box-shadow: 1px 1px 0 #000; }
     #howto-btn {
       margin-top: 5px;
-      padding: clamp(14px, 3vmin, 28px) clamp(36px, 10vmin, 88px);
+      padding: clamp(14px, 3vmin, 28px) clamp(56px, 10vmin, 108px);
       font-size: clamp(16px, 3.6vmin, 28px);
       background: #1a3a6b;
       color: #fff;
       border: 4px solid #000;
       box-shadow: 4px 4px 0 #000;
-      font-family: system-ui, -apple-system, sans-serif;
-      font-weight: 700;
+      font-family: 'Press Start 2P', monospace;
+      font-weight: 500;
       text-align: center;
-      direction: rtl;
+      direction: ltr;
       cursor: pointer;
       white-space: nowrap;
+      word-spacing: -0.3em;
+      box-sizing: border-box;
       transition: transform 0.07s, box-shadow 0.07s;
     }
     #howto-btn:active { transform: translate(3px,3px); box-shadow: 1px 1px 0 #000; }
@@ -183,11 +187,11 @@
       color: #99aacc;
       border: 4px solid #556;
       box-shadow: 4px 4px 0 #000;
-      font-family: system-ui, -apple-system, sans-serif;
-      font-weight: 700;
+      font-family: 'Press Start 2P', monospace;
+      font-weight: 500;
       font-size: clamp(16px, 3.6vmin, 28px);
       text-align: center;
-      direction: rtl;
+      direction: ltr;
       cursor: pointer;
       white-space: nowrap;
       transition: transform 0.07s, box-shadow 0.07s, color 0.12s, border-color 0.12s;
@@ -238,7 +242,7 @@
     /* Ground — exact match to drawGround() */
     #intro-ground {
       position: absolute;
-      bottom: 0; left: 0; right: 0;
+      bottom: -50px; left: 0; right: 0;
       height: clamp(80px, 17vh, 155px);
       z-index: 1;
       background: linear-gradient(
@@ -248,10 +252,10 @@
         #DED895 17px
       );
     }
-    /* Logo — bare text floating in clouds */
+    /* Logo — pushed below the profile bar */
     #intro-logo {
       position: absolute;
-      top: max(calc(env(safe-area-inset-top) + 12px), 8%);
+      top: max(calc(env(safe-area-inset-top) + 116px), 22%);
       left: 50%;
       transform: translateX(calc(-50% + 5px));
       z-index: 3;
@@ -311,7 +315,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      bottom: clamp(72px, 15vh, 145px);
+      bottom: calc(clamp(72px, 15vh, 145px) - 50px);
     }
     .intro-tree-l { left: clamp(-14px, -1.5vw, 0px); }
     .intro-tree-r { right: clamp(-14px, -1.5vw, 0px); }
@@ -350,16 +354,87 @@
       #howto-btn { order: -1; margin-top: 0; }
       #start-btn { margin-top: 5px; }
     }
+    #intro-hud > div { width: calc(100% - 150px); }
+    #intro-hud #start-btn,
+    #intro-hud #howto-btn { width: 100%; padding-left: 0; padding-right: 0; box-sizing: border-box; }
+    /* ── Auth screen (initial login / after sign-out) ─────────────────────── */
+    #auth-hud {
+      display: none;
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      left: 0; right: 0;
+      z-index: 5;
+      flex-direction: column;
+      align-items: center;
+      gap: clamp(6px, 1.6vmin, 14px);
+    }
+    .auth-mode #auth-hud { display: flex; }
+    .auth-mode #intro-hud { display: none; }
+    .auth-mode #intro-logo { transform: translateX(calc(-50% + 5px)) translateY(-70px); }
+    .auth-mode #intro-clouds,
+    .auth-mode #intro-clouds-front,
+    .auth-mode #intro-clouds-ls-front { transform: translateY(-70px); }
+    #auth-hud > div {
+      width: calc(100% - 150px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: clamp(6px, 1.6vmin, 14px);
+    }
+    #auth-guest-btn {
+      width: 100%;
+      padding: clamp(14px, 3vmin, 28px) 0;
+      background: #e94560;
+      color: #fff;
+      border: 4px solid #000;
+      box-shadow: 4px 4px 0 #000;
+      font-family: 'Press Start 2P', monospace;
+      font-weight: 500;
+      font-size: clamp(13px, 2.6vmin, 20px);
+      text-align: center;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: transform 0.07s, box-shadow 0.07s;
+      box-sizing: border-box;
+    }
+    #auth-guest-btn:active { transform: translate(3px,3px); box-shadow: 1px 1px 0 #000; }
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      gap: 10px;
+      color: rgba(255,255,255,0.7);
+      font-family: 'Roboto', sans-serif;
+      font-size: clamp(12px, 2vmin, 16px);
+    }
+    .auth-divider::before, .auth-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(255,255,255,0.3);
+    }
+    #auth-google-desc {
+      font-size: clamp(12px, 2.2vmin, 17px);
+      color: rgba(255,255,255,0.88);
+      font-family: 'Roboto', sans-serif;
+      font-weight: 500;
+      line-height: 1.6;
+      text-align: center;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.55);
+      width: 100%;
+    }
     @media (orientation: landscape) {
       #intro-hud { flex-direction: row; justify-content: center; gap: calc(clamp(6px, 1.6vmin, 14px) + 10px); }
       #howto-btn { margin-top: 0; }
       #game-over-popup {
-        max-height: calc(100dvh - 40px);
+        padding-top: clamp(24px, 4.5vmin, 54px);
+        padding-bottom: clamp(24px, 4.5vmin, 54px);
       }
       #howto-popup {
-        gap: clamp(10px, 2.4vmin, 20px);
-        padding-top: clamp(28px, 3.8vmin, 48px);
-        padding-bottom: clamp(28px, 3.8vmin, 48px);
+        gap: clamp(8px, 2vmin, 16px);
+        padding-top: clamp(24px, 4.5vmin, 54px);
+        padding-bottom: clamp(24px, 4.5vmin, 54px);
       }
     }
     /* ── How-to popup ──────────────────────────────────────────────────── */
@@ -371,53 +446,57 @@
       z-index: 35;
       align-items: center;
       justify-content: center;
+      padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+      box-sizing: border-box;
     }
     #howto-overlay.visible { display: flex; }
     #howto-popup {
       background: #1a1a2e;
       border: 4px solid #fff;
       box-shadow: 6px 6px 0 #000, inset 0 0 0 2px #000;
-      padding: clamp(44px, 5vmin, 68px) calc(clamp(38px, 8.4vmin, 77px) + 20px) calc(clamp(44px, 5vmin, 68px) + 10px);
+      padding: clamp(36px, 7.5vmin, 84px) clamp(36px, 9vw, 96px);
       text-align: center;
-      direction: rtl;
+      direction: ltr;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: clamp(18px, 3.5vmin, 32px);
-      width: fit-content;
-      max-width: 90vw;
-      max-height: 90dvh;
+      gap: clamp(14px, 3vmin, 28px);
+      width: min(520px, 100%);
+      max-height: 100%;
       overflow-y: auto;
+      box-sizing: border-box;
     }
     #howto-title {
       color: #FFD700;
-      font-family: system-ui, -apple-system, sans-serif;
-      font-weight: 700;
-      font-size: clamp(22px, 5vmin, 40px);
-      text-shadow: 2px 2px 0 #000;
+      font-family: 'Press Start 2P', monospace;
+      font-weight: 500;
+      font-size: clamp(18px, 4vmin, 32px);
     }
     #howto-body {
+      margin-top: 6px;
       color: rgba(255,255,255,0.88);
-      font-family: system-ui, -apple-system, sans-serif;
-      font-weight: 600;
-      font-size: clamp(13px, 2.6vmin, 20px);
-      text-shadow: 1px 1px 0 #000;
+      font-family: 'Roboto', sans-serif;
+      font-weight: 500;
+      font-size: clamp(14px, 2.6vmin, 20px);
+      text-shadow: none;
       line-height: 1.85;
-      text-align: right;
+      text-align: left;
     }
     #howto-body .rule-line { display: flex; align-items: flex-start; gap: 0.5em; margin-bottom: 0.25em; }
     #howto-body .rule-icon { flex-shrink: 0; }
     #howto-got-it {
-      padding: clamp(14px, 3vmin, 28px) clamp(36px, 10vmin, 88px);
+      padding: clamp(14px, 3vmin, 28px) 0;
+      width: 100%;
+      box-sizing: border-box;
       background: #e94560;
       color: #fff;
       border: 4px solid #000;
       box-shadow: 4px 4px 0 #000;
-      font-family: system-ui, -apple-system, sans-serif;
-      font-weight: 700;
+      font-family: 'Press Start 2P', monospace;
+      font-weight: 500;
       font-size: clamp(16px, 3.6vmin, 28px);
       text-align: center;
-      direction: rtl;
+      direction: ltr;
       cursor: pointer;
       white-space: nowrap;
       transition: transform 0.07s, box-shadow 0.07s;
@@ -428,7 +507,7 @@
     #intro-desc {
       color: rgba(255,255,255,0.84);
       font-family: system-ui, -apple-system, sans-serif;
-      font-weight: 600;
+      font-weight: 500;
       font-size: clamp(11px, 2.2vmin, 17px);
       text-shadow: 1px 1px 0 #000;
       line-height: 1.7;
@@ -439,12 +518,524 @@
     }
     .ex { font-family: system-ui, -apple-system, Arial, sans-serif; }
     #score-val, #hs-val {
-      font-family: system-ui, -apple-system, Arial, sans-serif;
-      font-weight: 700;
-      font-size: clamp(20px, 4.5vmin, 36px);
+      font-family: 'Press Start 2P', monospace;
+      font-weight: 500;
+      font-size: clamp(16px, 3.4vmin, 26px);
       letter-spacing: 0.02em;
     }
+
+    /* ── Profile Modal ──────────────────────────────────────────────────── */
+    #profile-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.88);
+      z-index: 50;
+    }
+    #profile-overlay.visible { display: block; }
+    #profile-overlay.visible #profile-popup {
+      animation: sheetSlideIn 0.32s cubic-bezier(0.32, 0.72, 0, 1) both;
+    }
+    @keyframes sheetSlideIn {
+      from { transform: translateY(100%); }
+      to   { transform: translateY(0); }
+    }
+    #sheet-handle {
+      width: 44px;
+      height: 5px;
+      background: rgba(255, 215, 0, 0.35);
+      border-radius: 3px;
+      margin-bottom: -4px;
+      flex-shrink: 0;
+    }
+    #profile-popup {
+      /* position:fixed on iOS Safari is anchored to the visual viewport.
+         When keyboard opens, bottom:0 automatically sits above it — no JS needed.
+         body { position:fixed } scroll-lock is NOT used (game has overflow:hidden). */
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      max-width: 520px;
+      margin-inline: auto;
+      background: #1a1a2e;
+      /* box-shadow fills safe-area gap below sheet on notched phones */
+      box-shadow: 0 9999px 0 9999px #1a1a2e;
+      border-radius: 20px 20px 0 0;
+      padding: clamp(16px, 3vmin, 28px) clamp(36px, 9vw, 96px) calc(clamp(36px, 7.5vmin, 84px) + env(safe-area-inset-bottom, 0px));
+      text-align: center;
+      direction: ltr;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: clamp(14px, 3vmin, 28px);
+      /* dvh shrinks with keyboard on iOS 16+; vh as fallback */
+      max-height: 92vh;
+      max-height: 92dvh;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      touch-action: pan-y;
+      -webkit-overflow-scrolling: touch;
+      box-sizing: border-box;
+    }
+    #profile-title {
+      color: #FFD700;
+      font-family: 'Press Start 2P', monospace;
+      font-weight: 500;
+      font-size: clamp(18px, 4vmin, 32px);
+      word-spacing: -0.35em;
+    }
+    #profile-subtitle {
+      color: rgba(255,255,255,0.88);
+      font-family: 'Roboto', sans-serif;
+      font-weight: 500;
+      font-size: clamp(14px, 2.6vmin, 20px);
+      line-height: 1.85;
+      margin-top: -8px;
+    }
+    #avatar-carousel {
+      width: 100%;
+      margin-inline: calc(-1 * clamp(36px, 9vw, 96px));
+      width: calc(100% + 2 * clamp(36px, 9vw, 96px));
+    }
+    #avatar-track {
+      display: flex;
+      gap: clamp(10px, 2.5vmin, 18px);
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
+      scrollbar-width: none;
+      padding: 10px clamp(36px, 9vw, 96px);
+      outline: none;
+    }
+    #avatar-track::-webkit-scrollbar { display: none; }
+    .avatar-cell {
+      flex-shrink: 0;
+      width: clamp(144px, 30vmin, 184px);
+      height: clamp(144px, 30vmin, 184px);
+      border-radius: 50%;
+      scroll-snap-align: center;
+      cursor: pointer;
+      border: 3px solid #334466;
+      background: #0d1b2e;
+      overflow: hidden;
+      transition: transform 0.1s, border-color 0.1s, box-shadow 0.1s;
+      box-shadow: 3px 3px 0 #000;
+      outline: none;
+    }
+    .avatar-cell.selected:focus, .avatar-cell.selected:focus-visible {
+      box-shadow: 3px 3px 0 #000, 0 0 0 3px rgba(255,215,0,0.45);
+    }
+    #avatar-track:focus, #avatar-track:focus-visible,
+    #profile-popup:focus, #profile-popup:focus-visible {
+      outline: none;
+      box-shadow: none;
+    }
+    .avatar-cell img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      pointer-events: none;
+    }
+    .avatar-cell.selected {
+      border: 4px solid #FFD700;
+      box-shadow: 3px 3px 0 #000, 0 0 0 3px rgba(255,215,0,0.45);
+    }
+    @media (hover: hover) { .avatar-cell:not(.selected):hover { border-color: #6677aa; } }
+    .avatar-cell:active { transform: translate(2px,2px); }
+    #name-label {
+      color: rgba(255,255,255,0.82);
+      font-family: 'Roboto', sans-serif;
+      font-weight: 500;
+      font-size: clamp(14px, 2.6vmin, 20px);
+      align-self: flex-start;
+      margin-bottom: -6px;
+    }
+    #name-input {
+      width: 100%;
+      background: #0d1b2e;
+      border: 3px solid #445;
+      color: #fff;
+      font-family: 'Roboto', sans-serif;
+      font-weight: 500;
+      font-size: clamp(15px, 3vmin, 22px);
+      padding: clamp(10px, 2vmin, 16px) clamp(12px, 2.5vmin, 18px);
+      text-align: left;
+      direction: ltr;
+      outline: none;
+      box-shadow: 3px 3px 0 #000;
+      transition: border-color 0.15s;
+    }
+    #name-input:focus { border-color: #FFD700; }
+    #name-input.input-error { border-color: #FF4444; animation: inputShake 0.32s; }
+    #name-error {
+      color: #FF4444;
+      font-family: 'Roboto', sans-serif;
+      font-size: clamp(11px, 2vmin, 14px);
+      min-height: 1.2em;
+      align-self: flex-start;
+      margin-top: -4px;
+    }
+    #profile-save-btn {
+      width: 100%;
+      padding: clamp(14px, 3vmin, 28px) 0;
+      background: #e94560;
+      color: #fff;
+      border: 4px solid #000;
+      box-shadow: 4px 4px 0 #000;
+      font-family: 'Press Start 2P', monospace;
+      font-weight: 500;
+      font-size: clamp(16px, 3.6vmin, 28px);
+      text-align: center;
+      direction: ltr;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: transform 0.07s, box-shadow 0.07s;
+      margin-top: 6px;
+    }
+    #profile-save-btn:active { transform: translate(3px,3px); box-shadow: 1px 1px 0 #000; }
+    #profile-cancel-btn {
+      width: 100%;
+      padding: clamp(14px, 3vmin, 28px) 0;
+      background: rgba(26, 26, 60, 0.85);
+      color: #99aacc;
+      border: 4px solid #556;
+      box-shadow: 4px 4px 0 #000;
+      font-family: 'Press Start 2P', monospace;
+      font-weight: 500;
+      font-size: clamp(16px, 3.6vmin, 28px);
+      text-align: center;
+      direction: ltr;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: transform 0.07s, box-shadow 0.07s, color 0.12s, border-color 0.12s;
+    }
+    #profile-cancel-btn:hover  { color: #dde; border-color: #889; }
+    #profile-cancel-btn:active { transform: translate(3px,3px); box-shadow: 1px 1px 0 #000; }
+    @keyframes inputShake {
+      0%,100% { transform: translateX(0); }
+      20%,60%  { transform: translateX(-7px); }
+      40%,80%  { transform: translateX(7px); }
+    }
+
+    /* ── Profile bar – full-width floating pixel-art panel ───────────────── */
+    #info-btn {
+      display: none;
+      position: absolute;
+      top: max(8px, env(safe-area-inset-top));
+      left: 21px;
+      z-index: 10;
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background: #fff;
+      border: 3px solid #000;
+      box-shadow: 3px 3px 0 #000, inset 2px 2px 0 #fff, inset -2px -2px 0 #aaa;
+      cursor: pointer;
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(16px, 3.5vmin, 24px);
+      color: #111;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.07s, box-shadow 0.07s;
+    }
+    #info-btn:hover { background: #f2f2f2; box-shadow: 3px 3px 0 #000, inset 2px 2px 0 #fff, inset -2px -2px 0 #999; }
+    #info-btn:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 #000; }
+    #profile-chip {
+      display: none;
+      position: absolute;
+      top: max(8px, env(safe-area-inset-top));
+      right: 21px;
+      z-index: 10;
+      flex-direction: row;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px 8px 16px;
+      cursor: pointer;
+      user-select: none;
+      background: #fff;
+      border: 3px solid #000;
+      border-radius: 999px;
+      box-shadow:
+        3px 3px 0 #000,
+        inset 2px 2px 0 #fff,
+        inset -2px -2px 0 #aaa;
+    }
+    #profile-chip:hover {
+      background: #f2f2f2;
+      box-shadow:
+        3px 3px 0 #000,
+        inset 2px 2px 0 #fff,
+        inset -2px -2px 0 #999;
+    }
+    #profile-chip:active {
+      transform: translate(2px,2px);
+      box-shadow: 1px 1px 0 #000;
+    }
+    /* Score – next to avatar */
+    #profile-chip-hs {
+      color: #111;
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(12px, 2.8vmin, 18px);
+      line-height: 1;
+      text-shadow: none;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    /* Avatar circle with gold pixel border */
+    #profile-chip-img {
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      border: 3px solid #FFD700;
+      box-shadow: 2px 2px 0 #7B5000, inset 0 0 0 1px #000;
+      flex-shrink: 0;
+      display: block;
+      margin-top: auto;
+      margin-bottom: auto;
+      position: relative;
+      top: -2px;
+    }
+    @media (orientation: landscape) {
+      body > * { display: none !important; }
+    }
+
+    /* ── Settings button ─────────────────────────────────────────────────── */
+    #settings-btn {
+      display: none;
+      position: absolute;
+      top: max(8px, env(safe-area-inset-top));
+      left: calc(21px + 54px + 9px);
+      z-index: 10;
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background: #fff;
+      border: 3px solid #000;
+      box-shadow: 3px 3px 0 #000, inset 2px 2px 0 #fff, inset -2px -2px 0 #aaa;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      color: #111;
+      transition: transform 0.07s, box-shadow 0.07s;
+    }
+    #settings-btn:hover { background: #f2f2f2; box-shadow: 3px 3px 0 #000, inset 2px 2px 0 #fff, inset -2px -2px 0 #999; }
+    #settings-btn:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 #000; }
+
+    /* ── Settings overlay ────────────────────────────────────────────────── */
+    #settings-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.72);
+      z-index: 35;
+      align-items: center;
+      justify-content: center;
+      padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+      box-sizing: border-box;
+    }
+    #settings-overlay.visible { display: flex; }
+    #settings-popup {
+      background: #1a1a2e;
+      border: 4px solid #fff;
+      box-shadow: 6px 6px 0 #000, inset 0 0 0 2px #000;
+      padding: clamp(36px, 7.5vmin, 84px) clamp(36px, 9vw, 96px);
+      text-align: center;
+      direction: ltr;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: clamp(14px, 3vmin, 28px);
+      width: min(520px, 100%);
+      max-height: 100%;
+      overflow-y: auto;
+      box-sizing: border-box;
+    }
+    #settings-title {
+      color: #FFD700;
+      font-family: 'Press Start 2P', monospace;
+      font-weight: 500;
+      font-size: clamp(18px, 4vmin, 32px);
+    }
+    #settings-google-desc,
+    #intro-google-desc {
+      color: rgba(255,255,255,0.88);
+      font-family: 'Roboto', sans-serif;
+      font-weight: 500;
+      font-size: clamp(14px, 2.6vmin, 20px);
+      line-height: 1.6;
+      text-align: center;
+      width: 100%;
+    }
+    #intro-google-desc {
+      font-size: clamp(12px, 2.2vmin, 17px);
+      text-shadow: 0 1px 3px rgba(0,0,0,0.55);
+    }
+    #google-signin-btn,
+    #intro-google-signin-btn,
+    #auth-google-signin-btn {
+      width: 100%;
+      padding: clamp(12px, 2.5vmin, 20px) 0;
+      background: #fff;
+      color: #3c4043;
+      border: 3px solid #000;
+      box-shadow: 4px 4px 0 #000;
+      font-family: 'Roboto', sans-serif;
+      font-weight: 600;
+      font-size: clamp(14px, 3vmin, 20px);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: transform 0.07s, box-shadow 0.07s, background 0.1s;
+    }
+    #google-signin-btn:hover,
+    #intro-google-signin-btn:hover, #auth-google-signin-btn:hover { background: #f8f9fa; }
+    #google-signin-btn:active,
+    #intro-google-signin-btn:active, #auth-google-signin-btn:active { transform: translate(3px,3px); box-shadow: 1px 1px 0 #000; }
+    #google-signout-row {
+      display: none;
+      width: 100%;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: rgba(255,255,255,0.07);
+      border: 2px solid #445;
+      padding: clamp(8px, 2vmin, 14px) clamp(12px, 2.5vmin, 20px);
+      box-sizing: border-box;
+    }
+    #google-signout-row.visible { display: flex; }
+    #google-user-email {
+      color: rgba(255,255,255,0.75);
+      font-family: 'Roboto', sans-serif;
+      font-size: clamp(11px, 2vmin, 15px);
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      direction: ltr;
+      text-align: left;
+    }
+    #google-signout-btn {
+      background: transparent;
+      color: #FF6B6B;
+      border: 2px solid #FF6B6B;
+      font-family: 'Roboto', sans-serif;
+      font-weight: 600;
+      font-size: clamp(11px, 2vmin, 13px);
+      padding: 6px 12px;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 0.1s;
+      white-space: nowrap;
+    }
+    #google-signout-btn:hover { background: rgba(255,107,107,0.15); }
+    #intro-google-section {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: clamp(8px, 1.5vmin, 12px);
+      border-top: 2px solid rgba(255,255,255,0.15);
+      padding-top: clamp(10px, 2vmin, 16px);
+    }
+    #intro-google-section.hidden { display: none; }
+    #settings-sound-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      border-top: 2px solid rgba(255,255,255,0.15);
+      padding-top: clamp(10px, 2vmin, 20px);
+    }
+    #settings-sound-label {
+      color: rgba(255,255,255,0.88);
+      font-family: 'Roboto', sans-serif;
+      font-weight: 600;
+      font-size: clamp(14px, 2.6vmin, 20px);
+    }
+    #settings-sound-btn {
+      background: transparent;
+      border: 3px solid #fff;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      padding: 0;
+      box-shadow: 3px 3px 0 #000;
+      transition: transform 0.07s, box-shadow 0.07s, border-color 0.15s, color 0.15s;
+    }
+    #settings-sound-btn:hover { background: rgba(255,255,255,0.1); }
+    #settings-sound-btn:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 #000; }
+    #settings-sound-btn.muted { border-color: rgba(255,255,255,0.35); color: rgba(255,255,255,0.35); box-shadow: 3px 3px 0 rgba(0,0,0,0.4); }
+    #settings-done-btn {
+      padding: clamp(14px, 3vmin, 28px) 0;
+      width: 100%;
+      box-sizing: border-box;
+      background: #e94560;
+      color: #fff;
+      border: 4px solid #000;
+      box-shadow: 4px 4px 0 #000;
+      font-family: 'Press Start 2P', monospace;
+      font-weight: 500;
+      font-size: clamp(16px, 3.6vmin, 28px);
+      text-align: center;
+      direction: ltr;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: transform 0.07s, box-shadow 0.07s;
+      margin-top: 6px;
+    }
+    #settings-done-btn:active { transform: translate(3px,3px); box-shadow: 1px 1px 0 #000; }
+
+    /* ── Sign-in loading overlay ─────────────────────────────────────────── */
+    #signin-loading {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.82);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: clamp(16px, 4vmin, 28px);
+    }
+    #signin-loading.visible { display: flex; }
+    #signin-loading-label {
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(9px, 2.2vmin, 14px);
+      color: #FFD700;
+      letter-spacing: 0.1em;
+    }
+    #signin-loading-dots {
+      display: flex;
+      gap: clamp(8px, 2vmin, 14px);
+    }
+    #signin-loading-dots span {
+      display: block;
+      width: clamp(8px, 2vmin, 12px);
+      height: clamp(8px, 2vmin, 12px);
+      background: #FFD700;
+      opacity: 0.2;
+      animation: sdot 1s infinite;
+    }
+    #signin-loading-dots span:nth-child(2) { animation-delay: 0.25s; }
+    #signin-loading-dots span:nth-child(3) { animation-delay: 0.5s;  }
+    @keyframes sdot {
+      0%, 100% { opacity: 0.2; }
+      40%       { opacity: 1;   }
+    }
   </style>
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 </head>
 <body>
   <canvas id="canvas"></canvas>
@@ -462,11 +1053,11 @@
   <div id="game-over-overlay">
     <div id="game-over-popup">
       <div id="game-over-reason"></div>
-      <div id="game-over-score"><span>ניקוד<span class="ex">:</span></span><span id="score-val"></span></div>
+      <div id="game-over-score"><span>Score:</span><span id="score-val"></span></div>
       <div id="game-over-hs"><span id="hs-label"></span><span id="hs-val"></span></div>
       <div id="game-over-btns">
-        <button id="restart-btn" onclick="playSfx('button');initGame()">שחק שוב</button>
-        <button id="home-btn-go" onclick="playSfx('button');showIntro()">ראשי</button>
+        <button id="restart-btn" onclick="playSfx('button');initGame()">Play Again</button>
+        <button id="home-btn-go" onclick="playSfx('button');showIntro()">Menu</button>
       </div>
     </div>
   </div>
@@ -474,17 +1065,86 @@
   <!-- How-to overlay -->
   <div id="howto-overlay">
     <div id="howto-popup">
-      <div id="howto-title">איך משחקים?</div>
+      <div id="howto-title">How To Play?</div>
       <div id="howto-body">
-        <div class="rule-line"><span class="rule-icon">🎯</span><span>משכו את האבן ברוגטקה ושחררו כדי לירות לעבר הציפור</span></div>
-        <div class="rule-line"><span class="rule-icon">⏱️</span><span>יש לכם 60 שניות — פגעו בכמה שיותר ציפורים</span></div>
-        <div class="rule-line"><span class="rule-icon">🔥</span><span>3 פגיעות ברצף מעניקות אבן אש</span></div>
-        <div class="rule-line"><span class="rule-icon">💥</span><span>פגיעה: 100 נקודות. פגיעה עם אבן אש: 300 נקודות</span></div>
-        <div class="rule-line"><span class="rule-icon">⏰</span><span>כל 5 פגיעות ברצף מוסיפות 10 שניות לשעון</span></div>
-        <div class="rule-line"><span class="rule-icon">❌</span><span>פספוס מאפס את רצף הפגיעות</span></div>
+        <div class="rule-line"><span class="rule-icon">🎯</span><span>Pull the slingstone and release to shoot at the bird</span></div>
+        <div class="rule-line"><span class="rule-icon">⏱️</span><span>You have 60 seconds — hit as many birds as you can</span></div>
+        <div class="rule-line"><span class="rule-icon">🔥</span><span>3 hits in a row grant you a firestone</span></div>
+        <div class="rule-line"><span class="rule-icon">💥</span><span>Hit: 100 pts. Hit with firestone: 300 pts</span></div>
+        <div class="rule-line"><span class="rule-icon">⏰</span><span>Every 5 hits in a row add 10 seconds to the clock</span></div>
+        <div class="rule-line"><span class="rule-icon">❌</span><span>A miss resets your hit streak</span></div>
       </div>
-      <button id="howto-got-it">הבנתי!</button>
+      <button id="howto-got-it">OK</button>
     </div>
+  </div>
+
+  <!-- Settings overlay -->
+  <div id="settings-overlay">
+    <div id="settings-popup">
+      <div id="settings-title">Settings</div>
+      <div id="settings-google-desc">Sign in with Google to save your high scores across devices.</div>
+      <button id="google-signin-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22">
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+        </svg>
+        Sign in with Google
+      </button>
+      <div id="google-signout-row">
+        <span id="google-user-email"></span>
+        <button id="google-signout-btn">Sign out</button>
+      </div>
+      <div id="settings-sound-row">
+        <span id="settings-sound-label">Sound</span>
+        <button id="settings-sound-btn">
+          <svg id="settings-sound-icon-on" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+          </svg>
+          <svg id="settings-sound-icon-off" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" style="display:none">
+            <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3z"/>
+          </svg>
+        </button>
+      </div>
+      <button id="settings-done-btn">Done</button>
+    </div>
+  </div>
+
+  <!-- Profile modal (create / edit) -->
+  <div id="profile-overlay">
+    <div id="profile-popup">
+      <div id="sheet-handle"></div>
+      <div id="profile-title">Create Profile</div>
+      <div id="profile-subtitle">Choose your persona &amp; name</div>
+      <div id="avatar-carousel">
+        <div id="avatar-track"></div>
+      </div>
+      <div id="name-label">Username</div>
+      <input id="name-input" type="text" maxlength="16"
+             placeholder="Enter name..." autocomplete="off"
+             autocorrect="off" spellcheck="false" />
+      <div id="name-error"></div>
+      <button id="profile-save-btn">Done</button>
+      <button id="profile-cancel-btn" style="display:none">Cancel</button>
+      <div id="intro-google-section">
+        <div id="intro-google-desc">Sign in with Google to save your high scores across devices.</div>
+        <button id="intro-google-signin-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          </svg>
+          Sign in with Google
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sign-in loading overlay -->
+  <div id="signin-loading">
+    <div id="signin-loading-dots"><span></span><span></span><span></span></div>
   </div>
 
   <!-- Full-screen Intro -->
@@ -522,12 +1182,60 @@
     <canvas id="intro-bird-canvas"></canvas>
     <div id="intro-ground"></div>
     <div id="intro-hud">
-      <button id="start-btn" onclick="playSfx('button');startGame()">התחל משחק</button>
-      <button id="howto-btn">איך משחקים?</button>
+      <div style="display:flex;flex-direction:column;gap:inherit">
+        <button id="start-btn" onclick="playSfx('button');startGame()">Play</button>
+        <button id="howto-btn">Top 100</button>
+      </div>
+    </div>
+    <!-- Info button -->
+    <button id="info-btn">i</button>
+    <!-- Settings button -->
+    <button id="settings-btn">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="26" height="26" fill="currentColor">
+        <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.22-.07.47.12.61l2.03 1.58c-.05.3-.07.63-.07.94s.02.64.07.94L2.86 14.52c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+      </svg>
+    </button>
+    <!-- Profile bar: full-width floating pixel panel, click to edit -->
+    <div id="profile-chip" onclick="playSfx('button');showProfileModal('edit')">
+      <span id="profile-chip-hs"></span>
+      <img id="profile-chip-img" src="" alt=""/>
+    </div>
+    <!-- Auth screen HUD (shown on first entry / after sign-out) -->
+    <div id="auth-hud">
+      <div>
+        <button id="auth-guest-btn">Play as a Guest</button>
+        <div class="auth-divider"><span>or</span></div>
+        <div id="auth-google-desc">Sign in with Google to save your high scores across devices.</div>
+        <button id="auth-google-signin-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          </svg>
+          Sign in with Google
+        </button>
+      </div>
     </div>
   </div>
 
 <script>
+if (screen.orientation?.lock) screen.orientation.lock('portrait').catch(() => {});
+
+// ── Firebase init (must come first — accessed by showProfileModal on load) ──
+const firebaseConfig = {
+  apiKey: "AIzaSyDhH-JN3DB_ypZPJ-J6q1EQCdDSdOA7TEE",
+  authDomain: "bird-hunt-2026.firebaseapp.com",
+  projectId: "bird-hunt-2026",
+  storageBucket: "bird-hunt-2026.firebasestorage.app",
+  messagingSenderId: "688511974099",
+  appId: "1:688511974099:web:20dff822ae0d1163677226",
+  measurementId: "G-0LHPR3WN9S"
+};
+firebase.initializeApp(firebaseConfig);
+const _fbAuth = firebase.auth();
+const _db     = firebase.firestore();
+
 const canvas = document.getElementById('canvas');
 const ctx    = canvas.getContext('2d');
 ctx.imageSmoothingEnabled = false;
@@ -596,6 +1304,215 @@ const BAND_SNAP_DUR = 350;
 let highScore = 0;
 try { highScore = parseInt(localStorage.getItem('birdHuntHS') || '0') || 0; } catch(e) {}
 
+// ── Profile System ────────────────────────────────────────────────────────
+const PROFILE_KEY = 'birdHuntProfile';
+
+// 8 distinct hunter characters — each has a unique sprite + palette
+// Palette: pal[0..N], indexed as code-1 in sprite (1-based codes)
+// pal[0]=skin, rest vary per character
+// 2 female hunters: index 6 (warrior) and 7 (explorer)
+const HUNTERS = [
+  { name: 'קאובוי', svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#C8E8F8"/><rect x="22" y="2" width="56" height="46" fill="#7B4A18" rx="4"/><rect x="30" y="4" width="16" height="42" fill="#9B6030" rx="3" opacity="0.4"/><rect x="22" y="44" width="56" height="7" fill="#2A0800"/><rect x="4" y="50" width="92" height="12" fill="#8B5420" rx="6"/><rect x="4" y="59" width="92" height="3" fill="#4A2A08" rx="2"/><rect x="22" y="86" width="56" height="14" fill="#BB1800" rx="3"/><polygon points="42,86 50,76 58,86" fill="#991200"/><rect x="26" y="60" width="48" height="36" fill="#F0B870" rx="12"/><rect x="26" y="60" width="10" height="36" fill="#D09050" rx="8" opacity="0.4"/><rect x="64" y="60" width="10" height="36" fill="#D09050" rx="8" opacity="0.4"/><rect x="28" y="65" width="17" height="5" fill="#4A2800" rx="2"/><rect x="55" y="65" width="17" height="5" fill="#4A2800" rx="2"/><ellipse cx="37" cy="75" rx="7" ry="7" fill="#fff"/><circle cx="38" cy="75" r="5" fill="#2A1200"/><circle cx="39" cy="73" r="2" fill="#fff"/><ellipse cx="63" cy="75" rx="7" ry="7" fill="#fff"/><circle cx="64" cy="75" r="5" fill="#2A1200"/><circle cx="65" cy="73" r="2" fill="#fff"/><ellipse cx="50" cy="82" rx="5" ry="4" fill="#D09050"/><circle cx="47" cy="83" r="2" fill="#B07030" opacity="0.5"/><circle cx="53" cy="83" r="2" fill="#B07030" opacity="0.5"/><path d="M8,89 C16,83 28,82 38,88 C44,91 56,91 62,88 C72,82 84,83 92,89" stroke="#4A2000" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M40,94 Q50,100 60,94" stroke="#906030" stroke-width="3" fill="none" stroke-linecap="round"/></svg>` },
+  { name: "ריינג'ר", svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#4A6030"/><ellipse cx="50" cy="2" rx="50" ry="12" fill="#3A5220"/><rect x="0" y="2" width="100" height="50" fill="#3A5220"/><rect x="0" y="44" width="100" height="12" fill="#2A3A18"/><rect x="0" y="54" width="14" height="16" fill="#2A3A18" rx="2"/><rect x="86" y="54" width="14" height="16" fill="#2A3A18" rx="2"/><rect x="14" y="86" width="72" height="14" fill="#3A5220" rx="3"/><rect x="14" y="54" width="72" height="38" fill="#C8A060" rx="8"/><rect x="14" y="54" width="14" height="38" fill="#A88040" rx="6" opacity="0.5"/><rect x="72" y="54" width="14" height="38" fill="#A88040" rx="6" opacity="0.5"/><rect x="14" y="64" width="72" height="10" fill="#4A6030" opacity="0.35" rx="2"/><rect x="16" y="62" width="22" height="6" fill="#2A2000" rx="2"/><rect x="62" y="62" width="22" height="6" fill="#2A2000" rx="2"/><ellipse cx="27" cy="75" rx="8" ry="7" fill="#fff"/><circle cx="28" cy="75" r="5" fill="#1A1000"/><circle cx="29" cy="73" r="2" fill="#fff"/><ellipse cx="73" cy="75" rx="8" ry="7" fill="#fff"/><circle cx="74" cy="75" r="5" fill="#1A1000"/><circle cx="75" cy="73" r="2" fill="#fff"/><rect x="44" y="78" width="12" height="10" fill="#A88040" rx="5"/><rect x="30" y="87" width="40" height="5" fill="#7A5020" rx="2"/><line x1="30" y1="89" x2="70" y2="89" stroke="#5A3810" stroke-width="1.5"/><line x1="18" y1="66" x2="24" y2="80" stroke="#8A6030" stroke-width="2" opacity="0.6"/></svg>` },
+  { name: 'זקן כועס', svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#E87800"/><ellipse cx="50" cy="8" rx="44" ry="22" fill="#CC5500"/><rect x="8" y="8" width="84" height="24" fill="#CC5500"/><rect x="2" y="30" width="96" height="10" fill="#AA3A00" rx="4"/><rect x="20" y="86" width="60" height="14" fill="#DD6600" rx="3"/><rect x="20" y="38" width="60" height="52" fill="#ECC880" rx="10"/><rect x="20" y="38" width="12" height="52" fill="#CCA860" rx="8" opacity="0.4"/><rect x="68" y="38" width="12" height="52" fill="#CCA860" rx="8" opacity="0.4"/><polygon points="22,48 40,52 40,57 22,53" fill="#2A1000"/><polygon points="60,52 78,48 78,53 60,57" fill="#2A1000"/><ellipse cx="31" cy="62" rx="9" ry="6" fill="#fff"/><circle cx="32" cy="62" r="4" fill="#1A0800"/><circle cx="33" cy="60" r="1.5" fill="#fff"/><ellipse cx="69" cy="62" rx="9" ry="6" fill="#fff"/><circle cx="70" cy="62" r="4" fill="#1A0800"/><circle cx="71" cy="60" r="1.5" fill="#fff"/><ellipse cx="50" cy="71" rx="8" ry="6" fill="#CCA860"/><ellipse cx="50" cy="90" rx="32" ry="22" fill="#CCCCBE"/><rect x="18" y="72" width="64" height="28" fill="#CCCCBE" rx="8"/><ellipse cx="50" cy="73" rx="22" ry="8" fill="#DDDDCF"/><path d="M38,80 Q50,75 62,80" stroke="#9A9A8A" stroke-width="3" fill="none" stroke-linecap="round"/></svg>` },
+  { name: 'ספורטאי', svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#48A8E0"/><ellipse cx="50" cy="20" rx="42" ry="26" fill="#1A44CC"/><rect x="8" y="6" width="84" height="28" fill="#1A44CC"/><rect x="4" y="2" width="92" height="8" fill="#0E2EA8" rx="3"/><circle cx="50" cy="6" r="4" fill="#0E2EA8"/><rect x="20" y="86" width="60" height="14" fill="#F0F0EE" rx="3"/><rect x="22" y="30" width="56" height="58" fill="#E8A060" rx="14"/><rect x="22" y="30" width="10" height="58" fill="#C88040" rx="8" opacity="0.4"/><rect x="68" y="30" width="10" height="58" fill="#C88040" rx="8" opacity="0.4"/><path d="M26,42 Q36,37 42,41" stroke="#7A4A20" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M58,41 Q64,37 74,42" stroke="#7A4A20" stroke-width="4" fill="none" stroke-linecap="round"/><ellipse cx="35" cy="52" rx="9" ry="9" fill="#fff"/><circle cx="36" cy="52" r="6" fill="#2A1200"/><circle cx="38" cy="50" r="2.5" fill="#fff"/><ellipse cx="65" cy="52" rx="9" ry="9" fill="#fff"/><circle cx="66" cy="52" r="6" fill="#2A1200"/><circle cx="68" cy="50" r="2.5" fill="#fff"/><circle cx="27" cy="60" r="2.5" fill="#B07030" opacity="0.7"/><circle cx="33" cy="62" r="2" fill="#B07030" opacity="0.6"/><circle cx="67" cy="62" r="2" fill="#B07030" opacity="0.6"/><circle cx="73" cy="60" r="2.5" fill="#B07030" opacity="0.7"/><ellipse cx="50" cy="64" rx="6" ry="5" fill="#C88040"/><path d="M30,74 Q50,88 70,74 Q50,82 30,74" fill="#fff"/><line x1="40" y1="74" x2="40" y2="82" stroke="#DDD" stroke-width="1"/><line x1="50" y1="74" x2="50" y2="83" stroke="#DDD" stroke-width="1"/><line x1="60" y1="74" x2="60" y2="82" stroke="#DDD" stroke-width="1"/><path d="M34,82 Q50,90 66,82" stroke="#C88040" stroke-width="2" fill="none" stroke-linecap="round"/></svg>` },
+  { name: 'מחוספס', svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#223040"/><rect x="16" y="86" width="68" height="14" fill="#1A2A38" rx="3"/><ellipse cx="50" cy="12" rx="50" ry="26" fill="#334455"/><rect x="0" y="2" width="100" height="24" fill="#334455"/><rect x="0" y="22" width="100" height="12" fill="#445566" rx="2"/><line x1="0" y1="24" x2="100" y2="24" stroke="#334455" stroke-width="1.5"/><line x1="0" y1="27" x2="100" y2="27" stroke="#334455" stroke-width="1.5"/><line x1="0" y1="30" x2="100" y2="30" stroke="#334455" stroke-width="1.5"/><rect x="10" y="32" width="80" height="56" fill="#8A5020" rx="10"/><rect x="10" y="32" width="14" height="56" fill="#6A3A0A" rx="8" opacity="0.5"/><rect x="76" y="32" width="14" height="56" fill="#6A3A0A" rx="8" opacity="0.5"/><rect x="12" y="40" width="76" height="9" fill="#1A0800" rx="4"/><ellipse cx="30" cy="56" rx="10" ry="9" fill="#fff"/><circle cx="31" cy="56" r="6" fill="#0A0400"/><circle cx="33" cy="54" r="2.5" fill="#fff"/><ellipse cx="70" cy="56" rx="10" ry="9" fill="#fff"/><circle cx="71" cy="56" r="6" fill="#0A0400"/><circle cx="73" cy="54" r="2.5" fill="#fff"/><ellipse cx="50" cy="65" rx="9" ry="7" fill="#6A3A0A"/><circle cx="45" cy="67" r="3" fill="#4A2000" opacity="0.5"/><circle cx="55" cy="67" r="3" fill="#4A2000" opacity="0.5"/><rect x="10" y="72" width="80" height="26" fill="#5A2A08" rx="8" opacity="0.6"/><path d="M34,78 Q50,74 66,78" stroke="#2A0800" stroke-width="4" fill="none" stroke-linecap="round"/></svg>` },
+  { name: "פרופ'", svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#F5ECD8"/><rect x="22" y="86" width="56" height="14" fill="#EEEEEE" rx="3"/><polygon points="34,86 50,80 66,86 50,92" fill="#553388"/><circle cx="50" cy="86" r="4" fill="#442277"/><ellipse cx="50" cy="8" rx="40" ry="20" fill="#221100"/><rect x="10" y="2" width="80" height="26" fill="#221100"/><rect x="46" y="2" width="8" height="26" fill="#F5E0C0"/><rect x="22" y="26" width="56" height="62" fill="#F5E0C0" rx="12"/><rect x="22" y="26" width="10" height="62" fill="#DDCAA8" rx="8" opacity="0.4"/><rect x="68" y="26" width="10" height="62" fill="#DDCAA8" rx="8" opacity="0.4"/><path d="M26,36 Q36,32 42,35" stroke="#332200" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M58,35 Q64,32 74,36" stroke="#332200" stroke-width="3" fill="none" stroke-linecap="round"/><ellipse cx="20" cy="46" rx="5" ry="8" fill="#F5E0C0"/><ellipse cx="80" cy="46" rx="5" ry="8" fill="#F5E0C0"/><circle cx="36" cy="50" r="12" fill="none" stroke="#CC8822" stroke-width="3"/><circle cx="64" cy="50" r="12" fill="none" stroke="#CC8822" stroke-width="3"/><path d="M48,50 L52,50" stroke="#CC8822" stroke-width="3"/><circle cx="36" cy="50" r="8" fill="#fff"/><circle cx="37" cy="50" r="5" fill="#1A1000"/><circle cx="38" cy="48" r="2" fill="#fff"/><circle cx="64" cy="50" r="8" fill="#fff"/><circle cx="65" cy="50" r="5" fill="#1A1000"/><circle cx="66" cy="48" r="2" fill="#fff"/><ellipse cx="50" cy="62" rx="6" ry="5" fill="#DDCAA8"/><path d="M38,74 Q50,82 62,74" stroke="#AA8050" stroke-width="3" fill="none" stroke-linecap="round"/></svg>` },
+  { name: 'לוחמת', svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#8A2A00"/><rect x="14" y="84" width="72" height="16" fill="#224488" rx="3"/><circle cx="14" cy="62" r="5" fill="#FFD700"/><circle cx="86" cy="62" r="5" fill="#FFD700"/><ellipse cx="50" cy="10" rx="40" ry="18" fill="#1A0A00"/><rect x="10" y="4" width="80" height="26" fill="#1A0A00"/><rect x="4" y="22" width="20" height="64" fill="#1A0A00" rx="6"/><rect x="76" y="22" width="20" height="64" fill="#1A0A00" rx="6"/><rect x="22" y="28" width="56" height="58" fill="#C07040" rx="12"/><rect x="22" y="28" width="10" height="58" fill="#A05020" rx="8" opacity="0.4"/><rect x="68" y="28" width="10" height="58" fill="#A05020" rx="8" opacity="0.4"/><circle cx="50" cy="34" r="4" fill="#CC2200"/><line x1="18" y1="48" x2="36" y2="70" stroke="#CC2200" stroke-width="5" stroke-linecap="round"/><line x1="22" y1="44" x2="38" y2="62" stroke="#CC2200" stroke-width="5" stroke-linecap="round" opacity="0.6"/><line x1="64" y1="70" x2="82" y2="48" stroke="#CC2200" stroke-width="5" stroke-linecap="round"/><line x1="62" y1="62" x2="78" y2="44" stroke="#CC2200" stroke-width="5" stroke-linecap="round" opacity="0.6"/><path d="M26,42 Q36,36 44,40" stroke="#0A0400" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M56,40 Q64,36 74,42" stroke="#0A0400" stroke-width="5" fill="none" stroke-linecap="round"/><ellipse cx="35" cy="52" rx="10" ry="7" fill="#fff"/><circle cx="36" cy="52" r="5" fill="#1A0800"/><circle cx="38" cy="50" r="2" fill="#fff"/><ellipse cx="65" cy="52" rx="10" ry="7" fill="#fff"/><circle cx="66" cy="52" r="5" fill="#1A0800"/><circle cx="68" cy="50" r="2" fill="#fff"/><ellipse cx="50" cy="64" rx="7" ry="6" fill="#A05020"/><path d="M36,76 Q50,72 64,76" stroke="#7A3010" stroke-width="4" fill="none" stroke-linecap="round"/></svg>` },
+  { name: 'חוקרת', svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#E8CC80"/><rect x="18" y="84" width="64" height="16" fill="#CC8800" rx="3"/><rect x="26" y="86" width="14" height="10" fill="#AA6600" rx="2"/><rect x="60" y="86" width="14" height="10" fill="#AA6600" rx="2"/><ellipse cx="50" cy="22" rx="50" ry="14" fill="#B08040"/><rect x="0" y="10" width="100" height="16" fill="#B08040" rx="2"/><ellipse cx="50" cy="10" rx="36" ry="18" fill="#C09448"/><rect x="14" y="2" width="72" height="14" fill="#C09448"/><rect x="14" y="22" width="72" height="6" fill="#7B5A20"/><rect x="22" y="32" width="56" height="56" fill="#F5D098" rx="12"/><rect x="22" y="32" width="10" height="56" fill="#D8B070" rx="8" opacity="0.4"/><rect x="68" y="32" width="10" height="56" fill="#D8B070" rx="8" opacity="0.4"/><path d="M26,38 Q36,33 44,37" stroke="#8A5020" stroke-width="3.5" fill="none" stroke-linecap="round"/><path d="M56,37 Q64,33 74,38" stroke="#8A5020" stroke-width="3.5" fill="none" stroke-linecap="round"/><rect x="18" y="42" width="64" height="16" fill="#1A6688" rx="8"/><rect x="20" y="44" width="60" height="12" fill="#1E7AA0" rx="6"/><rect x="22" y="44" width="25" height="5" fill="#28A8D0" rx="4" opacity="0.5"/><rect x="53" y="44" width="25" height="5" fill="#28A8D0" rx="4" opacity="0.5"/><rect x="47" y="45" width="6" height="8" fill="#0A4A60" rx="2"/><ellipse cx="50" cy="66" rx="7" ry="6" fill="#D8B070"/><ellipse cx="28" cy="70" rx="9" ry="6" fill="#F0A080" opacity="0.35"/><ellipse cx="72" cy="70" rx="9" ry="6" fill="#F0A080" opacity="0.35"/><path d="M32,76 Q50,90 68,76 Q50,84 32,76" fill="#fff"/><line x1="42" y1="76" x2="42" y2="84" stroke="#DDD" stroke-width="1"/><line x1="50" y1="76" x2="50" y2="86" stroke="#DDD" stroke-width="1"/><line x1="58" y1="76" x2="58" y2="84" stroke="#DDD" stroke-width="1"/><path d="M36,84 Q50,90 64,84" stroke="#D8B070" stroke-width="2" fill="none" stroke-linecap="round"/></svg>` },
+];
+
+const HUNTER_IMGS = [
+  'hunter_oldschool.jpeg',
+  'hunter_camo.jpeg',
+  'hunter_blackops.jpeg',
+  'hunter_hipster.jpeg',
+  'hunter_young.jpeg',
+  'hunter_arab.jpeg',
+  'hunter_russian.jpeg',
+  'hunter_safari.jpeg',
+];
+
+// ── Profile CRUD ──────────────────────────────────────────────────────────
+let userProfile = null;
+
+function _getStoredProfile() {
+  try { return JSON.parse(localStorage.getItem(PROFILE_KEY) || 'null'); } catch(e) { return null; }
+}
+
+function _makeProfile(displayName, avatarIndex) {
+  return {
+    uid: 'local_' + Math.random().toString(36).substr(2, 9),
+    displayName,
+    avatarIndex,
+    provider: 'local',
+    createdAt: new Date().toISOString(),
+    stats: { highScore: 0, gamesPlayed: 0 },
+  };
+}
+
+// ── Modal logic ───────────────────────────────────────────────────────────
+let _profileMode = 'create';
+let _pickedAvatar = 0;
+
+function _buildAvatarGrid() {
+  const track = document.getElementById('avatar-track');
+  track.innerHTML = '';
+  HUNTERS.forEach((hunter, i) => {
+    const cell = document.createElement('div');
+    cell.className = 'avatar-cell' + (i === _pickedAvatar ? ' selected' : '');
+    cell.title = hunter.name;
+    const img = document.createElement('img');
+    img.src = HUNTER_IMGS[i];
+    img.alt = hunter.name;
+    cell.appendChild(img);
+    cell.addEventListener('click', () => {
+      playSfx('button');
+      _pickedAvatar = i;
+      track.querySelectorAll('.avatar-cell').forEach(el => el.classList.remove('selected'));
+      cell.classList.add('selected');
+      track.scrollTo({ left: cell.offsetLeft - (track.offsetWidth - cell.offsetWidth) / 2, behavior: 'smooth' });
+      document.activeElement.blur();
+    });
+    track.appendChild(cell);
+  });
+  requestAnimationFrame(() => {
+    const sel = track.querySelector('.avatar-cell.selected');
+    if (sel) track.scrollTo({ left: sel.offsetLeft - (track.offsetWidth - sel.offsetWidth) / 2, behavior: 'instant' });
+  });
+}
+
+function showProfileModal(mode, prefill) {
+  _profileMode = mode || 'create';
+  _pickedAvatar = prefill ? (prefill.avatarIndex ?? 0) : (userProfile ? userProfile.avatarIndex : 0);
+  const isHello = _profileMode === 'hello';
+  const isCreate = _profileMode === 'create';
+  document.getElementById('profile-title').textContent =
+    isHello ? 'Hello, hunter' : (isCreate ? 'Create Profile' : 'Edit Profile');
+  document.getElementById('profile-subtitle').style.display =
+    (isCreate || isHello) ? '' : 'none';
+  document.getElementById('profile-cancel-btn').style.display =
+    (_profileMode === 'edit' || _profileMode === 'hello') ? '' : 'none';
+  const googleSection = document.getElementById('intro-google-section');
+  if (_profileMode === 'edit' || isHello) {
+    googleSection.classList.add('hidden');
+  } else {
+    googleSection.classList.remove('hidden');
+  }
+  document.getElementById('name-input').value =
+    (_profileMode === 'edit' && userProfile) ? userProfile.displayName : (prefill ? (prefill.displayName || '') : '');
+  document.getElementById('name-error').textContent = (prefill && prefill.nameError) ? prefill.nameError : '';
+  _buildAvatarGrid();
+  // No body scroll-lock needed: html,body already have overflow:hidden for the game.
+  document.getElementById('profile-overlay').classList.add('visible');
+  setTimeout(() => document.getElementById('name-input').focus(), 120);
+}
+
+function _hideProfileModal() {
+  document.getElementById('profile-overlay').classList.remove('visible');
+  _resetSheetPosition();
+}
+
+async function _saveProfileFromModal() {
+  const name = document.getElementById('name-input').value.trim();
+  const nameErrorEl = document.getElementById('name-error');
+  if (!name) {
+    const inp = document.getElementById('name-input');
+    inp.classList.add('input-error');
+    inp.focus();
+    setTimeout(() => inp.classList.remove('input-error'), 400);
+    return;
+  }
+  // Check name uniqueness via dedicated usernames collection (read: if true — no auth needed)
+  const currentUid = userProfile?.uid ?? _fbAuth.currentUser?.uid ?? null;
+  try {
+    const available = await _checkNameAvailable(name.toLowerCase(), currentUid);
+    if (!available) {
+      nameErrorEl.textContent = 'Username already taken';
+      const inp = document.getElementById('name-input');
+      inp.classList.add('input-error');
+      setTimeout(() => inp.classList.remove('input-error'), 400);
+      return;
+    }
+  } catch(e) { console.error('Name uniqueness check:', e); }
+  nameErrorEl.textContent = '';
+  let releaseNameLower = null;
+  if (_profileMode === 'create' || _profileMode === 'hello') {
+    userProfile = _makeProfile(name, _pickedAvatar);
+    // carry over any high score from old localStorage key
+    if (highScore > 0) userProfile.stats.highScore = highScore;
+    // Link to Google account if the user just signed in with Google
+    const fbUser = _fbAuth.currentUser;
+    if (fbUser && !fbUser.isAnonymous) {
+      userProfile.uid = fbUser.uid;
+      userProfile.provider = 'google';
+    }
+  } else {
+    if (userProfile.displayName.toLowerCase() !== name.toLowerCase()) {
+      releaseNameLower = userProfile.displayName.toLowerCase();
+    }
+    userProfile.displayName = name;
+    userProfile.avatarIndex = _pickedAvatar;
+  }
+  _persistProfile(userProfile, releaseNameLower);
+  _hideProfileModal();
+  if (_profileMode === 'hello') hideAuthScreen();
+  _updateProfileChip();
+}
+
+// ── Profile chip render ───────────────────────────────────────────────────
+function _updateProfileChip() {
+  if (!userProfile) return;
+  const chip = document.getElementById('profile-chip');
+  chip.style.display = 'flex';
+  document.getElementById('info-btn').style.display = 'flex';
+  document.getElementById('settings-btn').style.display = 'flex';
+  const hs = userProfile.stats.highScore;
+  document.getElementById('profile-chip-hs').textContent = String(hs);
+  document.getElementById('profile-chip-img').src = HUNTER_IMGS[userProfile.avatarIndex];
+}
+
+// ── First-launch init ─────────────────────────────────────────────────────
+function initProfile() {
+  userProfile = _getStoredProfile();
+  if (!userProfile) {
+    showAuthScreen();
+  } else {
+    // Merge old high-score key if needed
+    if (highScore > userProfile.stats.highScore) {
+      userProfile.stats.highScore = highScore;
+      _persistProfile(userProfile);
+    }
+    highScore = userProfile.stats.highScore;
+    _updateProfileChip();
+  }
+}
+
+// ── Wire up modal buttons ─────────────────────────────────────────────────
+document.getElementById('profile-save-btn').addEventListener('click', () => {
+  playSfx('button');
+  _saveProfileFromModal();
+});
+document.getElementById('profile-cancel-btn').addEventListener('click', () => {
+  playSfx('button');
+  document.getElementById('name-input').blur();
+  _hideProfileModal();
+  if (_profileMode === 'hello') {
+    const cu = _fbAuth.currentUser;
+    if (cu && !cu.isAnonymous) {
+      _fbAuth.signOut();
+    }
+    // Delay slightly so the keyboard finishes dismissing before we measure layout
+    setTimeout(showAuthScreen, 50);
+  }
+});
+document.getElementById('name-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); _saveProfileFromModal(); }
+});
+document.getElementById('name-input').addEventListener('input', () => {
+  document.getElementById('name-error').textContent = '';
+});
+
 // ── Intro Screen ──────────────────────────────────────────────────────────
 function initIntroStars() {
   const back    = document.getElementById('intro-clouds');
@@ -610,13 +1527,13 @@ function initIntroStars() {
   // layer: 'front'    → in front of title text (z-index 4)
   // layer: 'ls-front' → behind in portrait, in front in landscape (z-index 4)
   const cloudData = [
-    { left: 2,  top: 10, w: 11, layer: 'back'     }, // top-left, title in front
-    { left: 8,  top: 29, w: 14, layer: 'front'    }, // center-left, overlaps title
-    { left: 48, top: 6,  w: 10, layer: 'back'     }, // top-center, title in front
-    { left: 62, top: 32, w: 12, layer: 'ls-front', dx: 50 }, // lower-right, front in landscape
-    { left: 84, top: 18, w:  9, layer: 'front'    }, // right, overlaps title edge
+    { left: 2,  top: 20, w: 11, layer: 'back'     }, // top-left, title in front
+    { left: 8,  top: 39, w: 14, layer: 'front', dy: 5 }, // center-left, overlaps title
+    { left: 48, top: 16, w: 10, layer: 'back'     }, // top-center, title in front
+    { left: 62, top: 42, w: 12, layer: 'ls-front', dx: 50, dy: 5 }, // lower-right, front in landscape
+    { left: 84, top: 28, w:  9, layer: 'front'    }, // right, overlaps title edge
   ];
-  cloudData.forEach(({ left, top, w, layer, dx = 0 }, i) => {
+  cloudData.forEach(({ left, top, w, layer, dx = 0, dy = 0 }, i) => {
     const target = layer === 'front' && front   ? front
                  : layer === 'ls-front' && lsFront ? lsFront
                  : back;
@@ -628,7 +1545,7 @@ function initIntroStars() {
     body.style.cssText = [
       'position:absolute',
       `left:calc(${left}% + ${dx}px)`,
-      `top:calc(${top}% + ${CP}px)`,
+      `top:calc(${top}% + ${CP + dy}px)`,
       `width:${w * CP}px`,
       `height:${3 * CP}px`,
       'background:#fff',
@@ -640,7 +1557,7 @@ function initIntroStars() {
     puff.style.cssText = [
       'position:absolute',
       `left:calc(${left}% + ${dx + CP}px)`,
-      `top:${top}%`,
+      `top:calc(${top}% + ${dy}px)`,
       `width:${(w - 2) * CP}px`,
       `height:${CP + 4}px`,
       'background:#fff',
@@ -659,6 +1576,7 @@ function showIntro() {
   document.getElementById('game-over-overlay').classList.remove('visible');
   document.getElementById('intro-screen').classList.remove('hidden');
   startIntroBirdAnim();
+  if (userProfile) _updateProfileChip();
 }
 
 function startGame() {
@@ -903,6 +1821,7 @@ fetch('631739__walllable__looped-rubber-y-stretch.wav')
   .catch(() => {});
 
 async function startStretchSound() {
+  if (!soundEnabled) return;
   try {
     stopStretchSound();
     const ctx = _getAudioCtx();
@@ -1007,10 +1926,23 @@ function _resumeAndFire(ctx, fn) {
   ctx.resume().then(fn).catch(() => {});
 }
 
+let soundEnabled = localStorage.getItem('soundEnabled') !== 'false';
+
+function _applySoundUI() {
+  const on  = document.getElementById('settings-sound-icon-on');
+  const off = document.getElementById('settings-sound-icon-off');
+  const btn = document.getElementById('settings-sound-btn');
+  if (!on || !off || !btn) return;
+  on.style.display  = soundEnabled ? '' : 'none';
+  off.style.display = soundEnabled ? 'none' : '';
+  btn.classList.toggle('muted', !soundEnabled);
+}
+
 function playSfx(key, gain = 1, rate = 1) {
+  if (!soundEnabled) return;
   try {
     const ctx = _getAudioCtx();
-    const play = (buf, trim) => { if (ctx.state === 'running') _playSfxBuf(ctx, buf, trim, gain, rate); };
+    const play = (buf, trim) => { if (ctx.state === 'running' && soundEnabled) _playSfxBuf(ctx, buf, trim, gain, rate); };
     _resumeAndFire(ctx, () => _decodeAndPlay(ctx, _sfx[key], play));
   } catch(e) {}
 }
@@ -1029,6 +1961,7 @@ function preloadSfx() {
 let _tickingSource = null;
 function _startTicking() {
   if (_tickingSource) return;
+  if (!soundEnabled) return;
   try {
     const ctx = _getAudioCtx();
     const s = _sfx.ticking;
@@ -1133,6 +2066,7 @@ function spawnParticles(x, y, isFire = false) {
 
 // ── Hit sound ─────────────────────────────────────────────────────────────
 async function playHitSound() {
+  if (!soundEnabled) return;
   try {
     const ctx = _getAudioCtx();
     if (ctx.state !== 'running') await ctx.resume();
@@ -1191,17 +2125,20 @@ function onHit(bx, by) {
     timeLeft = Math.min(timeLeft + TIME_BONUS, 99);
     if (timeLeft > 10) _stopTicking();
     playSfx('extra');
-    addFloatingText('+10 שניות', bx, by - 56, '#44FF88', 18);
+    const gap = 29; // natural gap: (by-30) - (by-59)
+    const bonusY = Math.max(UI_TOP_H + 16 + 4, by - 59);
+    addFloatingText('+10s', bx, bonusY, '#44FF88', 16);
+    addFloatingText('+' + pts, bx, bonusY + gap, isFireStone ? '#FF8800' : '#FFD700', 16);
+  } else {
+    addFloatingText('+' + pts, bx, by - 30, isFireStone ? '#FF8800' : '#FFD700', 16);
   }
-
-  addFloatingText('+' + pts, bx, by - 30, isFireStone ? '#FF8800' : '#FFD700', 18, true);
   spawnParticles(bx, by, isFireStone);
 
   // Activate fire stone at 3 consecutive hits
   if (!isFireStone && consecutiveHits >= FIRE_COMBO) {
     isFireStone = true;
     playSfx('fire');
-    addFloatingText('אבן אש!', SLING_X + 70, SLING_Y - 50, '#FF4400', 18);
+    addFloatingText('Firestone', SLING_X + 70, SLING_Y - 50, '#FF4400', 16);
   }
 
   updateUI();
@@ -1233,7 +2170,7 @@ function onMiss() {
     const prevScale = stoneScale;
     stoneScale = Math.max(0.75, stoneScale * 0.75);
     if (stoneScale < prevScale && missCount < MISS_LIMIT)
-      addFloatingText('אבן קטנה', SLING_X + 70, SLING_Y - 50, '#FF8844', 18);
+      addFloatingText('Tiny stone', SLING_X + 70, SLING_Y - 50, '#FF8844', 16);
   }
 
   updateUI(true);
@@ -1260,17 +2197,24 @@ function endGame() {
     highScore = score;
     try { localStorage.setItem('birdHuntHS', highScore); } catch(e) {}
   }
+  if (userProfile) {
+    userProfile.stats.gamesPlayed = (userProfile.stats.gamesPlayed || 0) + 1;
+    if (isNew) userProfile.stats.highScore = highScore;
+    _persistProfile(userProfile);
+  }
   const EX  = '<span class="ex">!</span>';
-  const COL = '<span class="ex">:</span>';
-  const reasonText = timeLeft <= 0 ? `נגמר הזמן${EX}` : `<span class="ex">${MISS_LIMIT}</span> פספוסים${EX}`;
+  const reasonText = timeLeft <= 0 ? `Time's Up!` : `${MISS_LIMIT} Misses!`;
   document.getElementById('game-over-reason').innerHTML = reasonText;
   document.getElementById('score-val').textContent = score;
+  const hsEl = document.getElementById('game-over-hs');
   if (isNew) {
-    document.getElementById('hs-label').innerHTML = `★ שיא חדש${EX} ★`;
+    document.getElementById('hs-label').innerHTML = `<span class="nr-star">★</span>New Record!<span class="nr-star">★</span>`;
     document.getElementById('hs-val').textContent = '';
+    hsEl.classList.add('new-record');
   } else {
-    document.getElementById('hs-label').innerHTML = `שיא${COL}`;
+    document.getElementById('hs-label').innerHTML = `Best:`;
     document.getElementById('hs-val').textContent = highScore;
+    hsEl.classList.remove('new-record');
   }
   document.getElementById('game-over-overlay').classList.add('visible');
 }
@@ -1359,6 +2303,13 @@ function update(dt) {
     const go = gp.x > VW + 60 || gp.x < -60 || gp.y > H + 60;
     const gs = Math.abs(gp.vx) < 0.3 && Math.abs(gp.vy) < 0.3 && gp.y + gp.r >= GROUND_Y - 2;
     if (go || gs) ghostProjectile = null;
+    // Fire ambient trail for ghost
+    if (ghostProjectile && gp.isFire && Math.random() < 0.5) {
+      const colors = ['#FF6600','#FF4400','#FFCC00','#FF8800'];
+      particles.push({ x: gp.x + (Math.random()-0.5)*gp.r, y: gp.y + (Math.random()-0.5)*gp.r,
+        vx: (Math.random()-0.5)*1.5, vy: -1.5 - Math.random()*2,
+        life: 1, color: colors[Math.floor(Math.random()*colors.length)] });
+    }
   }
 
   if (phase !== 'flying') return;
@@ -1558,8 +2509,19 @@ function drawProjectile() {
     if (ghostProjectile) {
       ctx.save();
       ctx.scale(SCALE, SCALE);
+      const gpe = ghostProjectile;
+      if (gpe.isFire) {
+        ctx.globalAlpha = 0.45 * 0.35;
+        const grad = ctx.createRadialGradient(gpe.x, gpe.y, 0, gpe.x, gpe.y, gpe.r * 2.2);
+        grad.addColorStop(0, '#FFAA00');
+        grad.addColorStop(1, 'rgba(255,80,0,0)');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(gpe.x, gpe.y, gpe.r * 2.2, 0, Math.PI * 2);
+        ctx.fill();
+      }
       ctx.globalAlpha = 0.45;
-      drawSprite(STONE_SPR, ghostProjectile.isFire ? FIRE_STONE_PAL : STONE_PAL, ghostProjectile.x, ghostProjectile.y, false, ghostProjectile.scale);
+      drawSprite(STONE_SPR, gpe.isFire ? FIRE_STONE_PAL : STONE_PAL, gpe.x, gpe.y, false, gpe.scale);
       ctx.globalAlpha = 1;
       ctx.restore();
     }
@@ -1599,6 +2561,16 @@ function drawProjectile() {
   // Ghost: previous stone still flying after early miss
   if (ghostProjectile) {
     const gp = ghostProjectile;
+    if (gp.isFire) {
+      ctx.globalAlpha = 0.45 * 0.35;
+      const grad = ctx.createRadialGradient(gp.x, gp.y, 0, gp.x, gp.y, gp.r * 2.2);
+      grad.addColorStop(0, '#FFAA00');
+      grad.addColorStop(1, 'rgba(255,80,0,0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(gp.x, gp.y, gp.r * 2.2, 0, Math.PI * 2);
+      ctx.fill();
+    }
     ctx.globalAlpha = 0.45;
     drawSprite(STONE_SPR, gp.isFire ? FIRE_STONE_PAL : STONE_PAL, gp.x, gp.y, false, gp.scale);
     ctx.globalAlpha = 1;
@@ -1647,7 +2619,7 @@ function drawFloatingTexts() {
   floatingTexts.forEach(ft => {
     if (ft.y < UI_TOP_H) return;
     const isHebrew = ft.forceSystemFont || /[\u0590-\u05FF]/.test(ft.text);
-    ctx.font = `bold ${ft.size}px ${isHebrew ? 'system-ui, -apple-system, sans-serif' : '"Press Start 2P", monospace'}`;
+    ctx.font = `500 ${ft.size}px ${isHebrew ? 'system-ui, -apple-system, sans-serif' : '"Press Start 2P", monospace'}`;
     ctx.direction = isHebrew ? 'rtl' : 'ltr';
     ctx.globalAlpha = Math.min(1, ft.life * 1.5);
     const halfW = ctx.measureText(ft.text).width / 2;
@@ -1939,9 +2911,10 @@ function introLoopBirds(timestamp) {
 }
 
 function positionIntroHud() {
-  const hud      = document.getElementById('intro-hud');
+  const hud        = document.getElementById('intro-hud');
   const logoBottom = document.getElementById('intro-logo').getBoundingClientRect().bottom;
-  const midY     = (logoBottom + window.innerHeight) / 2;
+  const grassTop   = document.getElementById('intro-ground').getBoundingClientRect().top;
+  const midY       = (logoBottom + grassTop) / 2;
   hud.style.top       = midY + 'px';
   hud.style.transform = 'translateY(-50%)';
 }
@@ -1959,7 +2932,18 @@ function stopIntroBirdAnim() {
   if (introBirdAnimId) { cancelAnimationFrame(introBirdAnimId); introBirdAnimId = null; }
 }
 
-window.addEventListener('resize', () => { if (introBirdAnimId) { resizeIntroBirdCanvas(); positionIntroHud(); } });
+window.addEventListener('resize', () => {
+  if (introBirdAnimId) { resizeIntroBirdCanvas(); positionIntroHud(); }
+  if (document.getElementById('intro-screen').classList.contains('auth-mode')) positionAuthHud();
+});
+
+// #profile-popup is position:fixed; bottom:0 — on iOS Safari, fixed elements are
+// anchored to the visual viewport, so the sheet automatically sits above the keyboard
+// without any JS. No body scroll-lock, no visualViewport listeners needed.
+
+function _resetSheetPosition() {
+  // Nothing to reset: popup is pure CSS position:fixed, no inline styles applied.
+}
 
 let _audioWasBackgrounded = false;
 let _zombieCheckTimeout = null;
@@ -2023,16 +3007,273 @@ if (navigator.audioSession) navigator.audioSession.type = 'ambient';
 setupIdleState();
 initIntroStars();
 showIntro();
+initProfile();
 requestAnimationFrame(loop);
 preloadSfx();
 
-document.getElementById('howto-btn').addEventListener('click', () => {
+// If Safari restores the page from bfcache, re-check auth state
+window.addEventListener('pageshow', e => {
+  if (!e.persisted) return;
+  const stored = _getStoredProfile();
+  if (!stored && userProfile) {
+    userProfile = null;
+    highScore   = 0;
+    showAuthScreen();
+  }
+});
+
+document.getElementById('info-btn').addEventListener('click', () => {
   playSfx('button');
   document.getElementById('howto-overlay').classList.add('visible');
 });
 document.getElementById('howto-got-it').addEventListener('click', () => {
   playSfx('button');
   document.getElementById('howto-overlay').classList.remove('visible');
+});
+
+// ── Firebase / Google Auth + Firestore ────────────────────────────────────
+// (Firebase is initialized at the top of this script — see above)
+
+// ── Firestore helpers ──────────────────────────────────────────────────────
+async function _loadCloudProfile(uid) {
+  try {
+    const doc = await _db.collection('users').doc(uid).get();
+    return doc.exists ? doc.data() : null;
+  } catch(e) { console.error('Firestore load:', e); return null; }
+}
+
+// Checks if a username is available. Returns true if available.
+// Requires Firestore rule: match /usernames/{name} { allow read: if true; }
+async function _checkNameAvailable(nameLower, excludeUid) {
+  const doc = await _db.collection('usernames').doc(nameLower).get();
+  if (!doc.exists) return true;
+  return doc.data().uid === excludeUid;
+}
+
+// Releases a username claim from the usernames index.
+function _releaseUsername(nameLower) {
+  _db.collection('usernames').doc(nameLower).delete()
+    .catch(e => console.error('Release username:', e));
+}
+
+async function _saveCloudProfile(profile, releaseNameLower) {
+  if (!profile || profile.provider !== 'google') return;
+  try {
+    const batch = _db.batch();
+    batch.set(_db.collection('users').doc(profile.uid), {
+      displayName:      profile.displayName,
+      displayNameLower: profile.displayName.toLowerCase(),
+      avatarIndex:      profile.avatarIndex,
+      provider:         profile.provider,
+      stats:            profile.stats,
+      updatedAt:        firebase.firestore.FieldValue.serverTimestamp(),
+    }, { merge: true });
+    // Claim the username in the index (enables O(1) uniqueness checks)
+    batch.set(_db.collection('usernames').doc(profile.displayName.toLowerCase()), {
+      uid: profile.uid,
+    });
+    // Release old username atomically in the same batch
+    if (releaseNameLower && releaseNameLower !== profile.displayName.toLowerCase()) {
+      batch.delete(_db.collection('usernames').doc(releaseNameLower));
+    }
+    await batch.commit();
+  } catch(e) { console.error('Firestore save:', e); }
+}
+
+function _persistProfile(p, releaseNameLower) {
+  try { localStorage.setItem(PROFILE_KEY, JSON.stringify(p)); } catch(e) {}
+  userProfile = p;
+  if (p && p.provider === 'google') _saveCloudProfile(p, releaseNameLower);
+}
+
+// ── Auth screen ───────────────────────────────────────────────────────────
+function positionAuthHud() {
+  const hud      = document.getElementById('auth-hud');
+  const logoBottom = document.getElementById('intro-logo').getBoundingClientRect().bottom;
+  const grassTop   = document.getElementById('intro-ground').getBoundingClientRect().top;
+  const midY = (logoBottom + grassTop) / 2;
+  hud.style.top       = midY + 'px';
+  hud.style.transform = 'translateY(-50%)';
+}
+
+function showAuthScreen() {
+  document.getElementById('profile-chip').style.display = 'none';
+  document.getElementById('info-btn').style.display = 'none';
+  document.getElementById('settings-btn').style.display = 'none';
+  document.getElementById('intro-screen').classList.add('auth-mode');
+  positionAuthHud();
+}
+
+function hideAuthScreen() {
+  document.getElementById('intro-screen').classList.remove('auth-mode');
+  positionIntroHud();
+}
+
+// ── Sign-in loading overlay ────────────────────────────────────────────────
+function _showSigninLoading() {
+  document.getElementById('signin-loading').classList.add('visible');
+}
+function _hideSigninLoading() {
+  document.getElementById('signin-loading').classList.remove('visible');
+}
+
+// ── Google Sign-In / Sign-Out ──────────────────────────────────────────────
+function signInWithGoogle() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
+  // signInWithPopup works on all modern browsers; signInWithRedirect is broken
+  // on Chrome 115+, Firefox 109+, Safari 16.1+ due to third-party storage partitioning
+  _showSigninLoading();
+
+  // On iOS the popup opens as a new tab; overlay stays hidden in background.
+  // When user returns without signing in, hide the overlay within 1s.
+  let cancelTimer;
+  const onReturn = () => {
+    if (!document.hidden) {
+      document.removeEventListener('visibilitychange', onReturn);
+      cancelTimer = setTimeout(_hideSigninLoading, 1000);
+    }
+  };
+  document.addEventListener('visibilitychange', onReturn);
+
+  // If sign-in succeeds, onAuthStateChanged cancels the timer so overlay
+  // stays until the profile is fully loaded.
+  signInWithGoogle._cancel = () => { clearTimeout(cancelTimer); };
+
+  _fbAuth.signInWithPopup(provider).catch(err => {
+    clearTimeout(cancelTimer);
+    document.removeEventListener('visibilitychange', onReturn);
+    _hideSigninLoading();
+    console.error('Google sign-in:', err);
+  });
+}
+
+function signOutGoogle() {
+  _fbAuth.signOut().then(() => {
+    try { localStorage.removeItem(PROFILE_KEY); } catch(e) {}
+    userProfile = null;
+    highScore   = 0;
+    _updateGoogleSignInUI(null);
+    document.getElementById('settings-overlay').classList.remove('visible');
+    showAuthScreen();
+  }).catch(err => console.error('Sign-out:', err));
+}
+
+function _updateGoogleSignInUI(googleUser) {
+  const signinBtn   = document.getElementById('google-signin-btn');
+  const signoutRow  = document.getElementById('google-signout-row');
+  const introSection = document.getElementById('intro-google-section');
+  if (googleUser) {
+    signinBtn.style.display  = 'none';
+    signoutRow.classList.add('visible');
+    document.getElementById('google-user-email').textContent =
+      googleUser.email || googleUser.displayName || '';
+    introSection.classList.add('hidden');
+  } else {
+    signinBtn.style.display  = '';
+    signoutRow.classList.remove('visible');
+    if (_profileMode !== 'hello') introSection.classList.remove('hidden');
+  }
+}
+
+_fbAuth.onAuthStateChanged(async firebaseUser => {
+  _updateGoogleSignInUI(firebaseUser && !firebaseUser.isAnonymous ? firebaseUser : null);
+  if (!firebaseUser || firebaseUser.isAnonymous) return;
+
+  // Sign-in succeeded — cancel the fallback hide-timer so overlay stays
+  // until the profile is fully loaded below.
+  if (signInWithGoogle._cancel) { signInWithGoogle._cancel(); signInWithGoogle._cancel = null; }
+
+  // Google user — hide profile modal immediately to avoid flicker
+  _hideProfileModal();
+
+  const uid   = firebaseUser.uid;
+  const local = _getStoredProfile();
+  const cloud = await _loadCloudProfile(uid);
+  const localHS = local ? (local.stats?.highScore || 0) : 0;
+  const cloudHS = cloud ? (cloud.stats?.highScore  || 0) : 0;
+  const bestHS  = Math.max(localHS, cloudHS);
+
+  if (cloud) {
+    // Returning user — restore cloud profile and go straight to home
+    userProfile = _makeProfile(cloud.displayName || 'Player', cloud.avatarIndex ?? (local?.avatarIndex ?? 0));
+    userProfile.uid      = uid;
+    userProfile.provider = 'google';
+    userProfile.stats    = { ...(cloud.stats || {}), highScore: bestHS };
+    highScore = bestHS;
+    _persistProfile(userProfile);
+    hideAuthScreen();
+    _updateProfileChip();
+  } else if (local) {
+    // First Google sign-in but guest profile exists
+    const nameLower = (local.displayName || 'Player').toLowerCase();
+    const nameAvailable = await _checkNameAvailable(nameLower, uid);
+    if (nameAvailable) {
+      // Name is free — carry it over silently
+      userProfile = _makeProfile(local.displayName || 'Player', local.avatarIndex ?? 0);
+      userProfile.uid      = uid;
+      userProfile.provider = 'google';
+      userProfile.stats    = { ...(local.stats || {}), highScore: bestHS };
+      highScore = bestHS;
+      _persistProfile(userProfile);
+      hideAuthScreen();
+      _updateProfileChip();
+    } else {
+      // Name already claimed by another Google user — let this user pick a new one
+      highScore = bestHS;
+      hideAuthScreen();
+      showProfileModal('hello', {
+        avatarIndex: local.avatarIndex ?? 0,
+        displayName: local.displayName,
+        nameError: 'Username already taken',
+      });
+    }
+  } else {
+    // First Google sign-in with no prior profile — show Hello Hunter
+    highScore = bestHS;
+    hideAuthScreen();
+    showProfileModal('hello');
+  }
+  _hideSigninLoading();
+});
+
+document.getElementById('google-signin-btn').addEventListener('click', () => {
+  playSfx('button');
+  signInWithGoogle();
+});
+document.getElementById('intro-google-signin-btn').addEventListener('click', () => {
+  playSfx('button');
+  signInWithGoogle();
+});
+document.getElementById('auth-guest-btn').addEventListener('click', () => {
+  playSfx('button');
+  showProfileModal('hello');
+});
+document.getElementById('auth-google-signin-btn').addEventListener('click', () => {
+  playSfx('button');
+  signInWithGoogle();
+});
+document.getElementById('google-signout-btn').addEventListener('click', () => {
+  playSfx('button');
+  signOutGoogle();
+});
+
+// ── Settings popup ────────────────────────────────────────────────────────
+document.getElementById('settings-btn').addEventListener('click', () => {
+  playSfx('button');
+  _applySoundUI();
+  document.getElementById('settings-overlay').classList.add('visible');
+});
+document.getElementById('settings-done-btn').addEventListener('click', () => {
+  playSfx('button');
+  document.getElementById('settings-overlay').classList.remove('visible');
+});
+document.getElementById('settings-sound-btn').addEventListener('click', () => {
+  soundEnabled = !soundEnabled;
+  localStorage.setItem('soundEnabled', soundEnabled);
+  _applySoundUI();
+  if (!soundEnabled) { stopStretchSound(); _stopTicking(); }
+  if (soundEnabled) playSfx('button');
 });
 </script>
 </body>
