@@ -1428,7 +1428,7 @@ async function _saveProfileFromModal() {
   try {
     const available = await _checkNameAvailable(name.toLowerCase(), currentUid);
     if (!available) {
-      nameErrorEl.textContent = 'Username already taken. Please choose another.';
+      nameErrorEl.textContent = 'Username already taken';
       const inp = document.getElementById('name-input');
       inp.classList.add('input-error');
       setTimeout(() => inp.classList.remove('input-error'), 400);
