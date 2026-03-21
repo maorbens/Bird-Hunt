@@ -3204,16 +3204,25 @@ _fbAuth.onAuthStateChanged(async firebaseUser => {
     hideAuthScreen();
     _updateProfileChip();
   } else if (local) {
-    // First Google sign-in but guest profile exists — carry it over silently
-    userProfile = _makeProfile(local.displayName || 'Player', local.avatarIndex ?? 0);
-    userProfile.uid      = uid;
-    userProfile.provider = 'google';
-    userProfile.stats    = { ...(local.stats || {}), highScore: bestHS };
-    highScore = bestHS;
-    _persistProfile(userProfile);
-    await _saveCloudProfile(userProfile);
-    hideAuthScreen();
-    _updateProfileChip();
+    // First Google sign-in but guest profile exists
+    const nameLower = (local.displayName || 'Player').toLowerCase();
+    const nameAvailable = await _checkNameAvailable(nameLower, uid);
+    if (nameAvailable) {
+      // Name is free — carry it over silently
+      userProfile = _makeProfile(local.displayName || 'Player', local.avatarIndex ?? 0);
+      userProfile.uid      = uid;
+      userProfile.provider = 'google';
+      userProfile.stats    = { ...(local.stats || {}), highScore: bestHS };
+      highScore = bestHS;
+      _persistProfile(userProfile);
+      hideAuthScreen();
+      _updateProfileChip();
+    } else {
+      // Name already claimed by another Google user — let this user pick a new one
+      highScore = bestHS;
+      hideAuthScreen();
+      showProfileModal('hello');
+    }
   } else {
     // First Google sign-in with no prior profile — show Hello Hunter
     highScore = bestHS;
