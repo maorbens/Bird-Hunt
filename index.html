@@ -1554,6 +1554,11 @@
 <script>
 if (screen.orientation?.lock) screen.orientation.lock('portrait').catch(() => {});
 
+// Prevent pinch-to-zoom on iOS Safari (ignores user-scalable=no since iOS 10)
+document.addEventListener('gesturestart',  e => e.preventDefault(), { passive: false });
+document.addEventListener('gesturechange', e => e.preventDefault(), { passive: false });
+document.addEventListener('touchmove', e => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
+
 // ── Firebase init (must come first — accessed by showProfileModal on load) ──
 const firebaseConfig = {
   apiKey: "AIzaSyDhH-JN3DB_ypZPJ-J6q1EQCdDSdOA7TEE",
