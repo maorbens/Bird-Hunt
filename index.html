@@ -1093,15 +1093,25 @@
       height: auto;
       overflow: visible;
     }
+    #lb-header {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex-shrink: 0;
+      background: #1a1a2e;
+      z-index: 2;
+      padding-bottom: clamp(6px, 1.5vmin, 10px);
+    }
     #lb-title {
       color: #FFD700;
       font-family: 'Press Start 2P', monospace;
       font-weight: 500;
-      font-size: clamp(9px, 2.2vmin, 15px);
+      font-size: clamp(13px, 3.2vmin, 22px);
       text-align: center;
       direction: ltr;
       line-height: 1.7;
-      margin: clamp(6px, 1.5vmin, 12px) 0 clamp(8px, 2vmin, 14px);
+      margin: clamp(6px, 1.5vmin, 12px) 0 0;
       flex-shrink: 0;
       text-shadow: 2px 2px 0 rgba(0,0,0,0.6);
       letter-spacing: 0.02em;
@@ -1166,7 +1176,7 @@
     }
     .lb-rank {
       font-family: 'Press Start 2P', monospace;
-      font-size: clamp(7px, 1.6vmin, 10px);
+      font-size: clamp(10px, 2.2vmin, 14px);
       min-width: 30px;
       text-align: right;
       flex-shrink: 0;
@@ -1201,39 +1211,6 @@
       flex-shrink: 0;
       text-shadow: 1px 1px 0 rgba(0,0,0,0.5);
       margin-left: 8px;
-    }
-    /* Pagination */
-    #lb-pagination {
-      display: flex;
-      gap: clamp(6px, 1.5vw, 10px);
-      padding: clamp(8px, 2vmin, 14px) 0 4px;
-      flex-shrink: 0;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-    .lb-page-btn {
-      width: clamp(38px, 9vmin, 48px);
-      height: clamp(38px, 9vmin, 48px);
-      background: rgba(26,26,60,0.85);
-      color: #99aacc;
-      border: 3px solid #445;
-      box-shadow: 3px 3px 0 #000;
-      font-family: 'Press Start 2P', monospace;
-      font-size: clamp(11px, 2.4vmin, 15px);
-      cursor: pointer;
-      transition: transform 0.07s, box-shadow 0.07s, color 0.1s, border-color 0.1s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0;
-    }
-    .lb-page-btn:hover { color: #dde; border-color: #889; }
-    .lb-page-btn:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 #000; }
-    .lb-page-btn.active {
-      background: #1a3a6b;
-      color: #FFD700;
-      border-color: #FFD700;
-      box-shadow: 3px 3px 0 #7B5000;
     }
     /* Loading */
     .lb-loading {
@@ -1410,21 +1387,22 @@
       </svg>
     </button>
     <div id="lb-content">
-      <!-- Trophy with bird -->
+      <!-- Fixed header: trophy + title -->
+      <div id="lb-header">
       <div id="lb-trophy">
         <svg viewBox="0 0 180 200" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
           <!-- Stars — each in own group for independent twinkle -->
           <g class="lb-star" id="lb-star-1" fill="#FFD700">
-            <path d="M18,62 l2,5.5 l5.5,0 l-4.4,3.2 l1.7,5.5 l-4.8,-2.9 l-4.8,2.9 l1.7,-5.5 l-4.4,-3.2 l5.5,0 Z"/>
+            <path d="M4,58 l2,5.5 l5.5,0 l-4.4,3.2 l1.7,5.5 l-4.8,-2.9 l-4.8,2.9 l1.7,-5.5 l-4.4,-3.2 l5.5,0 Z"/>
           </g>
           <g class="lb-star" id="lb-star-2" fill="#FFD700">
-            <path d="M162,52 l1.5,4.5 l4.5,0 l-3.6,2.6 l1.4,4.5 l-3.8,-2.3 l-3.8,2.3 l1.4,-4.5 l-3.6,-2.6 l4.5,0 Z"/>
+            <path d="M174,46 l1.5,4.5 l4.5,0 l-3.6,2.6 l1.4,4.5 l-3.8,-2.3 l-3.8,2.3 l1.4,-4.5 l-3.6,-2.6 l4.5,0 Z"/>
           </g>
           <g class="lb-star" id="lb-star-3" fill="#FFD700">
-            <path d="M9,106 l1.2,3.6 l3.6,0 l-2.9,2.1 l1.1,3.6 l-3,-1.8 l-3,1.8 l1.1,-3.6 l-2.9,-2.1 l3.6,0 Z"/>
+            <path d="M-6,104 l1.2,3.6 l3.6,0 l-2.9,2.1 l1.1,3.6 l-3,-1.8 l-3,1.8 l1.1,-3.6 l-2.9,-2.1 l3.6,0 Z"/>
           </g>
           <g class="lb-star" id="lb-star-4" fill="#FFD700">
-            <path d="M170,94 l1.2,3.6 l3.6,0 l-2.9,2.1 l1.1,3.6 l-3,-1.8 l-3,1.8 l1.1,-3.6 l-2.9,-2.1 l3.6,0 Z"/>
+            <path d="M182,90 l1.2,3.6 l3.6,0 l-2.9,2.1 l1.1,3.6 l-3,-1.8 l-3,1.8 l1.1,-3.6 l-2.9,-2.1 l3.6,0 Z"/>
           </g>
 
           <!-- BIRD — rendered before cup so cup body + rim cover lower half -->
@@ -1488,12 +1466,11 @@
       </div>
 
       <div id="lb-title">TOP 100<br>BEST SCORES</div>
+      </div><!-- /#lb-header -->
 
       <div id="lb-list-wrap">
         <div id="lb-list"></div>
       </div>
-
-      <div id="lb-pagination"></div>
     </div>
   </div>
 
@@ -3674,44 +3651,28 @@ async function _fetchLeaderboard() {
     _lbData = _lbData.filter(e => e.highScore > 0);
     // Re-assign ranks after filter
     _lbData.forEach((e, i) => { e.rank = i + 1; });
-    _renderLeaderboardPage(0, 'none');
+    _renderLeaderboard();
   } catch(e) {
     console.error('Leaderboard fetch error — code:', e.code, '| message:', e.message);
     _renderLeaderboardError(e.code);
   }
 }
 
-function _renderLeaderboardPage(page, direction) {
-  _lbPage = page;
-  _fillLeaderboardList(page, direction);
-  _updateLeaderboardPagination(page);
-}
+function _renderLeaderboard() {
+  const list = document.getElementById('lb-list');
+  const wrap = document.getElementById('lb-list-wrap');
 
-function _fillLeaderboardList(page, direction) {
-  const list  = document.getElementById('lb-list');
-  const wrap  = document.getElementById('lb-list-wrap');
-  const start = page * LB_PAGE_SIZE;
-  const items = _lbData.slice(start, start + LB_PAGE_SIZE);
-
-  // Determine entry animation class
-  const enterClass = direction === 'next' ? 'lb-enter-right'
-                   : direction === 'prev' ? 'lb-enter-left'
-                   : 'lb-enter-fade';
-
-  // Remove previous animation classes and force reflow
   list.classList.remove('lb-enter-right', 'lb-enter-left', 'lb-enter-fade');
   void list.offsetHeight;
 
-  // Build rows
   list.innerHTML = '';
-  items.forEach((entry) => {
+  _lbData.forEach((entry) => {
     const row = document.createElement('div');
     row.className = 'lb-row'
       + (entry.rank === 1 ? ' lb-row-gold'   : '')
       + (entry.rank === 2 ? ' lb-row-silver' : '')
       + (entry.rank === 3 ? ' lb-row-bronze' : '');
 
-    // Left side: rank + avatar + name
     const left = document.createElement('div');
     left.className = 'lb-row-left';
 
@@ -3735,7 +3696,6 @@ function _fillLeaderboardList(page, direction) {
     left.appendChild(avatar);
     left.appendChild(name);
 
-    // Right side: score
     const score = document.createElement('span');
     score.className = 'lb-score';
     score.textContent = entry.highScore.toLocaleString();
@@ -3745,35 +3705,23 @@ function _fillLeaderboardList(page, direction) {
     list.appendChild(row);
   });
 
-  // Trigger slide animation
-  list.classList.add(enterClass);
-  const removeAnim = () => list.classList.remove(enterClass);
-  list.addEventListener('animationend', removeAnim, { once: true });
-
-  // Scroll list back to top on page change
+  list.classList.add('lb-enter-fade');
+  list.addEventListener('animationend', () => list.classList.remove('lb-enter-fade'), { once: true });
   wrap.scrollTop = 0;
 }
 
-function _updateLeaderboardPagination(currentPage) {
-  const pagination  = document.getElementById('lb-pagination');
-  const totalPages  = Math.min(5, Math.ceil(_lbData.length / LB_PAGE_SIZE));
-  pagination.innerHTML = '';
-  if (totalPages <= 1) return;
-
-  for (let i = 0; i < totalPages; i++) {
-    const btn = document.createElement('button');
-    btn.className = 'lb-page-btn' + (i === currentPage ? ' active' : '');
-    btn.textContent = String(i + 1);
-    const pageIdx = i;
-    btn.addEventListener('click', () => {
-      if (pageIdx === _lbPage) return;
-      playSfx('button');
-      const dir = pageIdx > _lbPage ? 'next' : 'prev';
-      _renderLeaderboardPage(pageIdx, dir);
-    });
-    pagination.appendChild(btn);
-  }
-}
+// Call from browser console to preview with 100 fake entries
+window.loadDemoLeaderboard = function() {
+  const names = ['SuperHunter','BirdBuster','EagleEye','QuickShot','NightOwl','RedWing','SkySniper','DuckBlast','AceShot','TopGun'];
+  _lbData = Array.from({ length: 100 }, (_, i) => ({
+    rank: i + 1,
+    displayName: names[i % names.length] + (i < names.length ? '' : ' ' + Math.floor(i / names.length + 1)),
+    highScore: Math.max(0, 98500 - i * 920 - Math.floor(Math.random() * 200)),
+    avatarIndex: i % (HUNTER_IMGS.length || 1),
+  }));
+  document.getElementById('leaderboard-overlay').classList.add('visible');
+  _renderLeaderboard();
+};
 
 function _renderLeaderboardLoading() {
   document.getElementById('lb-list').innerHTML =
