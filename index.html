@@ -1261,6 +1261,38 @@
       padding: 60px 20px;
       line-height: 1.9;
     }
+    /* ── Trophy bird animations ──────────────────────────────────────────── */
+    @keyframes lb-bird-bob {
+      0%, 100% { transform: translateY(0px);  }
+      50%       { transform: translateY(-6px); }
+    }
+    @keyframes lb-bird-blink {
+      0%, 85%, 100% { transform: scaleY(1);    }
+      91%            { transform: scaleY(0.07); }
+      95%            { transform: scaleY(1);    }
+    }
+    @keyframes lb-bird-crest {
+      0%, 100% { transform: rotate(0deg);  }
+      50%       { transform: rotate(-5deg); }
+    }
+    @keyframes lb-bird-tail {
+      0%, 100% { transform: rotate(0deg); }
+      50%       { transform: rotate(6deg); }
+    }
+    #lb-bird          { animation: lb-bird-bob   2.6s ease-in-out infinite; }
+    #lb-bird-eye      {
+      transform-box: fill-box; transform-origin: center;
+      animation: lb-bird-blink 4.5s ease-in-out infinite;
+      animation-delay: 0.8s;
+    }
+    #lb-bird-crest    {
+      transform-box: fill-box; transform-origin: 97px 6px;
+      animation: lb-bird-crest 2.6s ease-in-out infinite;
+    }
+    #lb-bird-tail     {
+      transform-box: fill-box; transform-origin: 50px 52px;
+      animation: lb-bird-tail 2.6s ease-in-out infinite;
+    }
   </style>
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -1421,57 +1453,64 @@
           <rect x="28" y="47" width="124" height="6" rx="3" fill="#FFD700"/>
           <rect x="30" y="48" width="120" height="3" rx="1.5" fill="#FFE55C"/>
 
-          <!-- BIRD sitting on cup rim -->
-          <!-- Tail feathers -->
-          <path d="M46,52 Q30,66 26,88 Q34,78 42,68 Q46,60 50,54" fill="#AA8800"/>
-          <path d="M44,55 Q28,72 26,94 Q32,83 40,74" fill="#886600"/>
-          <!-- Wing (left/back visible) -->
-          <ellipse cx="68" cy="40" rx="25" ry="13" fill="#BB9900" transform="rotate(-25 68 40)"/>
-          <!-- Wing feather detail lines -->
-          <path d="M50,48 Q54,58 64,54" stroke="#7A6000" stroke-width="2" fill="none"/>
-          <path d="M52,41 Q56,50 66,47" stroke="#7A6000" stroke-width="1.5" fill="none"/>
-          <path d="M55,35 Q61,41 70,39" stroke="#7A6000" stroke-width="1.5" fill="none"/>
-          <!-- Body -->
-          <ellipse cx="84" cy="35" rx="31" ry="22" fill="#FFE000"/>
-          <!-- Body shading -->
-          <ellipse cx="84" cy="42" rx="20" ry="12" fill="#CCAA00" opacity="0.3"/>
-          <!-- Head -->
-          <circle cx="99" cy="18" r="21" fill="#FFE000"/>
-          <!-- Head shading -->
-          <circle cx="95" cy="23" r="12" fill="#CCAA00" opacity="0.22"/>
-          <!-- Crest feathers — 3 plumes -->
-          <path d="M88,2 Q91,-10 95,2" stroke="#AA8800" stroke-width="4.5" fill="none" stroke-linecap="round"/>
-          <path d="M94,-1 Q98,-15 102,-1" stroke="#CC9900" stroke-width="4" fill="none" stroke-linecap="round"/>
-          <path d="M100,2 Q104,-10 108,2" stroke="#AA8800" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-          <!-- Crest tips -->
-          <circle cx="91" cy="2" r="3.2" fill="#FFD700"/>
-          <circle cx="98" cy="-1" r="3.8" fill="#FFD700"/>
-          <circle cx="104" cy="2" r="3" fill="#FFD700"/>
-          <!-- Eye -->
-          <circle cx="108" cy="14" r="7.5" fill="white"/>
-          <circle cx="109" cy="14" r="5.5" fill="#1A1000"/>
-          <circle cx="111" cy="12" r="2.2" fill="white"/>
-          <circle cx="107" cy="16" r="1.1" fill="white" opacity="0.5"/>
-          <!-- Character eyebrow -->
-          <path d="M101,8 Q108,5 114,8" stroke="#7A5000" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-          <!-- Beak upper -->
-          <path d="M117,18 L132,23 L117,27 Z" fill="#FF8800"/>
-          <!-- Beak lower / mouth line -->
-          <path d="M117,23 L131,23 L117,27 Z" fill="#CC5500"/>
-          <line x1="117" y1="23" x2="130" y2="23" stroke="#CC5500" stroke-width="1.2"/>
-          <!-- Cheek blush -->
-          <circle cx="104" cy="22" r="5.5" fill="#FF9999" opacity="0.4"/>
-          <!-- Feet gripping rim -->
-          <path d="M68,52 L62,62" stroke="#FF8800" stroke-width="3" stroke-linecap="round"/>
-          <path d="M72,54 L72,64" stroke="#FF8800" stroke-width="3" stroke-linecap="round"/>
-          <path d="M76,52 L82,62" stroke="#FF8800" stroke-width="3" stroke-linecap="round"/>
-          <!-- Toe tips -->
-          <path d="M62,62 L58,67" stroke="#FF8800" stroke-width="2.5" stroke-linecap="round"/>
-          <path d="M62,62 L62,67" stroke="#FF8800" stroke-width="2.5" stroke-linecap="round"/>
-          <path d="M72,64 L69,69" stroke="#FF8800" stroke-width="2.5" stroke-linecap="round"/>
-          <path d="M72,64 L75,69" stroke="#FF8800" stroke-width="2.5" stroke-linecap="round"/>
-          <path d="M82,62 L86,67" stroke="#FF8800" stroke-width="2.5" stroke-linecap="round"/>
-          <path d="M82,62 L82,67" stroke="#FF8800" stroke-width="2.5" stroke-linecap="round"/>
+          <!-- BIRD sitting on cup rim — wrapped in animation groups -->
+          <g id="lb-bird">
+            <!-- Tail feathers (separate group for wag) -->
+            <g id="lb-bird-tail">
+              <path d="M46,52 Q30,66 26,88 Q34,78 42,68 Q46,60 50,54" fill="#AA8800"/>
+              <path d="M44,55 Q28,72 26,94 Q32,83 40,74" fill="#886600"/>
+            </g>
+            <!-- Wing (left/back visible) -->
+            <ellipse cx="68" cy="40" rx="25" ry="13" fill="#BB9900" transform="rotate(-25 68 40)"/>
+            <!-- Wing feather detail lines -->
+            <path d="M50,48 Q54,58 64,54" stroke="#7A6000" stroke-width="2" fill="none"/>
+            <path d="M52,41 Q56,50 66,47" stroke="#7A6000" stroke-width="1.5" fill="none"/>
+            <path d="M55,35 Q61,41 70,39" stroke="#7A6000" stroke-width="1.5" fill="none"/>
+            <!-- Body -->
+            <ellipse cx="84" cy="35" rx="31" ry="22" fill="#FFE000"/>
+            <!-- Body shading -->
+            <ellipse cx="84" cy="42" rx="20" ry="12" fill="#CCAA00" opacity="0.3"/>
+            <!-- Head -->
+            <circle cx="99" cy="18" r="21" fill="#FFE000"/>
+            <!-- Head shading -->
+            <circle cx="95" cy="23" r="12" fill="#CCAA00" opacity="0.22"/>
+            <!-- Crest feathers (separate group for sway) -->
+            <g id="lb-bird-crest">
+              <path d="M88,2 Q91,-10 95,2" stroke="#AA8800" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+              <path d="M94,-1 Q98,-15 102,-1" stroke="#CC9900" stroke-width="4" fill="none" stroke-linecap="round"/>
+              <path d="M100,2 Q104,-10 108,2" stroke="#AA8800" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+              <circle cx="91" cy="2" r="3.2" fill="#FFD700"/>
+              <circle cx="98" cy="-1" r="3.8" fill="#FFD700"/>
+              <circle cx="104" cy="2" r="3" fill="#FFD700"/>
+            </g>
+            <!-- Eye (separate group for blink) -->
+            <g id="lb-bird-eye">
+              <circle cx="108" cy="14" r="7.5" fill="white"/>
+              <circle cx="109" cy="14" r="5.5" fill="#1A1000"/>
+              <circle cx="111" cy="12" r="2.2" fill="white"/>
+              <circle cx="107" cy="16" r="1.1" fill="white" opacity="0.5"/>
+            </g>
+            <!-- Character eyebrow -->
+            <path d="M101,8 Q108,5 114,8" stroke="#7A5000" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <!-- Beak upper -->
+            <path d="M117,18 L132,23 L117,27 Z" fill="#FF8800"/>
+            <!-- Beak lower / mouth line -->
+            <path d="M117,23 L131,23 L117,27 Z" fill="#CC5500"/>
+            <line x1="117" y1="23" x2="130" y2="23" stroke="#CC5500" stroke-width="1.2"/>
+            <!-- Cheek blush -->
+            <circle cx="104" cy="22" r="5.5" fill="#FF9999" opacity="0.4"/>
+            <!-- Feet gripping rim -->
+            <path d="M68,52 L62,62" stroke="#FF8800" stroke-width="3" stroke-linecap="round"/>
+            <path d="M72,54 L72,64" stroke="#FF8800" stroke-width="3" stroke-linecap="round"/>
+            <path d="M76,52 L82,62" stroke="#FF8800" stroke-width="3" stroke-linecap="round"/>
+            <!-- Toe tips -->
+            <path d="M62,62 L58,67" stroke="#FF8800" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M62,62 L62,67" stroke="#FF8800" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M72,64 L69,69" stroke="#FF8800" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M72,64 L75,69" stroke="#FF8800" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M82,62 L86,67" stroke="#FF8800" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M82,62 L82,67" stroke="#FF8800" stroke-width="2.5" stroke-linecap="round"/>
+          </g>
         </svg>
       </div>
 
