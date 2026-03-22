@@ -3640,6 +3640,11 @@ function hideLeaderboard() {
 
 async function _fetchLeaderboard() {
   try {
+    // Firestore security rules typically require authentication.
+    // Sign in anonymously if no Firebase session exists so the query is authorised.
+    if (!_fbAuth.currentUser) {
+      try { await _fbAuth.signInAnonymously(); } catch(_) { /* continue anyway */ }
+    }
     const snap = await _db.collection('users')
       .orderBy('stats.highScore', 'desc')
       .limit(LB_MAX)
@@ -3653,14 +3658,14 @@ async function _fetchLeaderboard() {
         highScore:   (d.stats && d.stats.highScore) ? d.stats.highScore : 0,
       };
     });
-    // Filter out zero scores from display (keep data but don't show empty records)
+    // Filter out zero scores
     _lbData = _lbData.filter(e => e.highScore > 0);
     // Re-assign ranks after filter
     _lbData.forEach((e, i) => { e.rank = i + 1; });
     _renderLeaderboardPage(0, 'none');
   } catch(e) {
-    console.error('Leaderboard fetch:', e);
-    _renderLeaderboardError();
+    console.error('Leaderboard fetch error — code:', e.code, '| message:', e.message);
+    _renderLeaderboardError(e.code);
   }
 }
 
@@ -3764,9 +3769,12 @@ function _renderLeaderboardLoading() {
   document.getElementById('lb-pagination').innerHTML = '';
 }
 
-function _renderLeaderboardError() {
-  document.getElementById('lb-list').innerHTML =
-    '<div class="lb-error">Could not load scores.<br>Check your connection.</div>';
+function _renderLeaderboardError(code) {
+  const isPermission = code && (code.includes('permission') || code.includes('PERMISSION'));
+  const msg = isPermission
+    ? 'Could not load scores.<br>Firestore read permission denied.<br><small style="opacity:0.6;font-size:0.8em">(see console for details)</small>'
+    : 'Could not load scores.<br>Check your connection.<br><small style="opacity:0.6;font-size:0.8em">' + (code || '') + '</small>';
+  document.getElementById('lb-list').innerHTML = '<div class="lb-error">' + msg + '</div>';
   document.getElementById('lb-pagination').innerHTML = '';
 }
 </script>
