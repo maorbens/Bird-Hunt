@@ -1579,6 +1579,15 @@ document.addEventListener('touchend', e => {
   if (now - _lastTap < 300) e.preventDefault();
   _lastTap = now;
 }, { passive: false });
+// Last-resort: if viewport scale changes (zoom slipped through), reset it immediately
+if (window.visualViewport) {
+  const _vp = document.querySelector('meta[name=viewport]');
+  window.visualViewport.addEventListener('resize', () => {
+    if (window.visualViewport.scale !== 1) {
+      _vp.setAttribute('content', _vp.getAttribute('content'));
+    }
+  });
+}
 
 // ── Firebase init (must come first — accessed by showProfileModal on load) ──
 const firebaseConfig = {
