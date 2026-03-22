@@ -1556,12 +1556,29 @@
 <script>
 if (screen.orientation?.lock) screen.orientation.lock('portrait').catch(() => {});
 
-// Prevent pinch-to-zoom on iOS Safari (ignores user-scalable=no since iOS 10)
-document.addEventListener('gesturestart',  e => e.preventDefault(), { passive: false });
-document.addEventListener('gesturechange', e => e.preventDefault(), { passive: false });
-document.addEventListener('gestureend',    e => e.preventDefault(), { passive: false });
-document.addEventListener('touchstart', e => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
-document.addEventListener('touchmove',  e => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
+// Prevent pinch-to-zoom & double-tap-zoom on iOS Safari
+// (user-scalable=no is ignored since iOS 10; native scroll layers intercept
+//  document-level listeners, so we attach directly to scrollable elements too)
+function _pz(e) { e.preventDefault(); }
+function _pzMulti(e) { if (e.touches.length > 1) e.preventDefault(); }
+const _zoomTargets = [document,
+  document.getElementById('lb-list-wrap'),
+  document.getElementById('profile-popup'),
+].filter(Boolean);
+_zoomTargets.forEach(el => {
+  el.addEventListener('gesturestart',  _pz,      { passive: false });
+  el.addEventListener('gesturechange', _pz,      { passive: false });
+  el.addEventListener('gestureend',    _pz,      { passive: false });
+  el.addEventListener('touchstart',    _pzMulti, { passive: false });
+  el.addEventListener('touchmove',     _pzMulti, { passive: false });
+});
+// Prevent double-tap zoom
+let _lastTap = 0;
+document.addEventListener('touchend', e => {
+  const now = Date.now();
+  if (now - _lastTap < 300) e.preventDefault();
+  _lastTap = now;
+}, { passive: false });
 
 // ── Firebase init (must come first — accessed by showProfileModal on load) ──
 const firebaseConfig = {
