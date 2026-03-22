@@ -1124,6 +1124,7 @@
       overflow-x: hidden;
       overscroll-behavior: contain;
       -webkit-overflow-scrolling: touch;
+      touch-action: pan-y;
       scrollbar-width: thin;
       scrollbar-color: rgba(255,215,0,0.3) transparent;
       min-height: 0;
@@ -1557,7 +1558,9 @@ if (screen.orientation?.lock) screen.orientation.lock('portrait').catch(() => {}
 // Prevent pinch-to-zoom on iOS Safari (ignores user-scalable=no since iOS 10)
 document.addEventListener('gesturestart',  e => e.preventDefault(), { passive: false });
 document.addEventListener('gesturechange', e => e.preventDefault(), { passive: false });
-document.addEventListener('touchmove', e => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
+document.addEventListener('gestureend',    e => e.preventDefault(), { passive: false });
+document.addEventListener('touchstart', e => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
+document.addEventListener('touchmove',  e => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
 
 // ── Firebase init (must come first — accessed by showProfileModal on load) ──
 const firebaseConfig = {
