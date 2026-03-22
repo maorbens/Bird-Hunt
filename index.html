@@ -3627,17 +3627,18 @@ function hideLeaderboard() {
   document.getElementById('leaderboard-overlay').classList.remove('visible');
 }
 
+const _LB_TIMEOUT = 10000;
 async function _fetchLeaderboard() {
   try {
-    // Firestore security rules typically require authentication.
-    // Sign in anonymously if no Firebase session exists so the query is authorised.
+    const timeout = new Promise((_, rej) =>
+      setTimeout(() => rej(Object.assign(new Error('timeout'), { code: 'timeout' })), _LB_TIMEOUT));
     if (!_fbAuth.currentUser) {
-      try { await _fbAuth.signInAnonymously(); } catch(_) { /* continue anyway */ }
+      try { await Promise.race([_fbAuth.signInAnonymously(), timeout]); } catch(_) { /* continue */ }
     }
-    const snap = await _db.collection('users')
-      .orderBy('stats.highScore', 'desc')
-      .limit(LB_MAX)
-      .get();
+    const snap = await Promise.race([
+      _db.collection('users').orderBy('stats.highScore', 'desc').limit(LB_MAX).get(),
+      timeout,
+    ]);
     _lbData = snap.docs.map((doc, i) => {
       const d = doc.data();
       return {
