@@ -1066,7 +1066,7 @@
       align-items: center;
       justify-content: center;
       transition: transform 0.07s, box-shadow 0.07s;
-      z-index: 2;
+      z-index: 10;
       padding: 0;
     }
     #lb-back-btn:hover { background: #f2f2f2; box-shadow: 3px 3px 0 #000, inset 2px 2px 0 #fff, inset -2px -2px 0 #999; }
@@ -3739,7 +3739,6 @@ window.loadDemoLeaderboard = function() {
 function _renderLeaderboardLoading() {
   document.getElementById('lb-list').innerHTML =
     '<div class="lb-loading"><div class="lb-dots"><span></span><span></span><span></span></div></div>';
-  document.getElementById('lb-pagination').innerHTML = '';
 }
 
 function _renderLeaderboardError(code) {
@@ -3748,7 +3747,6 @@ function _renderLeaderboardError(code) {
     ? 'Could not load scores.<br>Firestore read permission denied.<br><small style="opacity:0.6;font-size:0.8em">(see console for details)</small>'
     : 'Could not load scores.<br>Check your connection.<br><small style="opacity:0.6;font-size:0.8em">' + (code || '') + '</small>';
   document.getElementById('lb-list').innerHTML = '<div class="lb-error">' + msg + '</div>';
-  document.getElementById('lb-pagination').innerHTML = '';
 }
 </script>
 </body>
