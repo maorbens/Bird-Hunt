@@ -3746,7 +3746,7 @@ function _renderLeaderboardError(code) {
   const isPermission = code && (code.includes('permission') || code.includes('PERMISSION'));
   const msg = isPermission
     ? 'Could not load scores.<br>Firestore read permission denied.<br><small style="opacity:0.6;font-size:0.8em">(see console for details)</small>'
-    : 'Could not load scores.<br>Check your connection.<br><small style="opacity:0.6;font-size:0.8em">' + (code || '') + '</small>';
+    : 'Could not load scores.<br>Check your connection.' + (code && code !== 'timeout' ? '<br><small style="opacity:0.6;font-size:0.8em">' + code + '</small>' : '');
   document.getElementById('lb-list').innerHTML = '<div class="lb-error">' + msg + '</div>';
 }
 </script>
