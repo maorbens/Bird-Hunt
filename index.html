@@ -1389,7 +1389,7 @@
     <div id="lb-content">
       <!-- Fixed header: trophy + title -->
       <div id="lb-header">
-      <div id="lb-trophy">
+      <div id="lb-trophy" onclick="_lbDemoTap()">
         <svg viewBox="0 0 180 200" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
           <!-- Stars — each in own group for independent twinkle -->
           <g class="lb-star" id="lb-star-1" fill="#FFD700">
@@ -3708,6 +3708,19 @@ function _renderLeaderboard() {
   list.classList.add('lb-enter-fade');
   list.addEventListener('animationend', () => list.classList.remove('lb-enter-fade'), { once: true });
   wrap.scrollTop = 0;
+}
+
+// Tap trophy 5 times quickly to load demo data
+let _lbDemoTaps = 0, _lbDemoTimer = null;
+function _lbDemoTap() {
+  _lbDemoTaps++;
+  clearTimeout(_lbDemoTimer);
+  if (_lbDemoTaps >= 5) {
+    _lbDemoTaps = 0;
+    loadDemoLeaderboard();
+  } else {
+    _lbDemoTimer = setTimeout(() => { _lbDemoTaps = 0; }, 1200);
+  }
 }
 
 // Call from browser console to preview with 100 fake entries
