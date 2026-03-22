@@ -1261,37 +1261,22 @@
       padding: 60px 20px;
       line-height: 1.9;
     }
-    /* ── Trophy bird animations ──────────────────────────────────────────── */
-    @keyframes lb-bird-bob {
-      0%, 100% { transform: translateY(0px);  }
-      50%       { transform: translateY(-6px); }
+    /* ── Trophy animation ────────────────────────────────────────────────── */
+    @keyframes lb-trophy-float {
+      0%, 100% { transform: translateY(0px); }
+      50%       { transform: translateY(-7px); }
     }
     @keyframes lb-bird-blink {
-      0%, 85%, 100% { transform: scaleY(1);    }
-      91%            { transform: scaleY(0.07); }
-      95%            { transform: scaleY(1);    }
+      0%, 92%, 100% { transform: scaleY(1);    }
+      96%            { transform: scaleY(0.06); }
+      98%            { transform: scaleY(1);    }
     }
-    @keyframes lb-bird-crest {
-      0%, 100% { transform: rotate(0deg);  }
-      50%       { transform: rotate(-5deg); }
-    }
-    @keyframes lb-bird-tail {
-      0%, 100% { transform: rotate(0deg); }
-      50%       { transform: rotate(6deg); }
-    }
-    #lb-bird          { animation: lb-bird-bob   2.6s ease-in-out infinite; }
-    #lb-bird-eye      {
-      transform-box: fill-box; transform-origin: center;
-      animation: lb-bird-blink 4.5s ease-in-out infinite;
-      animation-delay: 0.8s;
-    }
-    #lb-bird-crest    {
-      transform-box: fill-box; transform-origin: 97px 6px;
-      animation: lb-bird-crest 2.6s ease-in-out infinite;
-    }
-    #lb-bird-tail     {
-      transform-box: fill-box; transform-origin: 50px 52px;
-      animation: lb-bird-tail 2.6s ease-in-out infinite;
+    #lb-trophy   { animation: lb-trophy-float 3.4s ease-in-out infinite; }
+    #lb-bird-eye {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: lb-bird-blink 6s ease-in-out infinite;
+      animation-delay: 1.5s;
     }
   </style>
   <!-- Firebase -->
