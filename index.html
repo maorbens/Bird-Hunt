@@ -3484,6 +3484,7 @@ function signInWithGoogle() {
 function signOutGoogle() {
   _fbAuth.signOut().then(() => {
     try { localStorage.removeItem(PROFILE_KEY); } catch(e) {}
+    try { localStorage.removeItem('birdHuntHS'); } catch(e) {}
     userProfile = null;
     highScore   = 0;
     _updateGoogleSignInUI(null);
