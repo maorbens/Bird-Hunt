@@ -723,8 +723,8 @@
     #info-btn {
       display: none;
       position: absolute;
-      top: max(8px, env(safe-area-inset-top));
-      left: 21px;
+      top: max(12px, env(safe-area-inset-top));
+      left: max(16px, env(safe-area-inset-left));
       z-index: 10;
       width: 54px;
       height: 54px;
@@ -745,8 +745,8 @@
     #profile-chip {
       display: none;
       position: absolute;
-      top: max(8px, env(safe-area-inset-top));
-      right: 21px;
+      top: max(12px, env(safe-area-inset-top));
+      right: max(16px, env(safe-area-inset-right));
       z-index: 10;
       flex-direction: row;
       align-items: center;
@@ -804,8 +804,8 @@
     #settings-btn {
       display: none;
       position: absolute;
-      top: max(8px, env(safe-area-inset-top));
-      left: calc(21px + 54px + 9px);
+      top: max(12px, env(safe-area-inset-top));
+      left: calc(max(16px, env(safe-area-inset-left)) + 54px + 9px);
       z-index: 10;
       width: 54px;
       height: 54px;
