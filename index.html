@@ -1847,28 +1847,35 @@ document.getElementById('name-input').addEventListener('keydown', e => {
 (function () {
   const handle = document.getElementById('sheet-handle');
   const popup  = document.getElementById('profile-popup');
-  let startY = 0, lastY = 0, startTime = 0, active = false;
+  let startY = 0, lastY = 0, startTime = 0;
 
-  function onMove(e) {
-    e.preventDefault(); // stops the popup from scrolling during drag
+  handle.addEventListener('touchstart', e => {
+    startY    = e.touches[0].clientY;
+    lastY     = startY;
+    startTime = Date.now();
+    popup.style.transition = 'none';
+    popup.style.transform  = 'translateY(0)';
+  }, { passive: true });
+
+  // Attached directly on handle (not window) — more targeted, works on iOS Safari.
+  // touch-action:none on handle (CSS) is the primary mechanism that prevents the
+  // browser from claiming this touch as a scroll gesture before JS sees it.
+  // preventDefault() here is belt-and-suspenders for older iOS Safari.
+  handle.addEventListener('touchmove', e => {
+    e.preventDefault();
     lastY = e.touches[0].clientY;
     const dy = Math.max(0, lastY - startY);
     popup.style.transform = `translateY(${dy}px)`;
-  }
+  }, { passive: false });
 
   function onEnd() {
-    window.removeEventListener('touchmove',   onMove);
-    window.removeEventListener('touchend',    onEnd);
-    window.removeEventListener('touchcancel', onEnd);
-    if (!active) return;
-    active = false;
     const dy       = Math.max(0, lastY - startY);
     const velocity = dy / Math.max(1, Date.now() - startTime);
     if (dy > 80 || velocity > 0.4) {
       popup.style.transition = 'transform 0.28s cubic-bezier(0.32, 0.72, 0, 1)';
       popup.style.transform  = 'translateY(100%)';
       setTimeout(() => {
-        // hide overlay FIRST (removes .visible → stops sheetSlideIn animation)
+        // hide overlay FIRST (removes .visible → stops sheetSlideIn animation),
         // then clear inline styles so next open starts clean
         document.getElementById('profile-cancel-btn').click();
         popup.style.transition = '';
@@ -1881,18 +1888,8 @@ document.getElementById('name-input').addEventListener('keydown', e => {
     }
   }
 
-  handle.addEventListener('touchstart', e => {
-    startY    = e.touches[0].clientY;
-    lastY     = startY;
-    startTime = Date.now();
-    active    = true;
-    popup.style.transition = 'none';
-    popup.style.transform  = 'translateY(0)';
-    // passive:false required so preventDefault() works in onMove
-    window.addEventListener('touchmove',   onMove,  { passive: false });
-    window.addEventListener('touchend',    onEnd);
-    window.addEventListener('touchcancel', onEnd);
-  }, { passive: true });
+  handle.addEventListener('touchend',    onEnd, { passive: true });
+  handle.addEventListener('touchcancel', onEnd, { passive: true });
 }());
 document.getElementById('name-input').addEventListener('input', () => {
   document.getElementById('name-error').textContent = '';
