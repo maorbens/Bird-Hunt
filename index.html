@@ -3746,7 +3746,7 @@ async function _fetchLeaderboard() {
       try { await Promise.race([_fbAuth.signInAnonymously(), timeout]); } catch(_) { /* continue */ }
     }
     const snap = await Promise.race([
-      _db.collection('scores').orderBy('score', 'desc').limit(LB_MAX).get(),
+      _db.collection('scores').orderBy('score', 'desc').orderBy('createdAt', 'asc').limit(LB_MAX).get(),
       timeout,
     ]);
     _lbData = snap.docs.map((doc, i) => {
