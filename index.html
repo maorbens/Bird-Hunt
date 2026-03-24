@@ -1326,7 +1326,7 @@
         <div class="rule-line"><span class="rule-icon">⏱️</span><span>You have 30 seconds — hit as many birds as you can</span></div>
         <div class="rule-line"><span class="rule-icon">🔥</span><span>3 hits in a row grant you a firestone</span></div>
         <div class="rule-line"><span class="rule-icon">💥</span><span>Hit: 100 pts. Hit with firestone: 300 pts</span></div>
-        <div class="rule-line"><span class="rule-icon">⏰</span><span>Every 5 hits in a row add 5 seconds to the clock</span></div>
+        <div class="rule-line"><span class="rule-icon">⏰</span><span>Every 5 hits in a row add 7 seconds to the clock</span></div>
         <div class="rule-line"><span class="rule-icon">❌</span><span>A miss resets your hit streak</span></div>
       </div>
       <button id="howto-got-it">OK</button>
@@ -1635,7 +1635,7 @@ const MISS_LIMIT       = 5;
 const TIMER_START      = 30;
 const FIRE_COMBO       = 3;   // consecutive hits to activate fire stone
 const TIME_BONUS_COMBO = 5;   // consecutive hits to add time
-const TIME_BONUS       = 5;   // seconds added
+const TIME_BONUS       = 7;   // seconds added
 const CP               = 8;   // pixel size of one "canvas pixel" (pixel-art grid)
 
 // ── State ─────────────────────────────────────────────────────────────────
@@ -2545,7 +2545,7 @@ function onHit(bx, by) {
     playSfx('extra');
     const gap = 29; // natural gap: (by-30) - (by-59)
     const bonusY = Math.max(UI_TOP_H + 16 + 4, by - 59);
-    addFloatingText('+5s', bx, bonusY, '#44FF88', 16);
+    addFloatingText('+7s', bx, bonusY, '#44FF88', 16);
     addFloatingText('+' + pts, bx, bonusY + gap, isFireStone ? '#FF8800' : '#FFD700', 16);
   } else {
     addFloatingText('+' + pts, bx, by - 30, isFireStone ? '#FF8800' : '#FFD700', 16);
