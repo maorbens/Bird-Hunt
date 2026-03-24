@@ -2626,6 +2626,7 @@ function endGame() {
     userProfile.stats.gamesPlayed = (userProfile.stats.gamesPlayed || 0) + 1;
     if (isNew) userProfile.stats.highScore = highScore;
     _persistProfile(userProfile);
+    if (userProfile.provider === 'google' && score > 0) _saveScore(score);
   }
   const EX  = '<span class="ex">!</span>';
   const reasonText = timeLeft <= 0 ? `Time's Up!` : `${MISS_LIMIT} Misses!`;
@@ -3511,6 +3512,18 @@ function _persistProfile(p, releaseNameLower) {
   if (p && p.provider === 'google') _saveCloudProfile(p, releaseNameLower);
 }
 
+async function _saveScore(s) {
+  try {
+    await _db.collection('scores').add({
+      uid:         userProfile.uid,
+      displayName: userProfile.displayName,
+      avatarIndex: userProfile.avatarIndex ?? 0,
+      score:       s,
+      createdAt:   firebase.firestore.FieldValue.serverTimestamp(),
+    });
+  } catch(e) { console.error('Score save:', e); }
+}
+
 // ── Auth screen ───────────────────────────────────────────────────────────
 function positionAuthHud() {
   const hud      = document.getElementById('auth-hud');
@@ -3733,7 +3746,7 @@ async function _fetchLeaderboard() {
       try { await Promise.race([_fbAuth.signInAnonymously(), timeout]); } catch(_) { /* continue */ }
     }
     const snap = await Promise.race([
-      _db.collection('users').orderBy('stats.highScore', 'desc').limit(LB_MAX).get(),
+      _db.collection('scores').orderBy('score', 'desc').limit(LB_MAX).get(),
       timeout,
     ]);
     _lbData = snap.docs.map((doc, i) => {
@@ -3742,7 +3755,7 @@ async function _fetchLeaderboard() {
         rank:        i + 1,
         displayName: d.displayName || 'Hunter',
         avatarIndex: d.avatarIndex ?? 0,
-        highScore:   (d.stats && d.stats.highScore) ? d.stats.highScore : 0,
+        highScore:   d.score || 0,
       };
     });
     // Filter out zero scores
