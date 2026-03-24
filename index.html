@@ -1811,8 +1811,8 @@ function initProfile() {
   if (!userProfile) {
     showAuthScreen();
   } else {
-    // Merge old high-score key if needed
-    if (highScore > userProfile.stats.highScore) {
+    // Merge old high-score key if needed (guests only — Google users trust the cloud)
+    if (userProfile.provider !== 'google' && highScore > userProfile.stats.highScore) {
       userProfile.stats.highScore = highScore;
       _persistProfile(userProfile);
     }
