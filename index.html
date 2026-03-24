@@ -1868,10 +1868,24 @@ document.getElementById('name-input').addEventListener('keydown', e => {
     active = false;
     const dy       = Math.max(0, lastY - startY);
     const velocity = dy / Math.max(1, Date.now() - startTime); // px/ms
-    popup.style.transition = '';
-    popup.style.transform  = '';
     if (dy > 80 || velocity > 0.4) {
-      document.getElementById('profile-cancel-btn').click();
+      // Slide the sheet all the way down, then cancel
+      popup.style.transition = 'transform 0.28s cubic-bezier(0.32, 0.72, 0, 1)';
+      popup.style.transform  = 'translateY(100%)';
+      popup.addEventListener('transitionend', function done() {
+        popup.removeEventListener('transitionend', done);
+        popup.style.transition = '';
+        popup.style.transform  = '';
+        document.getElementById('profile-cancel-btn').click();
+      });
+    } else {
+      // Snap back
+      popup.style.transition = 'transform 0.22s cubic-bezier(0.32, 0.72, 0, 1)';
+      popup.style.transform  = '';
+      popup.addEventListener('transitionend', function done() {
+        popup.removeEventListener('transitionend', done);
+        popup.style.transition = '';
+      });
     }
   }
 
