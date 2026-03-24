@@ -3536,8 +3536,8 @@ _fbAuth.onAuthStateChanged(async firebaseUser => {
     userProfile = _makeProfile(cloud.displayName || 'Player', cloud.avatarIndex ?? (local?.avatarIndex ?? 0));
     userProfile.uid      = uid;
     userProfile.provider = 'google';
-    userProfile.stats    = { ...(cloud.stats || {}), highScore: bestHS };
-    highScore = bestHS;
+    userProfile.stats    = { ...(cloud.stats || {}), highScore: cloudHS };
+    highScore = cloudHS;
     _persistProfile(userProfile);
     hideAuthScreen();
     _updateProfileChip();
