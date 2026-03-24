@@ -1750,6 +1750,7 @@ function showProfileModal(mode, prefill) {
 
 function _hideProfileModal() {
   document.getElementById('profile-overlay').classList.remove('visible');
+  document.getElementById('profile-popup').style.animation = '';
   _resetSheetPosition();
 }
 
@@ -1856,16 +1857,12 @@ document.getElementById('name-input').addEventListener('keydown', e => {
   const popup  = document.getElementById('profile-popup');
   let startY = 0, lastY = 0, startTime = 0;
 
-  function clearStyles() {
-    popup.style.animation  = '';
-    popup.style.transition = '';
-    popup.style.transform  = '';
-  }
-
   function snapBack() {
     popup.style.transition = 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)';
     popup.style.transform  = 'translateY(0)';
-    setTimeout(clearStyles, 310);
+    // Keep animation:'none' — clearing it would re-trigger sheetSlideIn while visible.
+    // It gets reset in _hideProfileModal when the overlay closes.
+    setTimeout(() => { popup.style.transition = ''; popup.style.transform = ''; }, 310);
   }
 
   handle.addEventListener('touchstart', e => {
@@ -1894,7 +1891,9 @@ document.getElementById('name-input').addEventListener('keydown', e => {
       popup.style.transform  = 'translateY(100%)';
       setTimeout(() => {
         document.getElementById('profile-cancel-btn').click();
-        clearStyles();
+        // _hideProfileModal (called by click above) already resets animation
+        popup.style.transition = '';
+        popup.style.transform  = '';
       }, 290);
     } else {
       snapBack();
