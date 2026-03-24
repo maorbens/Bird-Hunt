@@ -549,6 +549,13 @@
       margin-bottom: -4px;
       flex-shrink: 0;
       touch-action: none;
+      position: relative;
+    }
+    /* Expand touch target to ~44×40px without affecting layout */
+    #sheet-handle::before {
+      content: '';
+      position: absolute;
+      inset: -18px -60px;
     }
     #profile-popup {
       /* position:fixed on iOS Safari is anchored to the visual viewport.
@@ -1871,7 +1878,7 @@ document.getElementById('name-input').addEventListener('keydown', e => {
   function onEnd() {
     const dy       = Math.max(0, lastY - startY);
     const velocity = dy / Math.max(1, Date.now() - startTime);
-    if (dy > 80 || velocity > 0.4) {
+    if (dy > 80 || (dy > 30 && velocity > 0.4)) {
       popup.style.transition = 'transform 0.28s cubic-bezier(0.32, 0.72, 0, 1)';
       popup.style.transform  = 'translateY(100%)';
       setTimeout(() => {
