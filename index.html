@@ -1841,6 +1841,43 @@ document.getElementById('profile-cancel-btn').addEventListener('click', () => {
 document.getElementById('name-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') { e.preventDefault(); _saveProfileFromModal(); }
 });
+
+// ── Swipe-down on sheet handle → cancel (no save) ─────────────────────────
+(function () {
+  const handle = document.getElementById('sheet-handle');
+  const popup  = document.getElementById('profile-popup');
+  let startY = 0, lastY = 0, startTime = 0, active = false;
+
+  handle.addEventListener('touchstart', e => {
+    startY    = e.touches[0].clientY;
+    lastY     = startY;
+    startTime = Date.now();
+    active    = true;
+    popup.style.transition = 'none';
+  }, { passive: true });
+
+  handle.addEventListener('touchmove', e => {
+    if (!active) return;
+    lastY = e.touches[0].clientY;
+    const dy = Math.max(0, lastY - startY);
+    popup.style.transform = `translateY(${dy}px)`;
+  }, { passive: true });
+
+  function onEnd() {
+    if (!active) return;
+    active = false;
+    const dy       = Math.max(0, lastY - startY);
+    const velocity = dy / Math.max(1, Date.now() - startTime); // px/ms
+    popup.style.transition = '';
+    popup.style.transform  = '';
+    if (dy > 80 || velocity > 0.4) {
+      document.getElementById('profile-cancel-btn').click();
+    }
+  }
+
+  handle.addEventListener('touchend',    onEnd);
+  handle.addEventListener('touchcancel', onEnd);
+}());
 document.getElementById('name-input').addEventListener('input', () => {
   document.getElementById('name-error').textContent = '';
 });
