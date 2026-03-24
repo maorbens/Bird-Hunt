@@ -1855,52 +1855,66 @@ document.getElementById('name-input').addEventListener('keydown', e => {
 (function () {
   const handle = document.getElementById('sheet-handle');
   const popup  = document.getElementById('profile-popup');
+  const overlay = document.getElementById('profile-overlay');
+  const OVERLAY_ALPHA = 0.88;
   let startY = 0, lastY = 0, startTime = 0;
 
+  function setOverlayAlpha(alpha) {
+    overlay.style.background = `rgba(0,0,0,${alpha.toFixed(3)})`;
+  }
+
   function snapBack() {
-    popup.style.transition = 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)';
-    popup.style.transform  = 'translateY(0)';
-    // Keep animation:'none' — clearing it would re-trigger sheetSlideIn while visible.
-    // It gets reset in _hideProfileModal when the overlay closes.
-    setTimeout(() => { popup.style.transition = ''; popup.style.transform = ''; }, 310);
+    popup.style.transition   = 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)';
+    overlay.style.transition = 'background 0.3s ease';
+    popup.style.transform    = 'translateY(0)';
+    setOverlayAlpha(OVERLAY_ALPHA);
+    setTimeout(() => {
+      popup.style.transition   = '';
+      popup.style.transform    = '';
+      overlay.style.transition = '';
+      overlay.style.background = '';
+    }, 310);
   }
 
   handle.addEventListener('touchstart', e => {
     startY    = e.touches[0].clientY;
     lastY     = startY;
     startTime = Date.now();
-    // Cancel the CSS animation (fill:both keeps it "active" even after it ends,
-    // which blocks inline transform from showing visually on iOS Safari)
-    popup.style.animation  = 'none';
-    popup.style.transition = 'none';
-    popup.style.transform  = 'translateY(0)';
+    popup.style.animation    = 'none';
+    popup.style.transition   = 'none';
+    popup.style.transform    = 'translateY(0)';
+    overlay.style.transition = 'none';
   }, { passive: true });
 
   handle.addEventListener('touchmove', e => {
     e.preventDefault();
     lastY = e.touches[0].clientY;
-    const dy = Math.max(0, lastY - startY);
+    const dy       = Math.max(0, lastY - startY);
+    const progress = Math.min(dy / popup.offsetHeight, 1);
     popup.style.transform = `translateY(${dy}px)`;
+    setOverlayAlpha(OVERLAY_ALPHA * (1 - progress));
   }, { passive: false });
 
   handle.addEventListener('touchend', () => {
     const dy       = Math.max(0, lastY - startY);
     const velocity = dy / Math.max(1, Date.now() - startTime);
     if (dy > 120 || (dy > 50 && velocity > 0.5)) {
-      popup.style.transition = 'transform 0.28s cubic-bezier(0.32, 0.72, 0, 1)';
-      popup.style.transform  = 'translateY(100%)';
+      popup.style.transition   = 'transform 0.28s cubic-bezier(0.32, 0.72, 0, 1)';
+      overlay.style.transition = 'background 0.28s ease';
+      popup.style.transform    = 'translateY(100%)';
+      setOverlayAlpha(0);
       setTimeout(() => {
         document.getElementById('profile-cancel-btn').click();
-        // _hideProfileModal (called by click above) already resets animation
-        popup.style.transition = '';
-        popup.style.transform  = '';
+        popup.style.transition   = '';
+        popup.style.transform    = '';
+        overlay.style.transition = '';
+        overlay.style.background = '';
       }, 290);
     } else {
       snapBack();
     }
   }, { passive: true });
 
-  // touchcancel = browser stole the gesture → always snap back, never dismiss
   handle.addEventListener('touchcancel', snapBack, { passive: true });
 }());
 document.getElementById('name-input').addEventListener('input', () => {
