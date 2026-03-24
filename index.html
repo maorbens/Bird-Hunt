@@ -3672,6 +3672,10 @@ function _renderLeaderboard() {
   void list.offsetHeight;
 
   list.innerHTML = '';
+  if (_lbData.length === 0) {
+    list.innerHTML = '<div class="lb-error">No scores yet.<br><small style="opacity:0.7">Be the first to set a record!</small></div>';
+    return;
+  }
   _lbData.forEach((entry) => {
     const row = document.createElement('div');
     row.className = 'lb-row'
