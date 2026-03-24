@@ -548,6 +548,7 @@
       border-radius: 3px;
       margin-bottom: -4px;
       flex-shrink: 0;
+      touch-action: none;
     }
     #profile-popup {
       /* position:fixed on iOS Safari is anchored to the visual viewport.
@@ -1848,12 +1849,8 @@ document.getElementById('name-input').addEventListener('keydown', e => {
   const popup  = document.getElementById('profile-popup');
   let startY = 0, lastY = 0, startTime = 0, active = false;
 
-  function clearPopupStyle() {
-    popup.style.transition = '';
-    popup.style.transform  = '';
-  }
-
   function onMove(e) {
+    e.preventDefault(); // stops the popup from scrolling during drag
     lastY = e.touches[0].clientY;
     const dy = Math.max(0, lastY - startY);
     popup.style.transform = `translateY(${dy}px)`;
@@ -1871,13 +1868,16 @@ document.getElementById('name-input').addEventListener('keydown', e => {
       popup.style.transition = 'transform 0.28s cubic-bezier(0.32, 0.72, 0, 1)';
       popup.style.transform  = 'translateY(100%)';
       setTimeout(() => {
-        clearPopupStyle();
+        // hide overlay FIRST (removes .visible → stops sheetSlideIn animation)
+        // then clear inline styles so next open starts clean
         document.getElementById('profile-cancel-btn').click();
+        popup.style.transition = '';
+        popup.style.transform  = '';
       }, 290);
     } else {
       popup.style.transition = 'transform 0.22s cubic-bezier(0.32, 0.72, 0, 1)';
       popup.style.transform  = 'translateY(0)';
-      setTimeout(clearPopupStyle, 230);
+      setTimeout(() => { popup.style.transition = ''; popup.style.transform = ''; }, 230);
     }
   }
 
@@ -1888,7 +1888,8 @@ document.getElementById('name-input').addEventListener('keydown', e => {
     active    = true;
     popup.style.transition = 'none';
     popup.style.transform  = 'translateY(0)';
-    window.addEventListener('touchmove',   onMove,  { passive: true });
+    // passive:false required so preventDefault() works in onMove
+    window.addEventListener('touchmove',   onMove,  { passive: false });
     window.addEventListener('touchend',    onEnd);
     window.addEventListener('touchcancel', onEnd);
   }, { passive: true });
