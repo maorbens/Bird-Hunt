@@ -1853,27 +1853,20 @@ document.getElementById('name-input').addEventListener('keydown', e => {
     popup.style.transform  = '';
   }
 
-  handle.addEventListener('touchstart', e => {
-    startY    = e.touches[0].clientY;
-    lastY     = startY;
-    startTime = Date.now();
-    active    = true;
-    popup.style.transition = 'none';
-    popup.style.transform  = 'translateY(0)';
-  }, { passive: true });
-
-  handle.addEventListener('touchmove', e => {
-    if (!active) return;
+  function onMove(e) {
     lastY = e.touches[0].clientY;
     const dy = Math.max(0, lastY - startY);
     popup.style.transform = `translateY(${dy}px)`;
-  }, { passive: true });
+  }
 
   function onEnd() {
+    window.removeEventListener('touchmove',   onMove);
+    window.removeEventListener('touchend',    onEnd);
+    window.removeEventListener('touchcancel', onEnd);
     if (!active) return;
     active = false;
     const dy       = Math.max(0, lastY - startY);
-    const velocity = dy / Math.max(1, Date.now() - startTime); // px/ms
+    const velocity = dy / Math.max(1, Date.now() - startTime);
     if (dy > 80 || velocity > 0.4) {
       popup.style.transition = 'transform 0.28s cubic-bezier(0.32, 0.72, 0, 1)';
       popup.style.transform  = 'translateY(100%)';
@@ -1888,8 +1881,17 @@ document.getElementById('name-input').addEventListener('keydown', e => {
     }
   }
 
-  handle.addEventListener('touchend',    onEnd);
-  handle.addEventListener('touchcancel', onEnd);
+  handle.addEventListener('touchstart', e => {
+    startY    = e.touches[0].clientY;
+    lastY     = startY;
+    startTime = Date.now();
+    active    = true;
+    popup.style.transition = 'none';
+    popup.style.transform  = 'translateY(0)';
+    window.addEventListener('touchmove',   onMove,  { passive: true });
+    window.addEventListener('touchend',    onEnd);
+    window.addEventListener('touchcancel', onEnd);
+  }, { passive: true });
 }());
 document.getElementById('name-input').addEventListener('input', () => {
   document.getElementById('name-error').textContent = '';
