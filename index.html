@@ -1914,7 +1914,14 @@ document.getElementById('name-input').addEventListener('keydown', e => {
       popup.style.transform    = 'translateY(100%)';
       setOverlayAlpha(0);
       setTimeout(() => {
-        document.getElementById('profile-cancel-btn').click();
+        // Call cancel logic directly (without .click()) to avoid button sound
+        document.getElementById('name-input').blur();
+        _hideProfileModal();
+        if (_profileMode === 'hello') {
+          const cu = _fbAuth.currentUser;
+          if (cu && !cu.isAnonymous) { _fbAuth.signOut(); }
+          setTimeout(showAuthScreen, 50);
+        }
         popup.style.transition   = '';
         popup.style.transform    = '';
         overlay.style.transition = '';
