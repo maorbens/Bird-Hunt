@@ -1012,6 +1012,20 @@
       margin-top: 6px;
     }
     #settings-done-btn:active { transform: translate(3px,3px); box-shadow: 1px 1px 0 #000; }
+    #guest-signout-btn {
+      padding: clamp(10px, 2.2vmin, 18px) 0;
+      width: 100%;
+      box-sizing: border-box;
+      background: transparent;
+      color: rgba(255,255,255,0.55);
+      border: 2px solid rgba(255,255,255,0.25);
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(9px, 1.6vmin, 13px);
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+      margin-top: 4px;
+    }
+    #guest-signout-btn:hover { color: #fff; border-color: rgba(255,255,255,0.6); }
 
     /* ── Sign-in loading overlay ─────────────────────────────────────────── */
     #signin-loading {
@@ -1351,6 +1365,7 @@
         <span id="google-user-email"></span>
         <button id="google-signout-btn">Sign out</button>
       </div>
+      <button id="guest-signout-btn" style="display:none">Leave Guest Mode</button>
       <div id="settings-sound-row">
         <span id="settings-sound-label">Sound</span>
         <button id="settings-sound-btn">
@@ -3704,7 +3719,18 @@ document.getElementById('google-signout-btn').addEventListener('click', () => {
 document.getElementById('settings-btn').addEventListener('click', () => {
   playSfx('button');
   _applySoundUI();
+  const isGuest = userProfile && userProfile.provider === 'local';
+  document.getElementById('guest-signout-btn').style.display = isGuest ? '' : 'none';
   document.getElementById('settings-overlay').classList.add('visible');
+});
+document.getElementById('guest-signout-btn').addEventListener('click', () => {
+  playSfx('button');
+  try { localStorage.removeItem(PROFILE_KEY); } catch(e) {}
+  try { localStorage.removeItem('birdHuntHS'); } catch(e) {}
+  userProfile = null;
+  highScore   = 0;
+  document.getElementById('settings-overlay').classList.remove('visible');
+  showAuthScreen();
 });
 document.getElementById('settings-done-btn').addEventListener('click', () => {
   playSfx('button');
