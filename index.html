@@ -1012,8 +1012,26 @@
       margin-top: 6px;
     }
     #settings-done-btn:active { transform: translate(3px,3px); box-shadow: 1px 1px 0 #000; }
+    #guest-signout-section {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: clamp(8px, 1.5vmin, 12px);
+      border-top: 2px solid rgba(255,255,255,0.15);
+      padding-top: clamp(10px, 2vmin, 16px);
+    }
+    #guest-signout-desc {
+      color: rgba(255,255,255,0.88);
+      font-family: 'Roboto', sans-serif;
+      font-weight: 500;
+      font-size: clamp(14px, 2.6vmin, 20px);
+      line-height: 1.6;
+      text-align: center;
+      width: 100%;
+    }
     #guest-signout-btn {
-      padding: clamp(10px, 2.2vmin, 18px) 0;
+      padding: clamp(12px, 2.5vmin, 20px) 0;
       width: 100%;
       box-sizing: border-box;
       background: transparent;
@@ -1023,7 +1041,6 @@
       font-size: clamp(9px, 1.6vmin, 13px);
       cursor: pointer;
       transition: color 0.15s, border-color 0.15s;
-      margin-top: 4px;
     }
     #guest-signout-btn:hover { color: #fff; border-color: rgba(255,255,255,0.6); }
 
@@ -1365,7 +1382,10 @@
         <span id="google-user-email"></span>
         <button id="google-signout-btn">Sign out</button>
       </div>
-      <button id="guest-signout-btn" style="display:none">Leave Guest Mode</button>
+      <div id="guest-signout-section" style="display:none">
+        <div id="guest-signout-desc">Want to start over?</div>
+        <button id="guest-signout-btn">Leave Guest</button>
+      </div>
       <div id="settings-sound-row">
         <span id="settings-sound-label">Sound</span>
         <button id="settings-sound-btn">
@@ -3622,7 +3642,7 @@ function _updateGoogleSignInUI(googleUser) {
     signinBtn.style.display  = 'none';
     if (settingsDesc) settingsDesc.style.display = 'none';
     signoutRow.classList.add('visible');
-    document.getElementById('guest-signout-btn').style.display = 'none';
+    document.getElementById('guest-signout-section').style.display = 'none';
     document.getElementById('google-user-email').textContent =
       googleUser.email || googleUser.displayName || '';
     introSection.classList.add('hidden');
@@ -3721,7 +3741,7 @@ document.getElementById('settings-btn').addEventListener('click', () => {
   playSfx('button');
   _applySoundUI();
   const isGuest = userProfile && userProfile.provider === 'local';
-  document.getElementById('guest-signout-btn').style.display = isGuest ? '' : 'none';
+  document.getElementById('guest-signout-section').style.display = isGuest ? '' : 'none';
   document.getElementById('settings-overlay').classList.add('visible');
 });
 document.getElementById('guest-signout-btn').addEventListener('click', () => {
