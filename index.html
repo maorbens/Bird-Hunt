@@ -3622,6 +3622,7 @@ function _updateGoogleSignInUI(googleUser) {
     signinBtn.style.display  = 'none';
     if (settingsDesc) settingsDesc.style.display = 'none';
     signoutRow.classList.add('visible');
+    document.getElementById('guest-signout-btn').style.display = 'none';
     document.getElementById('google-user-email').textContent =
       googleUser.email || googleUser.displayName || '';
     introSection.classList.add('hidden');
