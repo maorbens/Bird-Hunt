@@ -3668,6 +3668,18 @@ async function _saveCloudProfile(profile, releaseNameLower) {
       batch.delete(_db.collection('usernames').doc(releaseNameLower));
     }
     await batch.commit();
+    // Update displayName + avatarIndex on all existing scores for this user
+    _db.collection('scores').where('uid', '==', profile.uid).get().then(snap => {
+      if (snap.empty) return;
+      const scoreBatch = _db.batch();
+      snap.forEach(doc => {
+        scoreBatch.update(doc.ref, {
+          displayName: profile.displayName,
+          avatarIndex: profile.avatarIndex ?? 0,
+        });
+      });
+      scoreBatch.commit().catch(e => console.error('Score profile sync:', e));
+    }).catch(e => console.error('Score profile sync query:', e));
   } catch(e) { console.error('Firestore save:', e); }
 }
 
