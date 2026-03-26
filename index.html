@@ -502,11 +502,13 @@
     }
     #howto-carousel-track {
       display: flex;
+      width: 500%;
       transition: transform 0.3s ease;
       will-change: transform;
     }
     .howto-slide {
-      flex: 0 0 100%;
+      width: 20%;
+      flex-shrink: 0;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -3569,7 +3571,7 @@ window.addEventListener('pageshow', e => {
 let _howtoSlide = 0;
 function _howtoGoTo(idx) {
   _howtoSlide = Math.max(0, Math.min(4, idx));
-  document.getElementById('howto-carousel-track').style.transform = `translateX(-${_howtoSlide * 100}%)`;
+  document.getElementById('howto-carousel-track').style.transform = `translateX(-${_howtoSlide * 20}%)`;
   document.querySelectorAll('.howto-dot').forEach((d, i) => d.classList.toggle('active', i === _howtoSlide));
 }
 (function() {
