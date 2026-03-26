@@ -495,7 +495,9 @@
     #howto-body .rule-line { display: flex; align-items: flex-start; gap: 0.5em; margin-bottom: 0.25em; }
     #howto-body .rule-icon { flex-shrink: 0; }
     #howto-carousel-wrap {
-      width: 100%;
+      width: calc(100% + 2 * clamp(36px, 9vw, 96px));
+      margin-left: calc(-1 * clamp(36px, 9vw, 96px));
+      margin-right: calc(-1 * clamp(36px, 9vw, 96px));
       overflow: hidden;
     }
     #howto-carousel-track {
@@ -513,8 +515,8 @@
     }
     .howto-slide-img {
       width: 100%;
-      height: clamp(160px, 35vmin, 280px);
-      object-fit: contain;
+      height: auto;
+      display: block;
     }
     .howto-slide-text {
       color: rgba(255,255,255,0.88);
