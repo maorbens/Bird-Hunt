@@ -1862,7 +1862,10 @@ function _buildAvatarGrid() {
 
 function showProfileModal(mode, prefill) {
   _profileMode = mode || 'create';
-  _pickedAvatar = prefill ? (prefill.avatarIndex ?? 0) : (userProfile ? userProfile.avatarIndex : 0);
+  _pickedAvatar = Math.min(
+    prefill ? (prefill.avatarIndex ?? 0) : (userProfile ? (userProfile.avatarIndex ?? 0) : 0),
+    HUNTER_IMGS.length - 1
+  );
   const isHello = _profileMode === 'hello';
   const isCreate = _profileMode === 'create';
   document.getElementById('profile-title').textContent =
@@ -1948,7 +1951,7 @@ function _updateProfileChip() {
   document.getElementById('settings-btn').style.display = 'flex';
   const hs = userProfile.stats.highScore;
   document.getElementById('profile-chip-hs').textContent = String(hs);
-  document.getElementById('profile-chip-img').src = HUNTER_IMGS[userProfile.avatarIndex];
+  document.getElementById('profile-chip-img').src = HUNTER_IMGS[Math.min(userProfile.avatarIndex ?? 0, HUNTER_IMGS.length - 1)];
 }
 
 // ── First-launch init ─────────────────────────────────────────────────────
