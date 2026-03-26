@@ -502,12 +502,10 @@
     }
     #howto-carousel-track {
       display: flex;
-      width: 500%;
       transition: transform 0.3s ease;
       will-change: transform;
     }
     .howto-slide {
-      width: 20%;
       flex-shrink: 0;
       display: flex;
       flex-direction: column;
@@ -515,9 +513,17 @@
       gap: clamp(10px, 2vmin, 16px);
       text-align: center;
     }
-    .howto-slide-img {
+    .howto-slide-img-box {
       width: 100%;
       height: clamp(160px, 38vmin, 280px);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .howto-slide-img {
+      width: 100%;
+      height: 100%;
       object-fit: contain;
       display: block;
     }
@@ -1424,23 +1430,23 @@
       <div id="howto-carousel-wrap">
         <div id="howto-carousel-track">
           <div class="howto-slide">
-            <img src="rule1.png" class="howto-slide-img" alt="">
+            <div class="howto-slide-img-box"><img src="rule1.png" class="howto-slide-img" alt=""></div>
             <p class="howto-slide-text">Pull the slingstone and release to shoot at the bird</p>
           </div>
           <div class="howto-slide">
-            <img src="rule2.png" class="howto-slide-img" alt="">
+            <div class="howto-slide-img-box"><img src="rule2.png" class="howto-slide-img" alt=""></div>
             <p class="howto-slide-text">You have 30 seconds — hit as many birds as you can</p>
           </div>
           <div class="howto-slide">
-            <img src="rule3.png" class="howto-slide-img" alt="">
+            <div class="howto-slide-img-box"><img src="rule3.png" class="howto-slide-img" alt=""></div>
             <p class="howto-slide-text">3 hits in a row grant you a firestone</p>
           </div>
           <div class="howto-slide">
-            <img src="rule4.png" class="howto-slide-img" alt="">
+            <div class="howto-slide-img-box"><img src="rule4.png" class="howto-slide-img" alt=""></div>
             <p class="howto-slide-text">Hit: 100 pts. Hit with firestone: 300 pts</p>
           </div>
           <div class="howto-slide">
-            <img src="rule5.png" class="howto-slide-img" alt="">
+            <div class="howto-slide-img-box"><img src="rule5.png" class="howto-slide-img" alt=""></div>
             <p class="howto-slide-text">Every 5 hits in a row add 7 seconds to the clock</p>
           </div>
         </div>
@@ -3569,9 +3575,21 @@ window.addEventListener('pageshow', e => {
 
 // ── Howto carousel ───────────────────────────────────────────────────────
 let _howtoSlide = 0;
+function _howtoLayout() {
+  const wrap  = document.getElementById('howto-carousel-wrap');
+  const track = document.getElementById('howto-carousel-track');
+  const slides = document.querySelectorAll('.howto-slide');
+  const w = wrap.offsetWidth;
+  slides.forEach(s => { s.style.width = w + 'px'; });
+  track.style.width = (w * slides.length) + 'px';
+  track.style.transition = 'none';
+  track.style.transform = `translateX(-${_howtoSlide * w}px)`;
+  requestAnimationFrame(() => { track.style.transition = 'transform 0.3s ease'; });
+}
 function _howtoGoTo(idx) {
   _howtoSlide = Math.max(0, Math.min(4, idx));
-  document.getElementById('howto-carousel-track').style.transform = `translateX(-${_howtoSlide * 20}%)`;
+  const w = document.getElementById('howto-carousel-wrap').offsetWidth;
+  document.getElementById('howto-carousel-track').style.transform = `translateX(-${_howtoSlide * w}px)`;
   document.querySelectorAll('.howto-dot').forEach((d, i) => d.classList.toggle('active', i === _howtoSlide));
 }
 (function() {
@@ -3585,12 +3603,14 @@ function _howtoGoTo(idx) {
   document.querySelectorAll('.howto-dot').forEach((d, i) => {
     d.addEventListener('click', () => { playSfx('button'); _howtoGoTo(i); });
   });
+  window.addEventListener('resize', () => { if (document.getElementById('howto-overlay').classList.contains('visible')) _howtoLayout(); });
 })();
 
 document.getElementById('info-btn').addEventListener('click', () => {
   playSfx('button');
-  _howtoGoTo(0);
+  _howtoSlide = 0;
   document.getElementById('howto-overlay').classList.add('visible');
+  requestAnimationFrame(_howtoLayout);
 });
 document.getElementById('howto-got-it').addEventListener('click', () => {
   playSfx('button');
