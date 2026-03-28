@@ -1398,6 +1398,7 @@
   <!-- Game Over overlay -->
   <div id="game-over-overlay">
     <div id="game-over-popup">
+      <img id="game-over-img" src="" alt="" style="width:clamp(160px,42vmin,300px);height:auto;display:block;flex-shrink:0;">
       <div id="game-over-reason"></div>
       <div id="game-over-score"><span>Score:</span><span id="score-val"></span></div>
       <div id="game-over-hs"><span id="hs-label"></span><span id="hs-val"></span></div>
@@ -2670,6 +2671,7 @@ function endGame() {
   const EX  = '<span class="ex">!</span>';
   const reasonText = timeLeft <= 0 ? `Time's Up!` : `${MISS_LIMIT} Misses!`;
   document.getElementById('game-over-reason').innerHTML = reasonText;
+  document.getElementById('game-over-img').src = timeLeft <= 0 ? 'gameover_times_up.png' : 'game_over_5_misses.png';
   document.getElementById('score-val').textContent = score;
   const hsEl = document.getElementById('game-over-hs');
   if (isNew) {
