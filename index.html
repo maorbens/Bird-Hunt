@@ -1218,10 +1218,10 @@
       margin-top: clamp(4px, 1.5vmin, 12px);
       filter: drop-shadow(0 4px 12px rgba(0,0,0,0.6));
     }
-    #lb-trophy svg {
+    #lb-trophy img {
       width: clamp(80px, 16vmin, 120px);
       height: auto;
-      overflow: visible;
+      display: block;
     }
     #lb-header {
       width: 100%;
@@ -1372,27 +1372,7 @@
       0%, 100% { transform: translateY(0px); }
       50%       { transform: translateY(-7px); }
     }
-    @keyframes lb-bird-blink {
-      0%, 92%, 100% { transform: scaleY(1);    }
-      96%            { transform: scaleY(0.06); }
-      98%            { transform: scaleY(1);    }
-    }
-    @keyframes lb-star-twinkle {
-      0%, 100% { opacity: 0.35; transform: scale(0.8);  }
-      50%       { opacity: 1;    transform: scale(1.25); }
-    }
-    #lb-trophy   { animation: lb-trophy-float 3.4s ease-in-out infinite; }
-    #lb-bird-eye {
-      transform-box: fill-box;
-      transform-origin: center;
-      animation: lb-bird-blink 6s ease-in-out infinite;
-      animation-delay: 1.5s;
-    }
-    .lb-star {
-      transform-box: fill-box;
-      transform-origin: center;
-      animation: lb-star-twinkle 2.4s ease-in-out infinite;
-    }
+    #lb-trophy { animation: lb-trophy-float 3.4s ease-in-out infinite; }
     #lb-star-1 { animation-duration: 2.6s; animation-delay: 0s;   }
     #lb-star-2 { animation-duration: 3.1s; animation-delay: 0.9s; }
     #lb-star-3 { animation-duration: 2.2s; animation-delay: 1.6s; }
@@ -1541,79 +1521,7 @@
       <!-- Fixed header: trophy + title -->
       <div id="lb-header">
       <div id="lb-trophy">
-        <svg viewBox="0 0 180 200" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
-          <!-- Stars — each in own group for independent twinkle -->
-          <g class="lb-star" id="lb-star-1" fill="#FFD700">
-            <path d="M4,58 l2,5.5 l5.5,0 l-4.4,3.2 l1.7,5.5 l-4.8,-2.9 l-4.8,2.9 l1.7,-5.5 l-4.4,-3.2 l5.5,0 Z"/>
-          </g>
-          <g class="lb-star" id="lb-star-2" fill="#FFD700">
-            <path d="M174,46 l1.5,4.5 l4.5,0 l-3.6,2.6 l1.4,4.5 l-3.8,-2.3 l-3.8,2.3 l1.4,-4.5 l-3.6,-2.6 l4.5,0 Z"/>
-          </g>
-          <g class="lb-star" id="lb-star-3" fill="#FFD700">
-            <path d="M-6,104 l1.2,3.6 l3.6,0 l-2.9,2.1 l1.1,3.6 l-3,-1.8 l-3,1.8 l1.1,-3.6 l-2.9,-2.1 l3.6,0 Z"/>
-          </g>
-          <g class="lb-star" id="lb-star-4" fill="#FFD700">
-            <path d="M182,90 l1.2,3.6 l3.6,0 l-2.9,2.1 l1.1,3.6 l-3,-1.8 l-3,1.8 l1.1,-3.6 l-2.9,-2.1 l3.6,0 Z"/>
-          </g>
-
-          <!-- BIRD — rendered before cup so cup body + rim cover lower half -->
-          <g id="lb-bird" transform="translate(0, 10)">
-            <!-- Body -->
-            <ellipse cx="84" cy="35" rx="31" ry="22" fill="#FFE000"/>
-            <!-- Body shading -->
-            <ellipse cx="84" cy="42" rx="20" ry="12" fill="#CCAA00" opacity="0.3"/>
-            <!-- Head -->
-            <circle cx="99" cy="18" r="21" fill="#FFE000"/>
-            <!-- Head shading -->
-            <circle cx="95" cy="23" r="12" fill="#CCAA00" opacity="0.22"/>
-            <!-- Eye -->
-            <g id="lb-bird-eye">
-              <circle cx="108" cy="14" r="7.5" fill="white"/>
-              <circle cx="109" cy="14" r="5.5" fill="#1A1000"/>
-              <circle cx="111" cy="12" r="2.2" fill="white"/>
-              <circle cx="107" cy="16" r="1.1" fill="white" opacity="0.5"/>
-            </g>
-            <!-- Eyebrow -->
-            <path d="M101,8 Q108,5 114,8" stroke="#7A5000" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-            <!-- Beak -->
-            <path d="M117,18 L132,23 L117,27 Z" fill="#FF8800"/>
-            <path d="M117,23 L131,23 L117,27 Z" fill="#CC5500"/>
-            <line x1="117" y1="23" x2="130" y2="23" stroke="#CC5500" stroke-width="1.2"/>
-            <!-- Cheek blush -->
-            <circle cx="104" cy="22" r="5.5" fill="#FF9999" opacity="0.4"/>
-          </g>
-
-          <!-- Trophy base plate -->
-          <rect x="50" y="178" width="80" height="9" rx="4.5" fill="#8B6500"/>
-          <rect x="40" y="185" width="100" height="13" rx="6" fill="#AA7800"/>
-          <rect x="44" y="187" width="92" height="9" rx="4" fill="#DAA520"/>
-          <!-- Trophy stem -->
-          <rect x="75" y="156" width="30" height="25" rx="6" fill="#AA7800"/>
-          <rect x="79" y="156" width="22" height="25" rx="5" fill="#C8A000"/>
-          <rect x="83" y="158" width="14" height="21" rx="4" fill="#FFD700"/>
-          <!-- Cup body outer shadow -->
-          <path d="M28,52 C24,102 35,152 75,162 L105,162 C145,152 156,102 152,52 Z" fill="#8B6500"/>
-          <!-- Cup body main -->
-          <path d="M32,52 C28,100 39,149 77,159 L103,159 C141,149 152,100 148,52 Z" fill="#AA7800"/>
-          <!-- Cup body lighter -->
-          <path d="M36,52 C32,97 43,145 80,156 L100,156 C137,145 148,97 144,52 Z" fill="#C8A000"/>
-          <!-- Cup body highlight center -->
-          <path d="M44,52 C40,93 50,140 84,153 L96,153 C130,140 140,93 136,52 Z" fill="#DAA520"/>
-          <!-- Cup highlight sheen -->
-          <path d="M56,58 C54,82 56,116 68,140" stroke="rgba(255,255,200,0.32)" stroke-width="10" fill="none" stroke-linecap="round"/>
-          <path d="M58,58 C56,80 58,112 70,136" stroke="rgba(255,255,255,0.18)" stroke-width="5" fill="none" stroke-linecap="round"/>
-          <!-- Left handle -->
-          <path d="M32,74 Q4,95 6,130 Q8,156 44,156" stroke="#8B6500" stroke-width="15" fill="none" stroke-linecap="round"/>
-          <path d="M32,74 Q7,95 9,130 Q11,154 47,154" stroke="#C8A000" stroke-width="8" fill="none" stroke-linecap="round"/>
-          <!-- Right handle -->
-          <path d="M148,74 Q176,95 174,130 Q172,156 136,156" stroke="#8B6500" stroke-width="15" fill="none" stroke-linecap="round"/>
-          <path d="M148,74 Q173,95 171,130 Q169,154 133,154" stroke="#C8A000" stroke-width="8" fill="none" stroke-linecap="round"/>
-          <!-- Cup rim — last, covers bird's lower body -->
-          <rect x="24" y="44" width="132" height="13" rx="6.5" fill="#8B6500"/>
-          <rect x="26" y="46" width="128" height="9" rx="4.5" fill="#C8A000"/>
-          <rect x="28" y="47" width="124" height="6" rx="3" fill="#FFD700"/>
-          <rect x="30" y="48" width="120" height="3" rx="1.5" fill="#FFE55C"/>
-        </svg>
+        <img src="top100.png" alt="Top 100"/>
       </div>
 
       <div id="lb-title">TOP 100<br>BEST SCORES</div>
