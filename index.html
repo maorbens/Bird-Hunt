@@ -16,6 +16,8 @@
       background: #000;
       font-family: 'Press Start 2P', monospace;
       touch-action: none;
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
     }
     #canvas {
       position: fixed;
@@ -113,18 +115,18 @@
       display: flex;
       align-items: baseline;
       gap: clamp(8px, 1.5vmin, 14px);
-      font-family: 'Press Start 2P', monospace;
-      font-weight: 500;
-      font-size: clamp(13px, 2.8vmin, 22px);
+      font-family: 'Roboto', sans-serif;
+      font-weight: 600;
+      font-size: 18px;
     }
     #game-over-score { color: #FFD700; }
     #game-over-hs    { color: #aaffaa; margin-top: calc(clamp(18px, 3.5vmin, 32px) * 0.2 - 7.2px); }
     #game-over-hs.new-record { width: 100%; justify-content: center; gap: 0; }
     #game-over-hs.new-record #hs-val { display: none; }
     #game-over-hs.new-record #hs-label { display: flex; align-items: center; gap: 5px; line-height: 1; }
-    .nr-star { font-size: 1.5em; line-height: 1; position: relative; }
-    #hs-label .nr-star:first-child { top: -6px; left: -2px; }
-    #hs-label .nr-star:last-child  { top: -6px; left: -3px; }
+    .nr-star { font-size: 0.75em; vertical-align: middle; }
+    #hs-label .nr-star:first-child { }
+    #hs-label .nr-star:last-child  { }
     /* ── Shared pixel buttons ────────────────────────────────────────────── */
     #game-over-btns {
       display: flex;
@@ -450,7 +452,16 @@
       padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
       box-sizing: border-box;
     }
-    #howto-overlay.visible { display: flex; }
+    @keyframes popupIn {
+      from { opacity: 0; transform: translateY(22px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes overlayFadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    #howto-overlay.visible { display: flex; animation: overlayFadeIn 0.18s ease both; }
+    #howto-overlay.visible #howto-popup { animation: popupIn 0.24s cubic-bezier(0.34, 1.3, 0.64, 1) both; }
     #howto-popup {
       background: #1a1a2e;
       border: 4px solid #fff;
@@ -465,6 +476,7 @@
       width: min(520px, 100%);
       max-height: 100%;
       overflow-y: auto;
+      overflow-x: hidden;
       box-sizing: border-box;
     }
     #howto-title {
@@ -485,6 +497,65 @@
     }
     #howto-body .rule-line { display: flex; align-items: flex-start; gap: 0.5em; margin-bottom: 0.25em; }
     #howto-body .rule-icon { flex-shrink: 0; }
+    #howto-carousel-wrap {
+      width: calc(100% + 2 * clamp(36px, 9vw, 96px));
+      margin-left: calc(-1 * clamp(36px, 9vw, 96px));
+      margin-right: calc(-1 * clamp(36px, 9vw, 96px));
+      overflow: hidden;
+    }
+    #howto-carousel-track {
+      display: flex;
+      transition: transform 0.3s ease;
+      will-change: transform;
+    }
+    .howto-slide {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1px;
+      padding-bottom: clamp(9px, 2vmin, 15px);
+      text-align: center;
+    }
+    .howto-slide-img-box {
+      width: 100%;
+      height: clamp(252px, 59.85vmin, 441px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .howto-slide-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+    .howto-slide-text {
+      color: rgba(255,255,255,0.88);
+      font-family: 'Roboto', sans-serif;
+      font-weight: 500;
+      font-size: 18px;
+      line-height: 1.5;
+      text-align: center;
+      margin: 0;
+      width: 80%;
+    }
+    #howto-dots {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      align-items: center;
+    }
+    .howto-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.3);
+      cursor: pointer;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+    .howto-dot.active { background: #FFD700; }
     #howto-got-it {
       padding: clamp(14px, 3vmin, 28px) 0;
       width: 100%;
@@ -501,7 +572,7 @@
       cursor: pointer;
       white-space: nowrap;
       transition: transform 0.07s, box-shadow 0.07s;
-      margin-top: 6px;
+      margin-top: clamp(10px, 2.5vmin, 22px);
     }
     #howto-got-it:active { transform: translate(3px,3px); box-shadow: 1px 1px 0 #000; }
 
@@ -519,9 +590,9 @@
     }
     .ex { font-family: system-ui, -apple-system, Arial, sans-serif; }
     #score-val, #hs-val {
-      font-family: 'Press Start 2P', monospace;
-      font-weight: 500;
-      font-size: clamp(16px, 3.4vmin, 26px);
+      font-family: 'Roboto', sans-serif;
+      font-weight: 600;
+      font-size: 18px;
       letter-spacing: 0.02em;
     }
 
@@ -548,6 +619,14 @@
       border-radius: 3px;
       margin-bottom: -4px;
       flex-shrink: 0;
+      touch-action: none;
+      position: relative;
+    }
+    /* Expand touch target to ~44×40px without affecting layout */
+    #sheet-handle::before {
+      content: '';
+      position: absolute;
+      inset: -18px -60px;
     }
     #profile-popup {
       /* position:fixed on iOS Safari is anchored to the visual viewport.
@@ -836,7 +915,8 @@
       padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
       box-sizing: border-box;
     }
-    #settings-overlay.visible { display: flex; }
+    #settings-overlay.visible { display: flex; animation: overlayFadeIn 0.18s ease both; }
+    #settings-overlay.visible #settings-popup { animation: popupIn 0.24s cubic-bezier(0.34, 1.3, 0.64, 1) both; }
     #settings-popup {
       background: #1a1a2e;
       border: 4px solid #fff;
@@ -868,6 +948,7 @@
       line-height: 1.6;
       text-align: center;
       width: 100%;
+      margin-top: clamp(10px, 2vmin, 18px);
     }
     #intro-google-desc {
       font-size: clamp(12px, 2.2vmin, 17px);
@@ -878,6 +959,7 @@
     #auth-google-signin-btn {
       width: 100%;
       padding: clamp(12px, 2.5vmin, 20px) 0;
+      margin-top: -4px;
       background: #fff;
       color: #3c4043;
       border: 3px solid #000;
@@ -892,6 +974,7 @@
       gap: 10px;
       transition: transform 0.07s, box-shadow 0.07s, background 0.1s;
     }
+    #auth-google-signin-btn { margin-top: clamp(8px, 1.8vmin, 16px); }
     #google-signin-btn:hover,
     #intro-google-signin-btn:hover, #auth-google-signin-btn:hover { background: #f8f9fa; }
     #google-signin-btn:active,
@@ -903,6 +986,7 @@
       justify-content: space-between;
       gap: 10px;
       background: rgba(255,255,255,0.07);
+      margin-top: clamp(16px, 3.5vmin, 28px);
       border: 2px solid #445;
       padding: clamp(8px, 2vmin, 14px) clamp(12px, 2.5vmin, 20px);
       box-sizing: border-box;
@@ -911,7 +995,7 @@
     #google-user-email {
       color: rgba(255,255,255,0.75);
       font-family: 'Roboto', sans-serif;
-      font-size: clamp(11px, 2vmin, 15px);
+      font-size: clamp(13px, 2.4vmin, 18px);
       flex: 1;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -925,7 +1009,7 @@
       border: 2px solid #FF6B6B;
       font-family: 'Roboto', sans-serif;
       font-weight: 600;
-      font-size: clamp(11px, 2vmin, 13px);
+      font-size: clamp(13px, 2.4vmin, 16px);
       padding: 6px 12px;
       cursor: pointer;
       flex-shrink: 0;
@@ -958,23 +1042,32 @@
       font-size: clamp(14px, 2.6vmin, 20px);
     }
     #settings-sound-btn {
-      background: transparent;
-      border: 3px solid #fff;
-      border-radius: 50%;
-      width: 50px;
-      height: 50px;
+      width: 64px;
+      height: 36px;
+      border-radius: 5px;
+      border: 3px solid #000;
+      box-shadow: 3px 3px 0 #000;
+      background: #e94560;
       cursor: pointer;
+      padding: 3px;
+      box-sizing: border-box;
       display: flex;
       align-items: center;
-      justify-content: center;
-      color: #fff;
-      padding: 0;
-      box-shadow: 3px 3px 0 #000;
-      transition: transform 0.07s, box-shadow 0.07s, border-color 0.15s, color 0.15s;
+      transition: background 0.15s;
+      flex-shrink: 0;
     }
-    #settings-sound-btn:hover { background: rgba(255,255,255,0.1); }
-    #settings-sound-btn:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 #000; }
-    #settings-sound-btn.muted { border-color: rgba(255,255,255,0.35); color: rgba(255,255,255,0.35); box-shadow: 3px 3px 0 rgba(0,0,0,0.4); }
+    #settings-sound-btn.muted { background: #444; }
+    #settings-sound-thumb {
+      width: 24px;
+      height: 24px;
+      border-radius: 3px;
+      border: 2px solid #000;
+      background: #fff;
+      transition: transform 0.15s;
+      transform: translateX(28px);
+      flex-shrink: 0;
+    }
+    #settings-sound-btn.muted #settings-sound-thumb { transform: translateX(0); }
     #settings-done-btn {
       padding: clamp(14px, 3vmin, 28px) 0;
       width: 100%;
@@ -991,9 +1084,45 @@
       cursor: pointer;
       white-space: nowrap;
       transition: transform 0.07s, box-shadow 0.07s;
-      margin-top: 6px;
+      margin-top: clamp(10px, 2.5vmin, 22px);
     }
     #settings-done-btn:active { transform: translate(3px,3px); box-shadow: 1px 1px 0 #000; }
+    #guest-signout-section {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: clamp(14px, 3vmin, 28px);
+      border-top: 2px solid rgba(255,255,255,0.15);
+      padding-top: clamp(10px, 2vmin, 16px);
+    }
+    #guest-signout-desc {
+      color: rgba(255,255,255,0.88);
+      font-family: 'Roboto', sans-serif;
+      font-weight: 500;
+      font-size: clamp(14px, 2.6vmin, 20px);
+      line-height: 1.6;
+      text-align: center;
+      width: 100%;
+    }
+    #guest-signout-btn {
+      padding: clamp(12px, 2.5vmin, 20px) 0;
+      margin-top: -4px;
+      width: 100%;
+      box-sizing: border-box;
+      background: transparent;
+      color: rgba(255,255,255,0.55);
+      border: 2px solid rgba(255,255,255,0.25);
+      font-family: 'Roboto', sans-serif;
+      font-weight: 600;
+      font-size: clamp(14px, 3vmin, 20px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    #guest-signout-btn:hover { color: #fff; border-color: rgba(255,255,255,0.6); }
 
     /* ── Sign-in loading overlay ─────────────────────────────────────────── */
     #signin-loading {
@@ -1089,10 +1218,10 @@
       margin-top: clamp(4px, 1.5vmin, 12px);
       filter: drop-shadow(0 4px 12px rgba(0,0,0,0.6));
     }
-    #lb-trophy svg {
+    #lb-trophy img {
       width: clamp(80px, 16vmin, 120px);
       height: auto;
-      overflow: visible;
+      display: block;
     }
     #lb-header {
       width: 100%;
@@ -1174,7 +1303,6 @@
       gap: 10px;
       flex: 1;
       min-width: 0;
-      overflow: hidden;
     }
     .lb-rank {
       font-family: 'Press Start 2P', monospace;
@@ -1234,7 +1362,7 @@
     .lb-error {
       color: rgba(255,255,255,0.55);
       font-family: 'Roboto', sans-serif;
-      font-size: clamp(13px, 2.8vmin, 16px);
+      font-size: clamp(15px, 2.8vmin, 16px);
       text-align: center;
       padding: 60px 20px;
       line-height: 1.9;
@@ -1244,27 +1372,7 @@
       0%, 100% { transform: translateY(0px); }
       50%       { transform: translateY(-7px); }
     }
-    @keyframes lb-bird-blink {
-      0%, 92%, 100% { transform: scaleY(1);    }
-      96%            { transform: scaleY(0.06); }
-      98%            { transform: scaleY(1);    }
-    }
-    @keyframes lb-star-twinkle {
-      0%, 100% { opacity: 0.35; transform: scale(0.8);  }
-      50%       { opacity: 1;    transform: scale(1.25); }
-    }
-    #lb-trophy   { animation: lb-trophy-float 3.4s ease-in-out infinite; }
-    #lb-bird-eye {
-      transform-box: fill-box;
-      transform-origin: center;
-      animation: lb-bird-blink 6s ease-in-out infinite;
-      animation-delay: 1.5s;
-    }
-    .lb-star {
-      transform-box: fill-box;
-      transform-origin: center;
-      animation: lb-star-twinkle 2.4s ease-in-out infinite;
-    }
+    #lb-trophy { animation: lb-trophy-float 3.4s ease-in-out infinite; }
     #lb-star-1 { animation-duration: 2.6s; animation-delay: 0s;   }
     #lb-star-2 { animation-duration: 3.1s; animation-delay: 0.9s; }
     #lb-star-3 { animation-duration: 2.2s; animation-delay: 1.6s; }
@@ -1274,6 +1382,21 @@
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <link rel="preload" as="image" href="game_over_5_misses.png">
+  <link rel="preload" as="image" href="gameover_times_up.png">
+  <link rel="preload" as="image" href="top100.png">
+  <link rel="preload" as="image" href="rule1.png">
+  <link rel="preload" as="image" href="rule2.png">
+  <link rel="preload" as="image" href="rule3.png">
+  <link rel="preload" as="image" href="rule4.png">
+  <link rel="preload" as="image" href="rule5.png">
+  <link rel="preload" as="image" href="hunter_oldschool.jpeg">
+  <link rel="preload" as="image" href="hunter_camo.jpeg">
+  <link rel="preload" as="image" href="hunter_hipster.jpeg">
+  <link rel="preload" as="image" href="hunter_young.jpeg">
+  <link rel="preload" as="image" href="hunter_arab.jpeg">
+  <link rel="preload" as="image" href="hunter_russian.jpeg">
+  <link rel="preload" as="image" href="hunter_safari.jpeg">
 </head>
 <body>
   <canvas id="canvas"></canvas>
@@ -1283,13 +1406,14 @@
     <div id="ui-left">
 <span id="score-display">0</span>
     </div>
-    <span id="timer-display">60s</span>
+    <span id="timer-display">45s</span>
     <span id="miss-display">X 0/5</span>
   </div>
 
   <!-- Game Over overlay -->
   <div id="game-over-overlay">
     <div id="game-over-popup">
+      <img id="game-over-img" src="" alt="" style="width:clamp(160px,42vmin,300px);height:auto;display:block;flex-shrink:0;">
       <div id="game-over-reason"></div>
       <div id="game-over-score"><span>Score:</span><span id="score-val"></span></div>
       <div id="game-over-hs"><span id="hs-label"></span><span id="hs-val"></span></div>
@@ -1304,13 +1428,36 @@
   <div id="howto-overlay">
     <div id="howto-popup">
       <div id="howto-title">How To Play?</div>
-      <div id="howto-body">
-        <div class="rule-line"><span class="rule-icon">🎯</span><span>Pull the slingstone and release to shoot at the bird</span></div>
-        <div class="rule-line"><span class="rule-icon">⏱️</span><span>You have 60 seconds — hit as many birds as you can</span></div>
-        <div class="rule-line"><span class="rule-icon">🔥</span><span>3 hits in a row grant you a firestone</span></div>
-        <div class="rule-line"><span class="rule-icon">💥</span><span>Hit: 100 pts. Hit with firestone: 300 pts</span></div>
-        <div class="rule-line"><span class="rule-icon">⏰</span><span>Every 5 hits in a row add 10 seconds to the clock</span></div>
-        <div class="rule-line"><span class="rule-icon">❌</span><span>A miss resets your hit streak</span></div>
+      <div id="howto-carousel-wrap">
+        <div id="howto-carousel-track">
+          <div class="howto-slide">
+            <div class="howto-slide-img-box"><img src="rule1.png" class="howto-slide-img" alt=""></div>
+            <p class="howto-slide-text">Pull the slingstone and release to shoot at the bird</p>
+          </div>
+          <div class="howto-slide">
+            <div class="howto-slide-img-box"><img src="rule2.png" class="howto-slide-img" alt=""></div>
+            <p class="howto-slide-text">You have 45 seconds -<br>hit as many birds as you can</p>
+          </div>
+          <div class="howto-slide">
+            <div class="howto-slide-img-box"><img src="rule3.png" class="howto-slide-img" alt=""></div>
+            <p class="howto-slide-text">3 hits in a row grant you a firestone</p>
+          </div>
+          <div class="howto-slide">
+            <div class="howto-slide-img-box"><img src="rule4.png" class="howto-slide-img" alt=""></div>
+            <p class="howto-slide-text">Hit: 100 pts.<br>Hit with firestone: 300 pts.</p>
+          </div>
+          <div class="howto-slide">
+            <div class="howto-slide-img-box"><img src="rule5.png" class="howto-slide-img" alt=""></div>
+            <p class="howto-slide-text">Every 5 hits in a row add 7 seconds to the clock</p>
+          </div>
+        </div>
+      </div>
+      <div id="howto-dots">
+        <span class="howto-dot active"></span>
+        <span class="howto-dot"></span>
+        <span class="howto-dot"></span>
+        <span class="howto-dot"></span>
+        <span class="howto-dot"></span>
       </div>
       <button id="howto-got-it">OK</button>
     </div>
@@ -1334,15 +1481,14 @@
         <span id="google-user-email"></span>
         <button id="google-signout-btn">Sign out</button>
       </div>
+      <div id="guest-signout-section" style="display:none">
+        <div id="guest-signout-desc">Want to start over?</div>
+        <button id="guest-signout-btn">Leave Guest</button>
+      </div>
       <div id="settings-sound-row">
         <span id="settings-sound-label">Sound</span>
-        <button id="settings-sound-btn">
-          <svg id="settings-sound-icon-on" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
-          </svg>
-          <svg id="settings-sound-icon-off" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" style="display:none">
-            <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3z"/>
-          </svg>
+        <button id="settings-sound-btn" role="switch" aria-checked="true">
+          <span id="settings-sound-thumb"></span>
         </button>
       </div>
       <button id="settings-done-btn">Done</button>
@@ -1391,79 +1537,7 @@
       <!-- Fixed header: trophy + title -->
       <div id="lb-header">
       <div id="lb-trophy">
-        <svg viewBox="0 0 180 200" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
-          <!-- Stars — each in own group for independent twinkle -->
-          <g class="lb-star" id="lb-star-1" fill="#FFD700">
-            <path d="M4,58 l2,5.5 l5.5,0 l-4.4,3.2 l1.7,5.5 l-4.8,-2.9 l-4.8,2.9 l1.7,-5.5 l-4.4,-3.2 l5.5,0 Z"/>
-          </g>
-          <g class="lb-star" id="lb-star-2" fill="#FFD700">
-            <path d="M174,46 l1.5,4.5 l4.5,0 l-3.6,2.6 l1.4,4.5 l-3.8,-2.3 l-3.8,2.3 l1.4,-4.5 l-3.6,-2.6 l4.5,0 Z"/>
-          </g>
-          <g class="lb-star" id="lb-star-3" fill="#FFD700">
-            <path d="M-6,104 l1.2,3.6 l3.6,0 l-2.9,2.1 l1.1,3.6 l-3,-1.8 l-3,1.8 l1.1,-3.6 l-2.9,-2.1 l3.6,0 Z"/>
-          </g>
-          <g class="lb-star" id="lb-star-4" fill="#FFD700">
-            <path d="M182,90 l1.2,3.6 l3.6,0 l-2.9,2.1 l1.1,3.6 l-3,-1.8 l-3,1.8 l1.1,-3.6 l-2.9,-2.1 l3.6,0 Z"/>
-          </g>
-
-          <!-- BIRD — rendered before cup so cup body + rim cover lower half -->
-          <g id="lb-bird" transform="translate(0, 10)">
-            <!-- Body -->
-            <ellipse cx="84" cy="35" rx="31" ry="22" fill="#FFE000"/>
-            <!-- Body shading -->
-            <ellipse cx="84" cy="42" rx="20" ry="12" fill="#CCAA00" opacity="0.3"/>
-            <!-- Head -->
-            <circle cx="99" cy="18" r="21" fill="#FFE000"/>
-            <!-- Head shading -->
-            <circle cx="95" cy="23" r="12" fill="#CCAA00" opacity="0.22"/>
-            <!-- Eye -->
-            <g id="lb-bird-eye">
-              <circle cx="108" cy="14" r="7.5" fill="white"/>
-              <circle cx="109" cy="14" r="5.5" fill="#1A1000"/>
-              <circle cx="111" cy="12" r="2.2" fill="white"/>
-              <circle cx="107" cy="16" r="1.1" fill="white" opacity="0.5"/>
-            </g>
-            <!-- Eyebrow -->
-            <path d="M101,8 Q108,5 114,8" stroke="#7A5000" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-            <!-- Beak -->
-            <path d="M117,18 L132,23 L117,27 Z" fill="#FF8800"/>
-            <path d="M117,23 L131,23 L117,27 Z" fill="#CC5500"/>
-            <line x1="117" y1="23" x2="130" y2="23" stroke="#CC5500" stroke-width="1.2"/>
-            <!-- Cheek blush -->
-            <circle cx="104" cy="22" r="5.5" fill="#FF9999" opacity="0.4"/>
-          </g>
-
-          <!-- Trophy base plate -->
-          <rect x="50" y="178" width="80" height="9" rx="4.5" fill="#8B6500"/>
-          <rect x="40" y="185" width="100" height="13" rx="6" fill="#AA7800"/>
-          <rect x="44" y="187" width="92" height="9" rx="4" fill="#DAA520"/>
-          <!-- Trophy stem -->
-          <rect x="75" y="156" width="30" height="25" rx="6" fill="#AA7800"/>
-          <rect x="79" y="156" width="22" height="25" rx="5" fill="#C8A000"/>
-          <rect x="83" y="158" width="14" height="21" rx="4" fill="#FFD700"/>
-          <!-- Cup body outer shadow -->
-          <path d="M28,52 C24,102 35,152 75,162 L105,162 C145,152 156,102 152,52 Z" fill="#8B6500"/>
-          <!-- Cup body main -->
-          <path d="M32,52 C28,100 39,149 77,159 L103,159 C141,149 152,100 148,52 Z" fill="#AA7800"/>
-          <!-- Cup body lighter -->
-          <path d="M36,52 C32,97 43,145 80,156 L100,156 C137,145 148,97 144,52 Z" fill="#C8A000"/>
-          <!-- Cup body highlight center -->
-          <path d="M44,52 C40,93 50,140 84,153 L96,153 C130,140 140,93 136,52 Z" fill="#DAA520"/>
-          <!-- Cup highlight sheen -->
-          <path d="M56,58 C54,82 56,116 68,140" stroke="rgba(255,255,200,0.32)" stroke-width="10" fill="none" stroke-linecap="round"/>
-          <path d="M58,58 C56,80 58,112 70,136" stroke="rgba(255,255,255,0.18)" stroke-width="5" fill="none" stroke-linecap="round"/>
-          <!-- Left handle -->
-          <path d="M32,74 Q4,95 6,130 Q8,156 44,156" stroke="#8B6500" stroke-width="15" fill="none" stroke-linecap="round"/>
-          <path d="M32,74 Q7,95 9,130 Q11,154 47,154" stroke="#C8A000" stroke-width="8" fill="none" stroke-linecap="round"/>
-          <!-- Right handle -->
-          <path d="M148,74 Q176,95 174,130 Q172,156 136,156" stroke="#8B6500" stroke-width="15" fill="none" stroke-linecap="round"/>
-          <path d="M148,74 Q173,95 171,130 Q169,154 133,154" stroke="#C8A000" stroke-width="8" fill="none" stroke-linecap="round"/>
-          <!-- Cup rim — last, covers bird's lower body -->
-          <rect x="24" y="44" width="132" height="13" rx="6.5" fill="#8B6500"/>
-          <rect x="26" y="46" width="128" height="9" rx="4.5" fill="#C8A000"/>
-          <rect x="28" y="47" width="124" height="6" rx="3" fill="#FFD700"/>
-          <rect x="30" y="48" width="120" height="3" rx="1.5" fill="#FFE55C"/>
-        </svg>
+        <img src="top100.png" alt="Top 100"/>
       </div>
 
       <div id="lb-title">TOP 100<br>BEST SCORES</div>
@@ -1615,10 +1689,10 @@ const SLING_X          = 120;
 const MAX_PULL         = 130;
 const BASE_RADIUS      = 18;
 const MISS_LIMIT       = 5;
-const TIMER_START      = 60;
+const TIMER_START      = 45;
 const FIRE_COMBO       = 3;   // consecutive hits to activate fire stone
 const TIME_BONUS_COMBO = 5;   // consecutive hits to add time
-const TIME_BONUS       = 10;  // seconds added
+const TIME_BONUS       = 7;   // seconds added
 const CP               = 8;   // pixel size of one "canvas pixel" (pixel-art grid)
 
 // ── State ─────────────────────────────────────────────────────────────────
@@ -1647,7 +1721,6 @@ const PROFILE_KEY = 'birdHuntProfile';
 const HUNTERS = [
   { name: 'קאובוי', svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#C8E8F8"/><rect x="22" y="2" width="56" height="46" fill="#7B4A18" rx="4"/><rect x="30" y="4" width="16" height="42" fill="#9B6030" rx="3" opacity="0.4"/><rect x="22" y="44" width="56" height="7" fill="#2A0800"/><rect x="4" y="50" width="92" height="12" fill="#8B5420" rx="6"/><rect x="4" y="59" width="92" height="3" fill="#4A2A08" rx="2"/><rect x="22" y="86" width="56" height="14" fill="#BB1800" rx="3"/><polygon points="42,86 50,76 58,86" fill="#991200"/><rect x="26" y="60" width="48" height="36" fill="#F0B870" rx="12"/><rect x="26" y="60" width="10" height="36" fill="#D09050" rx="8" opacity="0.4"/><rect x="64" y="60" width="10" height="36" fill="#D09050" rx="8" opacity="0.4"/><rect x="28" y="65" width="17" height="5" fill="#4A2800" rx="2"/><rect x="55" y="65" width="17" height="5" fill="#4A2800" rx="2"/><ellipse cx="37" cy="75" rx="7" ry="7" fill="#fff"/><circle cx="38" cy="75" r="5" fill="#2A1200"/><circle cx="39" cy="73" r="2" fill="#fff"/><ellipse cx="63" cy="75" rx="7" ry="7" fill="#fff"/><circle cx="64" cy="75" r="5" fill="#2A1200"/><circle cx="65" cy="73" r="2" fill="#fff"/><ellipse cx="50" cy="82" rx="5" ry="4" fill="#D09050"/><circle cx="47" cy="83" r="2" fill="#B07030" opacity="0.5"/><circle cx="53" cy="83" r="2" fill="#B07030" opacity="0.5"/><path d="M8,89 C16,83 28,82 38,88 C44,91 56,91 62,88 C72,82 84,83 92,89" stroke="#4A2000" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M40,94 Q50,100 60,94" stroke="#906030" stroke-width="3" fill="none" stroke-linecap="round"/></svg>` },
   { name: "ריינג'ר", svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#4A6030"/><ellipse cx="50" cy="2" rx="50" ry="12" fill="#3A5220"/><rect x="0" y="2" width="100" height="50" fill="#3A5220"/><rect x="0" y="44" width="100" height="12" fill="#2A3A18"/><rect x="0" y="54" width="14" height="16" fill="#2A3A18" rx="2"/><rect x="86" y="54" width="14" height="16" fill="#2A3A18" rx="2"/><rect x="14" y="86" width="72" height="14" fill="#3A5220" rx="3"/><rect x="14" y="54" width="72" height="38" fill="#C8A060" rx="8"/><rect x="14" y="54" width="14" height="38" fill="#A88040" rx="6" opacity="0.5"/><rect x="72" y="54" width="14" height="38" fill="#A88040" rx="6" opacity="0.5"/><rect x="14" y="64" width="72" height="10" fill="#4A6030" opacity="0.35" rx="2"/><rect x="16" y="62" width="22" height="6" fill="#2A2000" rx="2"/><rect x="62" y="62" width="22" height="6" fill="#2A2000" rx="2"/><ellipse cx="27" cy="75" rx="8" ry="7" fill="#fff"/><circle cx="28" cy="75" r="5" fill="#1A1000"/><circle cx="29" cy="73" r="2" fill="#fff"/><ellipse cx="73" cy="75" rx="8" ry="7" fill="#fff"/><circle cx="74" cy="75" r="5" fill="#1A1000"/><circle cx="75" cy="73" r="2" fill="#fff"/><rect x="44" y="78" width="12" height="10" fill="#A88040" rx="5"/><rect x="30" y="87" width="40" height="5" fill="#7A5020" rx="2"/><line x1="30" y1="89" x2="70" y2="89" stroke="#5A3810" stroke-width="1.5"/><line x1="18" y1="66" x2="24" y2="80" stroke="#8A6030" stroke-width="2" opacity="0.6"/></svg>` },
-  { name: 'זקן כועס', svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#E87800"/><ellipse cx="50" cy="8" rx="44" ry="22" fill="#CC5500"/><rect x="8" y="8" width="84" height="24" fill="#CC5500"/><rect x="2" y="30" width="96" height="10" fill="#AA3A00" rx="4"/><rect x="20" y="86" width="60" height="14" fill="#DD6600" rx="3"/><rect x="20" y="38" width="60" height="52" fill="#ECC880" rx="10"/><rect x="20" y="38" width="12" height="52" fill="#CCA860" rx="8" opacity="0.4"/><rect x="68" y="38" width="12" height="52" fill="#CCA860" rx="8" opacity="0.4"/><polygon points="22,48 40,52 40,57 22,53" fill="#2A1000"/><polygon points="60,52 78,48 78,53 60,57" fill="#2A1000"/><ellipse cx="31" cy="62" rx="9" ry="6" fill="#fff"/><circle cx="32" cy="62" r="4" fill="#1A0800"/><circle cx="33" cy="60" r="1.5" fill="#fff"/><ellipse cx="69" cy="62" rx="9" ry="6" fill="#fff"/><circle cx="70" cy="62" r="4" fill="#1A0800"/><circle cx="71" cy="60" r="1.5" fill="#fff"/><ellipse cx="50" cy="71" rx="8" ry="6" fill="#CCA860"/><ellipse cx="50" cy="90" rx="32" ry="22" fill="#CCCCBE"/><rect x="18" y="72" width="64" height="28" fill="#CCCCBE" rx="8"/><ellipse cx="50" cy="73" rx="22" ry="8" fill="#DDDDCF"/><path d="M38,80 Q50,75 62,80" stroke="#9A9A8A" stroke-width="3" fill="none" stroke-linecap="round"/></svg>` },
   { name: 'ספורטאי', svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#48A8E0"/><ellipse cx="50" cy="20" rx="42" ry="26" fill="#1A44CC"/><rect x="8" y="6" width="84" height="28" fill="#1A44CC"/><rect x="4" y="2" width="92" height="8" fill="#0E2EA8" rx="3"/><circle cx="50" cy="6" r="4" fill="#0E2EA8"/><rect x="20" y="86" width="60" height="14" fill="#F0F0EE" rx="3"/><rect x="22" y="30" width="56" height="58" fill="#E8A060" rx="14"/><rect x="22" y="30" width="10" height="58" fill="#C88040" rx="8" opacity="0.4"/><rect x="68" y="30" width="10" height="58" fill="#C88040" rx="8" opacity="0.4"/><path d="M26,42 Q36,37 42,41" stroke="#7A4A20" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M58,41 Q64,37 74,42" stroke="#7A4A20" stroke-width="4" fill="none" stroke-linecap="round"/><ellipse cx="35" cy="52" rx="9" ry="9" fill="#fff"/><circle cx="36" cy="52" r="6" fill="#2A1200"/><circle cx="38" cy="50" r="2.5" fill="#fff"/><ellipse cx="65" cy="52" rx="9" ry="9" fill="#fff"/><circle cx="66" cy="52" r="6" fill="#2A1200"/><circle cx="68" cy="50" r="2.5" fill="#fff"/><circle cx="27" cy="60" r="2.5" fill="#B07030" opacity="0.7"/><circle cx="33" cy="62" r="2" fill="#B07030" opacity="0.6"/><circle cx="67" cy="62" r="2" fill="#B07030" opacity="0.6"/><circle cx="73" cy="60" r="2.5" fill="#B07030" opacity="0.7"/><ellipse cx="50" cy="64" rx="6" ry="5" fill="#C88040"/><path d="M30,74 Q50,88 70,74 Q50,82 30,74" fill="#fff"/><line x1="40" y1="74" x2="40" y2="82" stroke="#DDD" stroke-width="1"/><line x1="50" y1="74" x2="50" y2="83" stroke="#DDD" stroke-width="1"/><line x1="60" y1="74" x2="60" y2="82" stroke="#DDD" stroke-width="1"/><path d="M34,82 Q50,90 66,82" stroke="#C88040" stroke-width="2" fill="none" stroke-linecap="round"/></svg>` },
   { name: 'מחוספס', svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#223040"/><rect x="16" y="86" width="68" height="14" fill="#1A2A38" rx="3"/><ellipse cx="50" cy="12" rx="50" ry="26" fill="#334455"/><rect x="0" y="2" width="100" height="24" fill="#334455"/><rect x="0" y="22" width="100" height="12" fill="#445566" rx="2"/><line x1="0" y1="24" x2="100" y2="24" stroke="#334455" stroke-width="1.5"/><line x1="0" y1="27" x2="100" y2="27" stroke="#334455" stroke-width="1.5"/><line x1="0" y1="30" x2="100" y2="30" stroke="#334455" stroke-width="1.5"/><rect x="10" y="32" width="80" height="56" fill="#8A5020" rx="10"/><rect x="10" y="32" width="14" height="56" fill="#6A3A0A" rx="8" opacity="0.5"/><rect x="76" y="32" width="14" height="56" fill="#6A3A0A" rx="8" opacity="0.5"/><rect x="12" y="40" width="76" height="9" fill="#1A0800" rx="4"/><ellipse cx="30" cy="56" rx="10" ry="9" fill="#fff"/><circle cx="31" cy="56" r="6" fill="#0A0400"/><circle cx="33" cy="54" r="2.5" fill="#fff"/><ellipse cx="70" cy="56" rx="10" ry="9" fill="#fff"/><circle cx="71" cy="56" r="6" fill="#0A0400"/><circle cx="73" cy="54" r="2.5" fill="#fff"/><ellipse cx="50" cy="65" rx="9" ry="7" fill="#6A3A0A"/><circle cx="45" cy="67" r="3" fill="#4A2000" opacity="0.5"/><circle cx="55" cy="67" r="3" fill="#4A2000" opacity="0.5"/><rect x="10" y="72" width="80" height="26" fill="#5A2A08" rx="8" opacity="0.6"/><path d="M34,78 Q50,74 66,78" stroke="#2A0800" stroke-width="4" fill="none" stroke-linecap="round"/></svg>` },
   { name: "פרופ'", svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#F5ECD8"/><rect x="22" y="86" width="56" height="14" fill="#EEEEEE" rx="3"/><polygon points="34,86 50,80 66,86 50,92" fill="#553388"/><circle cx="50" cy="86" r="4" fill="#442277"/><ellipse cx="50" cy="8" rx="40" ry="20" fill="#221100"/><rect x="10" y="2" width="80" height="26" fill="#221100"/><rect x="46" y="2" width="8" height="26" fill="#F5E0C0"/><rect x="22" y="26" width="56" height="62" fill="#F5E0C0" rx="12"/><rect x="22" y="26" width="10" height="62" fill="#DDCAA8" rx="8" opacity="0.4"/><rect x="68" y="26" width="10" height="62" fill="#DDCAA8" rx="8" opacity="0.4"/><path d="M26,36 Q36,32 42,35" stroke="#332200" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M58,35 Q64,32 74,36" stroke="#332200" stroke-width="3" fill="none" stroke-linecap="round"/><ellipse cx="20" cy="46" rx="5" ry="8" fill="#F5E0C0"/><ellipse cx="80" cy="46" rx="5" ry="8" fill="#F5E0C0"/><circle cx="36" cy="50" r="12" fill="none" stroke="#CC8822" stroke-width="3"/><circle cx="64" cy="50" r="12" fill="none" stroke="#CC8822" stroke-width="3"/><path d="M48,50 L52,50" stroke="#CC8822" stroke-width="3"/><circle cx="36" cy="50" r="8" fill="#fff"/><circle cx="37" cy="50" r="5" fill="#1A1000"/><circle cx="38" cy="48" r="2" fill="#fff"/><circle cx="64" cy="50" r="8" fill="#fff"/><circle cx="65" cy="50" r="5" fill="#1A1000"/><circle cx="66" cy="48" r="2" fill="#fff"/><ellipse cx="50" cy="62" rx="6" ry="5" fill="#DDCAA8"/><path d="M38,74 Q50,82 62,74" stroke="#AA8050" stroke-width="3" fill="none" stroke-linecap="round"/></svg>` },
@@ -1658,7 +1731,6 @@ const HUNTERS = [
 const HUNTER_IMGS = [
   'hunter_oldschool.jpeg',
   'hunter_camo.jpeg',
-  'hunter_blackops.jpeg',
   'hunter_hipster.jpeg',
   'hunter_young.jpeg',
   'hunter_arab.jpeg',
@@ -1717,7 +1789,10 @@ function _buildAvatarGrid() {
 
 function showProfileModal(mode, prefill) {
   _profileMode = mode || 'create';
-  _pickedAvatar = prefill ? (prefill.avatarIndex ?? 0) : (userProfile ? userProfile.avatarIndex : 0);
+  _pickedAvatar = Math.min(
+    prefill ? (prefill.avatarIndex ?? 0) : (userProfile ? (userProfile.avatarIndex ?? 0) : 0),
+    HUNTER_IMGS.length - 1
+  );
   const isHello = _profileMode === 'hello';
   const isCreate = _profileMode === 'create';
   document.getElementById('profile-title').textContent =
@@ -1743,6 +1818,7 @@ function showProfileModal(mode, prefill) {
 
 function _hideProfileModal() {
   document.getElementById('profile-overlay').classList.remove('visible');
+  document.getElementById('profile-popup').style.animation = '';
   _resetSheetPosition();
 }
 
@@ -1802,7 +1878,7 @@ function _updateProfileChip() {
   document.getElementById('settings-btn').style.display = 'flex';
   const hs = userProfile.stats.highScore;
   document.getElementById('profile-chip-hs').textContent = String(hs);
-  document.getElementById('profile-chip-img').src = HUNTER_IMGS[userProfile.avatarIndex];
+  document.getElementById('profile-chip-img').src = HUNTER_IMGS[Math.min(userProfile.avatarIndex ?? 0, HUNTER_IMGS.length - 1)];
 }
 
 // ── First-launch init ─────────────────────────────────────────────────────
@@ -1811,8 +1887,8 @@ function initProfile() {
   if (!userProfile) {
     showAuthScreen();
   } else {
-    // Merge old high-score key if needed
-    if (highScore > userProfile.stats.highScore) {
+    // Merge old high-score key if needed (guests only — Google users trust the cloud)
+    if (userProfile.provider !== 'google' && highScore > userProfile.stats.highScore) {
       userProfile.stats.highScore = highScore;
       _persistProfile(userProfile);
     }
@@ -1842,6 +1918,80 @@ document.getElementById('profile-cancel-btn').addEventListener('click', () => {
 document.getElementById('name-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') { e.preventDefault(); _saveProfileFromModal(); }
 });
+
+// ── Swipe-down on sheet handle → cancel (no save) ─────────────────────────
+(function () {
+  const handle = document.getElementById('sheet-handle');
+  const popup  = document.getElementById('profile-popup');
+  const overlay = document.getElementById('profile-overlay');
+  const OVERLAY_ALPHA = 0.88;
+  let startY = 0, lastY = 0, startTime = 0;
+
+  function setOverlayAlpha(alpha) {
+    overlay.style.background = `rgba(0,0,0,${alpha.toFixed(3)})`;
+  }
+
+  function snapBack() {
+    popup.style.transition   = 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)';
+    overlay.style.transition = 'background 0.3s ease';
+    popup.style.transform    = 'translateY(0)';
+    setOverlayAlpha(OVERLAY_ALPHA);
+    setTimeout(() => {
+      popup.style.transition   = '';
+      popup.style.transform    = '';
+      overlay.style.transition = '';
+      overlay.style.background = '';
+    }, 310);
+  }
+
+  handle.addEventListener('touchstart', e => {
+    startY    = e.touches[0].clientY;
+    lastY     = startY;
+    startTime = Date.now();
+    popup.style.animation    = 'none';
+    popup.style.transition   = 'none';
+    popup.style.transform    = 'translateY(0)';
+    overlay.style.transition = 'none';
+  }, { passive: true });
+
+  handle.addEventListener('touchmove', e => {
+    e.preventDefault();
+    lastY = e.touches[0].clientY;
+    const dy       = Math.max(0, lastY - startY);
+    const progress = Math.min(dy / popup.offsetHeight, 1);
+    popup.style.transform = `translateY(${dy}px)`;
+    setOverlayAlpha(OVERLAY_ALPHA * (1 - progress));
+  }, { passive: false });
+
+  handle.addEventListener('touchend', () => {
+    const dy       = Math.max(0, lastY - startY);
+    const velocity = dy / Math.max(1, Date.now() - startTime);
+    if (dy > 120 || (dy > 50 && velocity > 0.5)) {
+      popup.style.transition   = 'transform 0.28s cubic-bezier(0.32, 0.72, 0, 1)';
+      overlay.style.transition = 'background 0.28s ease';
+      popup.style.transform    = 'translateY(100%)';
+      setOverlayAlpha(0);
+      setTimeout(() => {
+        // Call cancel logic directly (without .click()) to avoid button sound
+        document.getElementById('name-input').blur();
+        _hideProfileModal();
+        if (_profileMode === 'hello') {
+          const cu = _fbAuth.currentUser;
+          if (cu && !cu.isAnonymous) { _fbAuth.signOut(); }
+          setTimeout(showAuthScreen, 50);
+        }
+        popup.style.transition   = '';
+        popup.style.transform    = '';
+        overlay.style.transition = '';
+        overlay.style.background = '';
+      }, 290);
+    } else {
+      snapBack();
+    }
+  }, { passive: true });
+
+  handle.addEventListener('touchcancel', snapBack, { passive: true });
+}());
 document.getElementById('name-input').addEventListener('input', () => {
   document.getElementById('name-error').textContent = '';
 });
@@ -2262,13 +2412,10 @@ function _resumeAndFire(ctx, fn) {
 let soundEnabled = localStorage.getItem('soundEnabled') !== 'false';
 
 function _applySoundUI() {
-  const on  = document.getElementById('settings-sound-icon-on');
-  const off = document.getElementById('settings-sound-icon-off');
   const btn = document.getElementById('settings-sound-btn');
-  if (!on || !off || !btn) return;
-  on.style.display  = soundEnabled ? '' : 'none';
-  off.style.display = soundEnabled ? 'none' : '';
+  if (!btn) return;
   btn.classList.toggle('muted', !soundEnabled);
+  btn.setAttribute('aria-checked', soundEnabled ? 'true' : 'false');
 }
 
 function playSfx(key, gain = 1, rate = 1) {
@@ -2460,7 +2607,7 @@ function onHit(bx, by) {
     playSfx('extra');
     const gap = 29; // natural gap: (by-30) - (by-59)
     const bonusY = Math.max(UI_TOP_H + 16 + 4, by - 59);
-    addFloatingText('+10s', bx, bonusY, '#44FF88', 16);
+    addFloatingText('+7s', bx, bonusY, '#44FF88', 16);
     addFloatingText('+' + pts, bx, bonusY + gap, isFireStone ? '#FF8800' : '#FFD700', 16);
   } else {
     addFloatingText('+' + pts, bx, by - 30, isFireStone ? '#FF8800' : '#FFD700', 16);
@@ -2534,10 +2681,12 @@ function endGame() {
     userProfile.stats.gamesPlayed = (userProfile.stats.gamesPlayed || 0) + 1;
     if (isNew) userProfile.stats.highScore = highScore;
     _persistProfile(userProfile);
+    if (userProfile.provider === 'google' && score > 0) _saveScore(score);
   }
   const EX  = '<span class="ex">!</span>';
   const reasonText = timeLeft <= 0 ? `Time's Up!` : `${MISS_LIMIT} Misses!`;
   document.getElementById('game-over-reason').innerHTML = reasonText;
+  document.getElementById('game-over-img').src = timeLeft <= 0 ? 'gameover_times_up.png' : 'game_over_5_misses.png';
   document.getElementById('score-val').textContent = score;
   const hsEl = document.getElementById('game-over-hs');
   if (isNew) {
@@ -3355,9 +3504,44 @@ window.addEventListener('pageshow', e => {
   }
 });
 
+// ── Howto carousel ───────────────────────────────────────────────────────
+let _howtoSlide = 0;
+function _howtoLayout() {
+  const wrap  = document.getElementById('howto-carousel-wrap');
+  const track = document.getElementById('howto-carousel-track');
+  const slides = document.querySelectorAll('.howto-slide');
+  const w = wrap.offsetWidth;
+  slides.forEach(s => { s.style.width = w + 'px'; });
+  track.style.width = (w * slides.length) + 'px';
+  track.style.transition = 'none';
+  track.style.transform = `translateX(-${_howtoSlide * w}px)`;
+  requestAnimationFrame(() => { track.style.transition = 'transform 0.3s ease'; });
+}
+function _howtoGoTo(idx) {
+  _howtoSlide = Math.max(0, Math.min(4, idx));
+  const w = document.getElementById('howto-carousel-wrap').offsetWidth;
+  document.getElementById('howto-carousel-track').style.transform = `translateX(-${_howtoSlide * w}px)`;
+  document.querySelectorAll('.howto-dot').forEach((d, i) => d.classList.toggle('active', i === _howtoSlide));
+}
+(function() {
+  let _startX = 0;
+  const wrap = document.getElementById('howto-carousel-wrap');
+  wrap.addEventListener('touchstart', e => { _startX = e.touches[0].clientX; }, { passive: true });
+  wrap.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - _startX;
+    if (Math.abs(dx) > 40) _howtoGoTo(_howtoSlide + (dx < 0 ? 1 : -1));
+  });
+  document.querySelectorAll('.howto-dot').forEach((d, i) => {
+    d.addEventListener('click', () => { playSfx('button'); _howtoGoTo(i); });
+  });
+  window.addEventListener('resize', () => { if (document.getElementById('howto-overlay').classList.contains('visible')) _howtoLayout(); });
+})();
+
 document.getElementById('info-btn').addEventListener('click', () => {
   playSfx('button');
+  _howtoSlide = 0;
   document.getElementById('howto-overlay').classList.add('visible');
+  requestAnimationFrame(_howtoLayout);
 });
 document.getElementById('howto-got-it').addEventListener('click', () => {
   playSfx('button');
@@ -3410,6 +3594,18 @@ async function _saveCloudProfile(profile, releaseNameLower) {
       batch.delete(_db.collection('usernames').doc(releaseNameLower));
     }
     await batch.commit();
+    // Update displayName + avatarIndex on all existing scores for this user
+    _db.collection('scores').where('uid', '==', profile.uid).get().then(snap => {
+      if (snap.empty) return;
+      const scoreBatch = _db.batch();
+      snap.forEach(doc => {
+        scoreBatch.update(doc.ref, {
+          displayName: profile.displayName,
+          avatarIndex: profile.avatarIndex ?? 0,
+        });
+      });
+      scoreBatch.commit().catch(e => console.error('Score profile sync:', e));
+    }).catch(e => console.error('Score profile sync query:', e));
   } catch(e) { console.error('Firestore save:', e); }
 }
 
@@ -3417,6 +3613,18 @@ function _persistProfile(p, releaseNameLower) {
   try { localStorage.setItem(PROFILE_KEY, JSON.stringify(p)); } catch(e) {}
   userProfile = p;
   if (p && p.provider === 'google') _saveCloudProfile(p, releaseNameLower);
+}
+
+async function _saveScore(s) {
+  try {
+    await _db.collection('scores').add({
+      uid:         userProfile.uid,
+      displayName: userProfile.displayName,
+      avatarIndex: userProfile.avatarIndex ?? 0,
+      score:       s,
+      createdAt:   firebase.firestore.FieldValue.serverTimestamp(),
+    });
+  } catch(e) { console.error('Score save:', e); }
 }
 
 // ── Auth screen ───────────────────────────────────────────────────────────
@@ -3502,6 +3710,7 @@ function _updateGoogleSignInUI(googleUser) {
     signinBtn.style.display  = 'none';
     if (settingsDesc) settingsDesc.style.display = 'none';
     signoutRow.classList.add('visible');
+    document.getElementById('guest-signout-section').style.display = 'none';
     document.getElementById('google-user-email').textContent =
       googleUser.email || googleUser.displayName || '';
     introSection.classList.add('hidden');
@@ -3536,8 +3745,8 @@ _fbAuth.onAuthStateChanged(async firebaseUser => {
     userProfile = _makeProfile(cloud.displayName || 'Player', cloud.avatarIndex ?? (local?.avatarIndex ?? 0));
     userProfile.uid      = uid;
     userProfile.provider = 'google';
-    userProfile.stats    = { ...(cloud.stats || {}), highScore: bestHS };
-    highScore = bestHS;
+    userProfile.stats    = { ...(cloud.stats || {}), highScore: cloudHS };
+    highScore = cloudHS;
     _persistProfile(userProfile);
     hideAuthScreen();
     _updateProfileChip();
@@ -3599,7 +3808,18 @@ document.getElementById('google-signout-btn').addEventListener('click', () => {
 document.getElementById('settings-btn').addEventListener('click', () => {
   playSfx('button');
   _applySoundUI();
+  const isGuest = userProfile && userProfile.provider === 'local';
+  document.getElementById('guest-signout-section').style.display = isGuest ? '' : 'none';
   document.getElementById('settings-overlay').classList.add('visible');
+});
+document.getElementById('guest-signout-btn').addEventListener('click', () => {
+  playSfx('button');
+  try { localStorage.removeItem(PROFILE_KEY); } catch(e) {}
+  try { localStorage.removeItem('birdHuntHS'); } catch(e) {}
+  userProfile = null;
+  highScore   = 0;
+  document.getElementById('settings-overlay').classList.remove('visible');
+  showAuthScreen();
 });
 document.getElementById('settings-done-btn').addEventListener('click', () => {
   playSfx('button');
@@ -3641,7 +3861,7 @@ async function _fetchLeaderboard() {
       try { await Promise.race([_fbAuth.signInAnonymously(), timeout]); } catch(_) { /* continue */ }
     }
     const snap = await Promise.race([
-      _db.collection('users').orderBy('stats.highScore', 'desc').limit(LB_MAX).get(),
+      _db.collection('scores').orderBy('score', 'desc').orderBy('createdAt', 'asc').limit(LB_MAX).get(),
       timeout,
     ]);
     _lbData = snap.docs.map((doc, i) => {
@@ -3650,7 +3870,7 @@ async function _fetchLeaderboard() {
         rank:        i + 1,
         displayName: d.displayName || 'Hunter',
         avatarIndex: d.avatarIndex ?? 0,
-        highScore:   (d.stats && d.stats.highScore) ? d.stats.highScore : 0,
+        highScore:   d.score || 0,
       };
     });
     // Filter out zero scores
@@ -3672,6 +3892,10 @@ function _renderLeaderboard() {
   void list.offsetHeight;
 
   list.innerHTML = '';
+  if (_lbData.length === 0) {
+    list.innerHTML = '<div class="lb-error">No scores yet.<br><small style="opacity:0.7;font-size:88%">Be the first to set a record!</small></div>';
+    return;
+  }
   _lbData.forEach((entry) => {
     const row = document.createElement('div');
     row.className = 'lb-row'
