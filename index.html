@@ -1383,8 +1383,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-  <link rel="preload" as="image" href="game_over_5_misses.png">
-  <link rel="preload" as="image" href="gameover_times_up.png">
+
   <link rel="preload" as="image" href="top100.png">
   <link rel="preload" as="image" href="rule1.png">
   <link rel="preload" as="image" href="rule2.png">
@@ -1414,7 +1413,8 @@
   <!-- Game Over overlay -->
   <div id="game-over-overlay">
     <div id="game-over-popup">
-      <img id="game-over-img" src="" alt="" style="width:clamp(160px,42vmin,300px);height:auto;display:block;flex-shrink:0;">
+      <img id="game-over-img-misses" src="game_over_5_misses.png" alt="" style="width:clamp(160px,42vmin,300px);height:auto;display:block;flex-shrink:0;">
+      <img id="game-over-img-time"   src="gameover_times_up.png"  alt="" style="width:clamp(160px,42vmin,300px);height:auto;display:block;flex-shrink:0;display:none;">
       <div id="game-over-reason"></div>
       <div id="game-over-score"><span>Score:</span><span id="score-val"></span></div>
       <div id="game-over-hs"><span id="hs-label"></span><span id="hs-val"></span></div>
@@ -2687,7 +2687,8 @@ function endGame() {
   const EX  = '<span class="ex">!</span>';
   const reasonText = timeLeft <= 0 ? `Time's Up!` : `${MISS_LIMIT} Misses!`;
   document.getElementById('game-over-reason').innerHTML = reasonText;
-  document.getElementById('game-over-img').src = timeLeft <= 0 ? 'gameover_times_up.png' : 'game_over_5_misses.png';
+  document.getElementById('game-over-img-misses').style.display = timeLeft <= 0 ? 'none' : 'block';
+  document.getElementById('game-over-img-time').style.display   = timeLeft <= 0 ? 'block' : 'none';
   document.getElementById('score-val').textContent = score;
   const hsEl = document.getElementById('game-over-hs');
   if (isNew) {
