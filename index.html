@@ -1308,7 +1308,7 @@
     .lb-rank {
       font-family: 'Press Start 2P', monospace;
       font-size: clamp(10px, 2.2vmin, 14px);
-      width: 4ch;
+      width: 3ch;
       flex-shrink: 0;
       text-align: right;
       color: #6688aa;
@@ -3950,7 +3950,7 @@ function _renderLeaderboard() {
       + (entry.rank === 1 ? ' lb-rank-1' : '')
       + (entry.rank === 2 ? ' lb-rank-2' : '')
       + (entry.rank === 3 ? ' lb-rank-3' : '');
-    rankEl.textContent = '#' + entry.rank;
+    rankEl.textContent = entry.rank;
 
     const avatar = document.createElement('img');
     avatar.className = 'lb-avatar';
