@@ -3578,9 +3578,8 @@ function _howtoGoTo(idx) {
 
 document.getElementById('info-btn').addEventListener('click', () => {
   playSfx('button');
-  _howtoSlide = 0;
   document.getElementById('howto-overlay').classList.add('visible');
-  requestAnimationFrame(_howtoLayout);
+  requestAnimationFrame(() => { _howtoLayout(); _howtoGoTo(0); });
 });
 document.getElementById('howto-got-it').addEventListener('click', () => {
   playSfx('button');
