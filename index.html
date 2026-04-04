@@ -3950,7 +3950,7 @@ function _renderLeaderboard() {
       + (entry.rank === 1 ? ' lb-rank-1' : '')
       + (entry.rank === 2 ? ' lb-rank-2' : '')
       + (entry.rank === 3 ? ' lb-rank-3' : '');
-    rankEl.textContent = entry.rank;
+    rankEl.textContent = String(entry.rank).padStart(3, '0');
 
     const avatar = document.createElement('img');
     avatar.className = 'lb-avatar';
