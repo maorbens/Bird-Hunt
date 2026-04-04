@@ -1315,6 +1315,7 @@
     .lb-rank-1 { color: #FFD700; }
     .lb-rank-2 { color: #C0C0C0; }
     .lb-rank-3 { color: #CD7F32; }
+    .lb-rank-100 { font-size: calc(clamp(10px, 2.2vmin, 14px) * 0.75); }
     .lb-avatar {
       width: 36px;
       height: 36px;
@@ -3946,9 +3947,10 @@ function _renderLeaderboard() {
 
     const rankEl = document.createElement('span');
     rankEl.className = 'lb-rank'
-      + (entry.rank === 1 ? ' lb-rank-1' : '')
-      + (entry.rank === 2 ? ' lb-rank-2' : '')
-      + (entry.rank === 3 ? ' lb-rank-3' : '');
+      + (entry.rank === 1   ? ' lb-rank-1'   : '')
+      + (entry.rank === 2   ? ' lb-rank-2'   : '')
+      + (entry.rank === 3   ? ' lb-rank-3'   : '')
+      + (entry.rank === 100 ? ' lb-rank-100' : '');
     rankEl.textContent = '#' + entry.rank;
 
     const avatar = document.createElement('img');
