@@ -121,7 +121,7 @@
       font-size: 18px;
     }
     #game-over-score { color: #FFD700; }
-    #game-over-hs    { color: #aaffaa; margin-top: calc(clamp(18px, 3.5vmin, 32px) * 0.2 - 7.2px); }
+    #game-over-hs    { color: #aaffaa; margin-top: calc(clamp(18px, 3.5vmin, 32px) * -0.4 - 3.6px); }
     #game-over-hs.new-record { width: 100%; justify-content: center; gap: 0; }
     #game-over-hs.new-record #hs-val { display: none; }
     #game-over-hs.new-record #hs-label { display: flex; align-items: center; gap: 5px; line-height: 1; }
@@ -1308,8 +1308,9 @@
     .lb-rank {
       font-family: 'Press Start 2P', monospace;
       font-size: clamp(10px, 2.2vmin, 14px);
-      min-width: 30px;
+      width: 3ch;
       flex-shrink: 0;
+      text-align: right;
       color: #6688aa;
     }
     .lb-rank-1 { color: #FFD700; }
@@ -1433,28 +1434,38 @@
         <div id="howto-carousel-track">
           <div class="howto-slide">
             <div class="howto-slide-img-box"><img src="rule1.png" class="howto-slide-img" alt=""></div>
-            <p class="howto-slide-text">Pull the slingstone and release to shoot at the bird</p>
+            <p class="howto-slide-text">Pull the slingshot and release to hit the bird</p>
           </div>
           <div class="howto-slide">
             <div class="howto-slide-img-box"><img src="rule2.png" class="howto-slide-img" alt=""></div>
-            <p class="howto-slide-text">You have 45 seconds -<br>hit as many birds as you can</p>
+            <p class="howto-slide-text">You have 45 seconds to hit as many birds as you can</p>
           </div>
           <div class="howto-slide">
             <div class="howto-slide-img-box"><img src="rule3.png" class="howto-slide-img" alt=""></div>
-            <p class="howto-slide-text">3 hits in a row grant you a firestone</p>
+            <p class="howto-slide-text">You can miss 5 times before the game is over</p>
           </div>
           <div class="howto-slide">
             <div class="howto-slide-img-box"><img src="rule4.png" class="howto-slide-img" alt=""></div>
-            <p class="howto-slide-text">Hit: 100 pts.<br>Hit with firestone: 300 pts.</p>
+            <p class="howto-slide-text">A miss turns a regular stone into a tiny one</p>
           </div>
           <div class="howto-slide">
             <div class="howto-slide-img-box"><img src="rule5.png" class="howto-slide-img" alt=""></div>
+            <p class="howto-slide-text">3 hits in a row summon a Firestone until you miss</p>
+          </div>
+          <div class="howto-slide">
+            <div class="howto-slide-img-box"><img src="rule6.png" class="howto-slide-img" alt=""></div>
+            <p class="howto-slide-text">Each hit earns 100 pts. Firestone hits earn 300 pts</p>
+          </div>
+          <div class="howto-slide">
+            <div class="howto-slide-img-box"><img src="rule7.png" class="howto-slide-img" alt=""></div>
             <p class="howto-slide-text">Every 5 hits in a row add 7 seconds to the clock</p>
           </div>
         </div>
       </div>
       <div id="howto-dots">
         <span class="howto-dot active"></span>
+        <span class="howto-dot"></span>
+        <span class="howto-dot"></span>
         <span class="howto-dot"></span>
         <span class="howto-dot"></span>
         <span class="howto-dot"></span>
@@ -3520,19 +3531,46 @@ function _howtoLayout() {
   requestAnimationFrame(() => { track.style.transition = 'transform 0.3s ease'; });
 }
 function _howtoGoTo(idx) {
-  _howtoSlide = Math.max(0, Math.min(4, idx));
+  _howtoSlide = Math.max(0, Math.min(6, idx));
   const w = document.getElementById('howto-carousel-wrap').offsetWidth;
   document.getElementById('howto-carousel-track').style.transform = `translateX(-${_howtoSlide * w}px)`;
   document.querySelectorAll('.howto-dot').forEach((d, i) => d.classList.toggle('active', i === _howtoSlide));
 }
 (function() {
   let _startX = 0;
+  let _mouseDown = false;
+  let _mouseStartX = 0;
+  let _wheelAcc = 0, _wheelTimer = null;
   const wrap = document.getElementById('howto-carousel-wrap');
+
+  // Touch (mobile)
   wrap.addEventListener('touchstart', e => { _startX = e.touches[0].clientX; }, { passive: true });
   wrap.addEventListener('touchend', e => {
     const dx = e.changedTouches[0].clientX - _startX;
     if (Math.abs(dx) > 40) _howtoGoTo(_howtoSlide + (dx < 0 ? 1 : -1));
   });
+
+  // Mouse drag (desktop)
+  wrap.addEventListener('mousedown', e => { _mouseDown = true; _mouseStartX = e.clientX; e.preventDefault(); });
+  window.addEventListener('mousemove', e => { if (!_mouseDown) return; });
+  window.addEventListener('mouseup', e => {
+    if (!_mouseDown) return;
+    _mouseDown = false;
+    const dx = e.clientX - _mouseStartX;
+    if (Math.abs(dx) > 40) _howtoGoTo(_howtoSlide + (dx < 0 ? 1 : -1));
+  });
+
+  // Trackpad / wheel (desktop)
+  wrap.addEventListener('wheel', e => {
+    e.preventDefault();
+    _wheelAcc += e.deltaX || -e.deltaY;
+    clearTimeout(_wheelTimer);
+    _wheelTimer = setTimeout(() => {
+      if (Math.abs(_wheelAcc) > 30) _howtoGoTo(_howtoSlide + (_wheelAcc > 0 ? 1 : -1));
+      _wheelAcc = 0;
+    }, 80);
+  }, { passive: false });
+
   document.querySelectorAll('.howto-dot').forEach((d, i) => {
     d.addEventListener('click', () => { playSfx('button'); _howtoGoTo(i); });
   });
@@ -3541,9 +3579,8 @@ function _howtoGoTo(idx) {
 
 document.getElementById('info-btn').addEventListener('click', () => {
   playSfx('button');
-  _howtoSlide = 0;
   document.getElementById('howto-overlay').classList.add('visible');
-  requestAnimationFrame(_howtoLayout);
+  requestAnimationFrame(() => { _howtoLayout(); _howtoGoTo(0); });
 });
 document.getElementById('howto-got-it').addEventListener('click', () => {
   playSfx('button');
@@ -3913,7 +3950,7 @@ function _renderLeaderboard() {
       + (entry.rank === 1 ? ' lb-rank-1' : '')
       + (entry.rank === 2 ? ' lb-rank-2' : '')
       + (entry.rank === 3 ? ' lb-rank-3' : '');
-    rankEl.textContent = '#' + entry.rank;
+    rankEl.textContent = String(entry.rank).padStart(3, '0');
 
     const avatar = document.createElement('img');
     avatar.className = 'lb-avatar';
